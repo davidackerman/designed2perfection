@@ -152,6 +152,63 @@ html, body {
 }
 #timerFill.critical { background: var(--bad); }
 
+/* ---- high score board ---- */
+.board-wrap { margin: 4px 0 18px; }
+
+.board {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.board td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.board tr:last-child td { border-bottom: 0; }
+.board .rank { width: 2.5em; color: var(--dim); text-align: right; }
+.board .who { letter-spacing: 0.22em; }
+.board .pts { text-align: right; font-variant-numeric: tabular-nums; font-size: 15px; }
+.board .when { width: 6em; white-space: nowrap; text-align: right; color: var(--dim); font-size: 11px; }
+.board tr.new td { background: rgba(255, 158, 44, 0.12); color: var(--accent); }
+.board tr.new .rank, .board tr.new .when { color: var(--accent); }
+.board-empty { color: var(--dim); font-size: 13px; margin: 14px 0; }
+
+.entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+}
+.entry label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+}
+#initials {
+  width: 5.5em;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 20px;
+  letter-spacing: 0.28em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text);
+  background: #1a2029;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+}
+#initials:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.tab { opacity: 0.5; }
+.tab.on { opacity: 1; border-color: var(--accent); color: var(--accent); }
+.tabs { margin-bottom: 14px; }
+button.danger { background: var(--bad); border-color: var(--bad); color: #16181d; font-weight: 700; }
+.accent { color: var(--accent); }
+
 /* ---- debug bar ---- */
 #debugBar {
   margin: 0 18px 16px;

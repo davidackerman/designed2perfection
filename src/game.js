@@ -13,12 +13,13 @@ const REASONS = {
 };
 
 export class Game {
-  constructor({ ui, audio }) {
+  constructor({ ui, audio, scores, onGameOver }) {
     this.ui = ui;
     this.audio = audio;
+    this.scores = scores;
+    this.onGameOver = onGameOver;
     this.state = STATE.TITLE;
     this.hardMode = localStorage.getItem(CONFIG.storage.hardMode) === '1';
-    this.best = Number(localStorage.getItem(CONFIG.storage.best) || 0);
     this.challenge = null;
     this.frame = null;
     this.gapTimer = null;
@@ -29,6 +30,10 @@ export class Game {
   setHardMode(on) {
     this.hardMode = on;
     localStorage.setItem(CONFIG.storage.hardMode, on ? '1' : '0');
+  }
+
+  get mode() {
+    return this.hardMode ? 'hard' : 'normal';
   }
 
   windowFor(round, challenge) {
@@ -47,7 +52,7 @@ export class Game {
     this.score = 0;
     this.lastActionId = null;
     this.ui.hideOverlays();
-    this.ui.setHud({ score: 0, round: 0, best: this.best });
+    this.ui.setHud({ score: 0, round: 0, best: this.scores.best(this.mode) });
     this.audio.play('start');
     this.nextRound();
     this.frame = requestAnimationFrame(() => this.tick());
@@ -126,6 +131,7 @@ export class Game {
   }
 
   fail(reason) {
+    const causeAction = this.challenge ? this.challenge.action.id : null;
     this.stopTimers();
     this.state = STATE.OVER;
     this.challenge = null;
@@ -133,15 +139,15 @@ export class Game {
     this.ui.flash('bad');
     this.audio.play('fail');
     this.audio.play('gameover');
-    if (this.score > this.best) {
-      this.best = this.score;
-      localStorage.setItem(CONFIG.storage.best, String(this.best));
-    }
-    this.ui.setHud({ best: this.best });
-    this.ui.showGameOver({
+
+    const mode = this.mode;
+    this.scores.recordGame({ score: this.score, causeAction });
+    this.onGameOver({
       score: this.score,
-      best: this.best,
+      mode,
+      causeAction,
       reason: REASONS[reason] || REASONS.wrong,
+      qualifies: this.scores.qualifies(mode, this.score),
     });
   }
 

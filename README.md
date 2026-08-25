@@ -50,6 +50,27 @@ call-out plays. Hit the right control before the timer bar empties.
 - Right control, wrong card orientation → "denied", and you lose 450 ms.
 - Soap that didn't take → nothing happens, keep waving; the clock keeps running.
 
+## High scores
+
+Separate top-10 boards for normal and hard, because a hard-mode 20 is worth a
+great deal more than a normal-mode 20.
+
+- Beat the bottom of the board and you're asked for three initials, arcade
+  style, prefilled with the last name entered. Ties don't bump anyone: you have
+  to *beat* the tenth place, and equal scores keep the earlier run higher.
+- The game-over card shows where you placed and the board around you, with your
+  run highlighted.
+- **High scores** on the title screen shows either board, plus lifetime stats:
+  runs played, commands survived, and which command has ended the most runs
+  ("most often undone by PULL IT"). Clearing takes two clicks, so a stray elbow
+  on the cabinet can't wipe the board.
+- The `Best` figure in the HUD is the top score for the mode you're playing.
+
+Scores live in `localStorage`, so they're per-browser — right for a cabinet,
+not a campus-wide ladder. Everything goes through one small backend interface
+at the bottom of [`src/scores.js`](src/scores.js) (`read()` / `write(data)`),
+so pointing it at a shared service later is a change to that one file.
+
 ### Hard mode
 
 For the first five rounds the picture and the word agree. After that the
@@ -75,6 +96,7 @@ python3 -m http.server 8000
 | [`src/actions.js`](src/actions.js) | The five actions, their variants, and how a round is composed |
 | [`src/game.js`](src/game.js) | Round loop, scoring, failure states |
 | [`src/input.js`](src/input.js) | Keyboard → action events, re-bindable, HID-friendly |
+| [`src/scores.js`](src/scores.js) | High score boards, stats, and the storage backend |
 | [`src/audio.js`](src/audio.js) | Sound manifest and playback |
 | [`src/ui.js`](src/ui.js) | All DOM writes |
 | [`assets/img/`](assets/img/) | Placeholder SVG art — swap for photos of the actual doors |

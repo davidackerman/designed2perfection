@@ -4,6 +4,16 @@ import { Input } from './input.js';
 
 const $ = (sel) => document.querySelector(sel);
 
+const OVERLAYS = ['title', 'over', 'remap', 'scores'];
+
+const ORDINALS = ['1st', '2nd', '3rd'];
+const place = (rank) => ORDINALS[rank] || `${rank + 1}th`;
+
+function formatDate(t) {
+  if (!t) return '';
+  return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export class UI {
   constructor() {
     this.el = {
@@ -20,9 +30,20 @@ export class UI {
       title: $('#titleOverlay'),
       over: $('#overOverlay'),
       remap: $('#remapOverlay'),
+      scores: $('#scoresOverlay'),
       overScore: $('#overScore'),
       overBest: $('#overBest'),
+      overBestLine: $('#overBestLine'),
+      overPlace: $('#overPlace'),
+      overMode: $('#overMode'),
       overReason: $('#overReason'),
+      overBoard: $('#overBoard'),
+      entryRow: $('#entryRow'),
+      initials: $('#initials'),
+      scoresBoard: $('#scoresBoard'),
+      scoresStats: $('#scoresStats'),
+      tabNormal: $('#tabNormal'),
+      tabHard: $('#tabHard'),
       hardToggle: $('#hardToggle'),
       debugToggle: $('#debugToggle'),
       bindingList: $('#bindingList'),
@@ -39,14 +60,14 @@ export class UI {
   }
 
   showOverlay(name) {
-    for (const key of ['title', 'over', 'remap']) {
+    for (const key of OVERLAYS) {
       this.el[key].classList.toggle('hidden', key !== name);
     }
     this.el.stage.classList.toggle('idle', name !== null);
   }
 
   hideOverlays() {
-    for (const key of ['title', 'over', 'remap']) this.el[key].classList.add('hidden');
+    for (const key of OVERLAYS) this.el[key].classList.add('hidden');
     this.el.stage.classList.remove('idle');
   }
 
@@ -172,11 +193,71 @@ export class UI {
     }, 260);
   }
 
-  showGameOver({ score, best, reason }) {
+  /** Render one board as a table; `highlight` marks the run just played. */
+  renderBoard(target, entries, highlight = -1) {
+    if (!entries.length) {
+      target.innerHTML = '<p class="board-empty">No scores yet.</p>';
+      return;
+    }
+    const rows = entries
+      .map((e, i) => {
+        const cls = i === highlight ? ' class="new"' : '';
+        return (
+          `<tr${cls}><td class="rank">${i + 1}</td>` +
+          `<td class="who">${e.initials}</td>` +
+          `<td class="pts">${e.score}</td>` +
+          `<td class="when">${formatDate(e.t)}</td></tr>`
+        );
+      })
+      .join('');
+    target.innerHTML = `<table class="board"><tbody>${rows}</tbody></table>`;
+  }
+
+  showGameOver({ score, best, reason, mode, board, rank, qualifies, defaultName }) {
     this.el.overScore.textContent = score;
     this.el.overBest.textContent = best;
     this.el.overReason.textContent = reason;
+    this.el.overMode.textContent = mode;
+    this.el.overPlace.innerHTML =
+      rank >= 0
+        ? `<b class="accent">${place(rank)}</b> on the ${mode} board`
+        : qualifies
+          ? 'That makes the board.'
+          : 'Not good enough for the board.';
+
+    // While the initials form is up, the best/board lines are about to change
+    // anyway -- one less thing competing with the input for attention.
+    this.el.entryRow.classList.toggle('hidden', !qualifies);
+    this.el.overBestLine.classList.toggle('hidden', qualifies);
+    if (qualifies) {
+      this.el.initials.value = defaultName || '';
+      // Autofocus so you can just type and hit Enter.
+      setTimeout(() => this.el.initials.focus(), 0);
+    }
+    this.renderBoard(this.el.overBoard, qualifies && !board.length ? [] : board, rank);
+    this.el.overBoard.classList.toggle('hidden', qualifies && !board.length);
     this.showOverlay('over');
+  }
+
+  /** After the initials are saved: swap the form out for the placement line. */
+  confirmEntry({ mode, board, rank, best }) {
+    this.el.entryRow.classList.add('hidden');
+    this.el.overBestLine.classList.remove('hidden');
+    this.el.overBoard.classList.remove('hidden');
+    this.el.overBest.textContent = best;
+    this.el.overPlace.innerHTML = `<b class="accent">${place(rank)}</b> on the ${mode} board`;
+    this.renderBoard(this.el.overBoard, board, rank);
+  }
+
+  showScores({ mode, board, stats, nemesis }) {
+    this.el.tabNormal.classList.toggle('on', mode === 'normal');
+    this.el.tabHard.classList.toggle('on', mode === 'hard');
+    this.renderBoard(this.el.scoresBoard, board);
+    const bits = [`${stats.games} run${stats.games === 1 ? '' : 's'}`,
+                  `${stats.actions} commands survived`];
+    if (nemesis) bits.push(`most often undone by <b>${nemesis.id.toUpperCase()} IT</b> (${nemesis.count}&times;)`);
+    this.el.scoresStats.innerHTML = bits.join(' · ');
+    this.showOverlay('scores');
   }
 
   /** Render the remap screen. `onRebind(slot)` is called when a row is clicked. */

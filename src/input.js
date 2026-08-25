@@ -98,6 +98,11 @@ export class Input {
   }
 
   handle(e) {
+    // Never eat keys while a text field has focus (entering initials), or the
+    // control keys would be preventDefault()ed out of the input.
+    const el = e.target;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
+
     if (this.capture) {
       e.preventDefault();
       const { slot, done } = this.capture;

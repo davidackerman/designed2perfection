@@ -60,6 +60,7 @@
       <div class="row">
         <button id="startBtn" class="primary" type="button">START</button>
         <button id="hardBtn" type="button">Hard mode: <span id="hardToggle">OFF</span></button>
+        <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
         <button id="debugBtn" type="button">Debug: <span id="debugToggle">OFF</span></button>
       </div>
@@ -75,10 +76,36 @@
       <h2>YOU DID NOT GET IN</h2>
       <p id="overReason" class="reason"></p>
       <p class="bigscore"><span id="overScore">0</span></p>
-      <p class="tagline">Best: <span id="overBest">0</span></p>
+      <p class="tagline" id="overPlace"></p>
+      <p class="tagline" id="overBestLine">Best (<span id="overMode">normal</span>): <span id="overBest">0</span></p>
+
+      <form id="entryRow" class="entry hidden" autocomplete="off">
+        <label for="initials">NEW HIGH SCORE</label>
+        <input id="initials" maxlength="3" spellcheck="false" autocapitalize="characters" placeholder="AAA" />
+        <button id="saveScoreBtn" class="primary" type="submit">SAVE</button>
+      </form>
+
+      <div id="overBoard" class="board-wrap"></div>
+
       <div class="row">
         <button id="againBtn" class="primary" type="button">GO AGAIN</button>
         <button id="menuBtn" type="button">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoresOverlay" class="overlay hidden">
+    <div class="card">
+      <h2>HIGH SCORES</h2>
+      <div class="row tabs">
+        <button id="tabNormal" type="button" class="tab">NORMAL</button>
+        <button id="tabHard" type="button" class="tab">HARD</button>
+      </div>
+      <div id="scoresBoard" class="board-wrap"></div>
+      <p id="scoresStats" class="tagline"></p>
+      <div class="row">
+        <button id="scoresDoneBtn" class="primary" type="button">DONE</button>
+        <button id="scoresClearBtn" type="button">Clear scores</button>
       </div>
     </div>
   </div>

@@ -25,8 +25,14 @@ export const CONFIG = {
     perExtraHitMs: 420,      // extra time granted per required extra wave
   },
 
+  scores: {
+    maxEntries: 10,          // per board
+    initialsLength: 3,
+  },
+
   storage: {
-    best: 'janelia-it:best',
+    scores: 'janelia-it:scores',
+    best: 'janelia-it:best', // legacy single value, migrated into the board
     hardMode: 'janelia-it:hard',
     muted: 'janelia-it:muted',
     bindings: 'janelia-it:bindings',
