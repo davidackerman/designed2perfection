@@ -26,12 +26,15 @@ mapping persists in `localStorage`.
 Press `` ` `` (backtick) or hit **Debug** on the title screen. A bar appears
 under the timer showing:
 
+- **A keycap on the stage** showing the key this round wants, its
+  `action:variant` slot, and how many hits it needs — counting up as you wave
+  at a stubborn soap dispenser (`soap:default 1/3`). It sits where you're
+  already looking, and disappears between rounds.
 - **A chip per control** with the key it currently listens for. The chip lights
   up on every press, so you can confirm a physical control is wired to what you
   think it is.
-- **expected** — the key this round actually wants, its `action:variant` slot,
-  how many hits it needs (`×3` for a stubborn soap dispenser, counting up as
-  you wave), and whether the word is currently lying to you.
+- **expected** — the same answer in the bar, plus whether the word is currently
+  lying to you.
 - **last key** — the raw `KeyboardEvent.code` of the last key pressed and which
   control it resolved to, *including keys bound to nothing* (`Q unbound KeyQ`).
   This is the one to watch when bringing up the cabinet: it shows exactly what

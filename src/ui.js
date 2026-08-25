@@ -50,6 +50,9 @@ export class UI {
       debugBar: $('#debugBar'),
       debugKeys: $('#debugKeys'),
       debugExpected: $('#debugExpected'),
+      keyHint: $('#keyHint'),
+      keyHintKey: $('#keyHintKey'),
+      keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
     };
     this.flashTimer = null;
@@ -140,19 +143,33 @@ export class UI {
   }
 
   renderDebugExpected(progress = null) {
-    if (!this.debug) return;
+    if (!this.debug) {
+      this.el.keyHint.classList.add('hidden');
+      return;
+    }
     const ch = this.lastCh;
     if (!ch) {
       this.el.debugExpected.innerHTML = '<span class="dim">--</span>';
+      this.el.keyHint.classList.add('hidden');
       return;
     }
     const slot = `${ch.action.id}:${ch.variantId}`;
     const key = this.keyFor(slot);
+    const keyName = key ? Input.keyName(key) : '--';
     const hits = ch.requiredHits > 1 ? ` &times;${ch.requiredHits}` : '';
     const lying = ch.wordIsLying ? ' <span class="no">word lies</span>' : '';
     const done = progress ? ` <span class="ok">${progress}</span>` : '';
+
     this.el.debugExpected.innerHTML =
-      `<b>${key ? Input.keyName(key) : '--'}</b>${hits} <span class="dim">${slot}</span>${lying}${done}`;
+      `<b>${keyName}</b>${hits} <span class="dim">${slot}</span>${lying}${done}`;
+
+    // Same answer, but on the stage: press this.
+    this.el.keyHintKey.textContent = keyName;
+    this.el.keyHintKey.classList.toggle('wide', keyName.length > 2);
+    this.el.keyHintSlot.innerHTML = progress
+      ? `${slot} <span class="ok">${progress}</span>`
+      : `${slot}${hits}`;
+    this.el.keyHint.classList.remove('hidden');
   }
 
   showChallenge(ch) {
@@ -214,6 +231,7 @@ export class UI {
   }
 
   showGameOver({ score, best, reason, mode, board, rank, qualifies, defaultName }) {
+    this.setDebugExpected(null);   // the round is over; don't leave the hint up
     this.el.overScore.textContent = score;
     this.el.overBest.textContent = best;
     this.el.overReason.textContent = reason;

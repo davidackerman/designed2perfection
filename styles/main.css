@@ -80,6 +80,7 @@ html, body {
 
 /* ---- stage ---- */
 #stage {
+  position: relative;   /* anchors the debug key hint */
   flex: 1;
   min-height: 0;   /* let the stage shrink instead of overflowing the viewport */
   display: grid;
@@ -135,6 +136,40 @@ html, body {
   25% { transform: translateX(-6px); }
   75% { transform: translateX(6px); }
 }
+
+/* ---- debug: the key to press, on the stage ---- */
+#keyHint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(13, 17, 23, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: var(--mono);
+  pointer-events: none;
+}
+
+#keyHintKey {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 8px;
+  font-size: 20px;
+  color: #16181d;
+  background: var(--accent);
+  border-radius: 7px;
+  box-shadow: 0 2px 0 #a1631a;
+}
+#keyHintKey.wide { font-size: 13px; letter-spacing: 0.06em; }
+
+#keyHintSlot { font-size: 11px; color: var(--dim); letter-spacing: 0.08em; }
+#keyHintSlot .ok { color: var(--good); }
 
 /* ---- timer ---- */
 #timer {
