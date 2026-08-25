@@ -30,5 +30,6 @@ export const CONFIG = {
     hardMode: 'janelia-it:hard',
     muted: 'janelia-it:muted',
     bindings: 'janelia-it:bindings',
+    debug: 'janelia-it:debug',
   },
 };

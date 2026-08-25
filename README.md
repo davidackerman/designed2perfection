@@ -16,7 +16,28 @@ ignore you, and badge readers that care very much which way you hold the card.
 | **SWIPE IT** | card swiper | `F` / `R` | Stripe up or stripe down, as pictured |
 | **TAP IT** | card tap pad | `G` / `T` | Face up or face down, as pictured |
 
-Other keys: `Space` start · `H` hard mode · `M` mute · `Esc` quit a run.
+Other keys: `Space` (or `Enter`) start · `H` hard mode · `M` mute · `` ` `` debug · `Esc` quit a run.
+
+Every control is re-bindable from the title screen (**Controls**), and the
+mapping persists in `localStorage`.
+
+## Debug mode
+
+Press `` ` `` (backtick) or hit **Debug** on the title screen. A bar appears
+under the timer showing:
+
+- **A chip per control** with the key it currently listens for. The chip lights
+  up on every press, so you can confirm a physical control is wired to what you
+  think it is.
+- **expected** — the key this round actually wants, its `action:variant` slot,
+  how many hits it needs (`×3` for a stubborn soap dispenser, counting up as
+  you wave), and whether the word is currently lying to you.
+- **last key** — the raw `KeyboardEvent.code` of the last key pressed and which
+  control it resolved to, *including keys bound to nothing* (`Q unbound KeyQ`).
+  This is the one to watch when bringing up the cabinet: it shows exactly what
+  the hardware is sending.
+
+The setting persists, and the chips re-render after a re-bind.
 
 ## How a round works
 

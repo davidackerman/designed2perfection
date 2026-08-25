@@ -105,6 +105,7 @@ export class Game {
       // The dispenser considers your request and declines.
       this.audio.play('nothing');
       this.ui.flash('nothing');
+      this.ui.setDebugProgress(ch.hitsDone, ch.requiredHits);
       return;
     }
 

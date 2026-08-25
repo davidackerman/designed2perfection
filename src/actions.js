@@ -14,7 +14,7 @@ export const ACTIONS = [
     // Both doors look identical. The only tell is the placard, way up there.
     placard: 'PUSH',
     variants: [
-      { id: 'default', key: 'KeyA', label: 'Push', image: 'assets/img/door.svg' },
+      { id: 'default', key: 'KeyA', label: 'Push', short: 'PUSH', image: 'assets/img/door.svg' },
     ],
   },
   {
@@ -23,7 +23,7 @@ export const ACTIONS = [
     audioKey: 'pull',
     placard: 'PULL',
     variants: [
-      { id: 'default', key: 'KeyS', label: 'Pull', image: 'assets/img/door.svg' },
+      { id: 'default', key: 'KeyS', label: 'Pull', short: 'PULL', image: 'assets/img/door.svg' },
     ],
   },
   {
@@ -32,7 +32,7 @@ export const ACTIONS = [
     audioKey: 'soap',
     repeatable: true,
     variants: [
-      { id: 'default', key: 'KeyD', label: 'Wave', image: 'assets/img/soap.svg' },
+      { id: 'default', key: 'KeyD', label: 'Wave', short: 'SOAP', image: 'assets/img/soap.svg' },
     ],
   },
   {
@@ -40,8 +40,8 @@ export const ACTIONS = [
     word: 'SWIPE IT',
     audioKey: 'swipe',
     variants: [
-      { id: 'stripe-up', key: 'KeyF', label: 'Swipe stripe up', image: 'assets/img/swipe-up.svg' },
-      { id: 'stripe-down', key: 'KeyR', label: 'Swipe stripe down', image: 'assets/img/swipe-down.svg' },
+      { id: 'stripe-up', key: 'KeyF', label: 'Swipe stripe up', short: 'SWIPE \u2191', image: 'assets/img/swipe-up.svg' },
+      { id: 'stripe-down', key: 'KeyR', label: 'Swipe stripe down', short: 'SWIPE \u2193', image: 'assets/img/swipe-down.svg' },
     ],
   },
   {
@@ -49,8 +49,8 @@ export const ACTIONS = [
     word: 'TAP IT',
     audioKey: 'tap',
     variants: [
-      { id: 'face-up', key: 'KeyG', label: 'Tap face up', image: 'assets/img/tap-up.svg' },
-      { id: 'face-down', key: 'KeyT', label: 'Tap face down', image: 'assets/img/tap-down.svg' },
+      { id: 'face-up', key: 'KeyG', label: 'Tap face up', short: 'TAP \u2191', image: 'assets/img/tap-up.svg' },
+      { id: 'face-down', key: 'KeyT', label: 'Tap face down', short: 'TAP \u2193', image: 'assets/img/tap-down.svg' },
     ],
   },
 ];

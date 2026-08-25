@@ -36,6 +36,20 @@ persists in `localStorage`, so you set it once on the cabinet's browser.
   same key — the game then accepts either, and the orientation flaw is
   effectively disabled.
 
+## Bringing up a new control
+
+Turn on **debug mode** (`` ` ``, or the Debug button on the title screen) and
+watch the **last key** readout while you actuate each control. It prints the raw
+`KeyboardEvent.code` the browser received and which control it mapped to —
+`F swipe:stripe-up` for a recognised control, `Q unbound KeyQ` for a keycode the
+game doesn't know. That tells you three things at once: whether the switch fires
+at all, what code the firmware is really sending, and whether it lands on the
+control you intended.
+
+The chip row above it lights up per press, so a bouncing switch shows as a chip
+that strobes several times on one actuation — fix that in firmware rather than
+in the game.
+
 ## Kiosk setup
 
 Run the Pages URL fullscreen (`F11`, or Chrome `--kiosk --app=<url>`). The page

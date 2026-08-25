@@ -35,6 +35,16 @@
 
   <div id="timer"><div id="timerFill"></div></div>
 
+  <!-- Debug mode: what each control listens for, what this round wants, and
+       what the keyboard/cabinet actually sent. -->
+  <div id="debugBar" class="hidden">
+    <div id="debugKeys" class="chips"></div>
+    <div class="debug-readout">
+      <span class="debug-label">expected</span><span id="debugExpected"><span class="dim">--</span></span>
+      <span class="debug-label">last key</span><span id="debugLast"><span class="dim">--</span></span>
+    </div>
+  </div>
+
   <!-- Overlays -->
   <div id="titleOverlay" class="overlay">
     <div class="card">
@@ -51,9 +61,10 @@
         <button id="startBtn" class="primary" type="button">START</button>
         <button id="hardBtn" type="button">Hard mode: <span id="hardToggle">OFF</span></button>
         <button id="remapBtn" type="button">Controls</button>
+        <button id="debugBtn" type="button">Debug: <span id="debugToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>Space</b> start · <b>H</b> hard mode · <b>M</b> mute · <b>Esc</b> quit a run<br />
+        <b>Space</b> start · <b>H</b> hard mode · <b>M</b> mute · <b>`</b> debug · <b>Esc</b> quit a run<br />
         Hard mode: after a few rounds the <i>word</i> starts lying. The picture and the placard never do.
       </p>
     </div>

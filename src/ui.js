@@ -24,9 +24,18 @@ export class UI {
       overBest: $('#overBest'),
       overReason: $('#overReason'),
       hardToggle: $('#hardToggle'),
+      debugToggle: $('#debugToggle'),
       bindingList: $('#bindingList'),
+      debugBar: $('#debugBar'),
+      debugKeys: $('#debugKeys'),
+      debugExpected: $('#debugExpected'),
+      debugLast: $('#debugLast'),
     };
     this.flashTimer = null;
+    this.debug = false;
+    this.chips = new Map();      // slot id -> chip element
+    this.chipTimers = new Map();
+    this.keyFor = () => null;    // set by main.js so chips track re-binds
   }
 
   showOverlay(name) {
@@ -59,6 +68,72 @@ export class UI {
     this.el.muteBadge.classList.toggle('off', muted);
   }
 
+  // ---- debug mode -------------------------------------------------------
+
+  setDebug(on, slots) {
+    this.debug = on;
+    this.el.debugBar.classList.toggle('hidden', !on);
+    this.el.debugToggle.textContent = on ? 'ON' : 'OFF';
+    this.el.debugToggle.classList.toggle('on', on);
+    if (on) this.renderDebugKeys(slots);
+  }
+
+  /** One chip per control, showing the key it currently listens for. */
+  renderDebugKeys(slots) {
+    this.el.debugKeys.innerHTML = '';
+    this.chips.clear();
+    for (const slot of slots) {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      const key = this.keyFor(slot.id);
+      chip.innerHTML =
+        `<b>${key ? Input.keyName(key) : '--'}</b><span>${slot.short}</span>`;
+      this.el.debugKeys.appendChild(chip);
+      this.chips.set(slot.id, chip);
+    }
+  }
+
+  /** Light up the chip for a press; also log the raw code, bound or not. */
+  markKey({ code, slot }) {
+    if (!this.debug) return;
+    const name = Input.keyName(code);
+    this.el.debugLast.innerHTML = slot
+      ? `<b>${name}</b> <span class="ok">${slot}</span> <span class="dim">${code}</span>`
+      : `<b>${name}</b> <span class="no">unbound</span> <span class="dim">${code}</span>`;
+    const chip = slot && this.chips.get(slot);
+    if (!chip) return;
+    chip.classList.remove('hit');
+    void chip.offsetWidth;
+    chip.classList.add('hit');
+    clearTimeout(this.chipTimers.get(slot));
+    this.chipTimers.set(slot, setTimeout(() => chip.classList.remove('hit'), 220));
+  }
+
+  setDebugExpected(ch) {
+    this.lastCh = ch;
+    this.renderDebugExpected();
+  }
+
+  setDebugProgress(done, required) {
+    this.renderDebugExpected(required > 1 ? `${done}/${required}` : null);
+  }
+
+  renderDebugExpected(progress = null) {
+    if (!this.debug) return;
+    const ch = this.lastCh;
+    if (!ch) {
+      this.el.debugExpected.innerHTML = '<span class="dim">--</span>';
+      return;
+    }
+    const slot = `${ch.action.id}:${ch.variantId}`;
+    const key = this.keyFor(slot);
+    const hits = ch.requiredHits > 1 ? ` &times;${ch.requiredHits}` : '';
+    const lying = ch.wordIsLying ? ' <span class="no">word lies</span>' : '';
+    const done = progress ? ` <span class="ok">${progress}</span>` : '';
+    this.el.debugExpected.innerHTML =
+      `<b>${key ? Input.keyName(key) : '--'}</b>${hits} <span class="dim">${slot}</span>${lying}${done}`;
+  }
+
   showChallenge(ch) {
     this.el.image.src = ch.image;
     this.el.image.alt = ch.action.id;
@@ -70,11 +145,13 @@ export class UI {
       this.el.placard.classList.add('hidden');
     }
     this.el.stage.classList.remove('blank');
+    this.setDebugExpected(ch);
   }
 
   clearChallenge() {
     this.el.stage.classList.add('blank');
     this.el.placard.classList.add('hidden');
+    this.setDebugExpected(null);
   }
 
   setTimer(fraction) {

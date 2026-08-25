@@ -2,18 +2,27 @@ import { UI } from './ui.js';
 import { Game, STATE } from './game.js';
 import { AudioManager } from './audio.js';
 import { Input, allBindingSlots } from './input.js';
+import { CONFIG } from './config.js';
 
 const ui = new UI();
 const audio = new AudioManager();
 const game = new Game({ ui, audio });
-const input = new Input((evt) => game.handleInput(evt));
+const input = new Input(
+  (evt) => game.handleInput(evt),
+  (raw) => ui.markKey(raw)
+);
+ui.keyFor = (slot) => input.keyFor(slot);
 
 let screen = 'title'; // title | playing | over | remap
+
+const slots = allBindingSlots();
+let debug = localStorage.getItem(CONFIG.storage.debug) === '1';
 
 ui.setHardMode(game.hardMode);
 ui.setMuted(audio.muted);
 ui.setHud({ score: 0, round: 0, best: game.best });
 ui.clearChallenge();
+ui.setDebug(debug, slots);
 ui.showOverlay('title');
 
 function toTitle() {
@@ -33,13 +42,18 @@ function toggleHard() {
   ui.setHardMode(game.hardMode);
 }
 
+function toggleDebug() {
+  debug = !debug;
+  localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
+  ui.setDebug(debug, slots);
+  ui.setDebugExpected(game.challenge); // catch up if toggled mid-round
+}
+
 function toggleMute() {
   ui.setMuted(audio.toggleMute());
 }
 
 // --- remap screen ---------------------------------------------------------
-
-const slots = allBindingSlots();
 
 function drawBindings(capturing = null) {
   ui.renderBindings(slots, input, beginRebind, capturing);
@@ -47,7 +61,10 @@ function drawBindings(capturing = null) {
 
 function beginRebind(slotId) {
   drawBindings(slotId);
-  input.beginCapture(slotId, () => drawBindings());
+  input.beginCapture(slotId, () => {
+    drawBindings();
+    if (debug) ui.renderDebugKeys(slots);
+  });
 }
 
 function toRemap() {
@@ -65,8 +82,10 @@ document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#remapResetBtn').addEventListener('click', () => {
   input.reset();
   drawBindings();
+  if (debug) ui.renderDebugKeys(slots);
 });
 document.querySelector('#hardBtn').addEventListener('click', toggleHard);
+document.querySelector('#debugBtn').addEventListener('click', toggleDebug);
 document.querySelector('#muteBadge').addEventListener('click', toggleMute);
 
 // Global keys. Action keys are consumed by Input before we get here, so these
@@ -76,6 +95,7 @@ window.addEventListener('keydown', (e) => {
   if (e.defaultPrevented) return;
 
   if (e.code === 'KeyM') { toggleMute(); return; }
+  if (e.code === 'Backquote') { toggleDebug(); return; }
 
   if (screen === 'remap') {
     if (e.code === 'Escape') toTitle();

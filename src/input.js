@@ -21,15 +21,23 @@ export function allBindingSlots() {
   const slots = [];
   for (const action of ACTIONS) {
     for (const variant of action.variants) {
-      slots.push({ id: bindingId(action.id, variant.id), actionId: action.id, label: variant.label });
+      slots.push({
+        id: bindingId(action.id, variant.id),
+        actionId: action.id,
+        label: variant.label,
+        short: variant.short || variant.label,
+      });
     }
   }
   return slots;
 }
 
 export class Input {
-  constructor(onAction) {
+  constructor(onAction, onRawKey = null) {
     this.onAction = onAction;
+    // Fires for *every* keydown, bound or not -- debug mode uses it to show
+    // what the cabinet is actually sending.
+    this.onRawKey = onRawKey;
     this.bindings = this.load();
     this.capture = null; // set while remapping
     window.addEventListener('keydown', (e) => this.handle(e));
@@ -108,6 +116,7 @@ export class Input {
 
     if (e.repeat) return; // held key is one press, not a stream
     const slot = this.slotForCode(e.code);
+    if (this.onRawKey) this.onRawKey({ code: e.code, slot });
     if (!slot) return;
     e.preventDefault();
     const [actionId, variantId] = slot.split(':');
