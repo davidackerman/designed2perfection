@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 380" role="img" aria-label="A door. Which way it opens is anyone's guess.">
+  <rect width="300" height="380" fill="none"/>
+  <rect x="46" y="18" width="208" height="344" rx="4" fill="#1f2530" stroke="#4a5566" stroke-width="4"/>
+  <rect x="66" y="40" width="168" height="130" rx="3" fill="#121722" stroke="#3a4454" stroke-width="3"/>
+  <rect x="66" y="196" width="168" height="140" rx="3" fill="#121722" stroke="#3a4454" stroke-width="3"/>
+  <rect x="212" y="176" width="12" height="60" rx="6" fill="#ff9e2c"/>
+  <circle cx="218" cy="250" r="7" fill="#6b7787"/>
+  <rect x="98" y="60" width="104" height="26" rx="2" fill="#2b323d" stroke="#3b4451" stroke-width="2"/>
+  <text x="150" y="78" text-anchor="middle" font-family="monospace" font-size="13" letter-spacing="4" fill="#7c8798">? ? ? ?</text>
+</svg>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Janelia It!</title>
+<meta name="description" content="A Bop It-style game about the everyday obstacles of Janelia Research Campus: doors, soap dispensers, and badge readers." />
+<link rel="stylesheet" href="styles/main.css" />
+<link rel="icon" href="assets/img/favicon.svg" />
+</head>
+<body>
+<div id="app">
+
+  <!-- The placard is deliberately small and at the very top: you have to look up. -->
+  <div id="placard" class="hidden">PUSH</div>
+
+  <header id="hud">
+    <div class="stat"><span class="stat-label">Score</span><span id="score">0</span></div>
+    <div class="stat"><span class="stat-label">Round</span><span id="round">0</span></div>
+    <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <div class="badges">
+      <span id="modeBadge" class="badge">NORMAL</span>
+      <button id="muteBadge" class="badge" type="button">SOUND</button>
+    </div>
+  </header>
+
+  <main id="stage" class="blank idle">
+    <section class="panel panel-image">
+      <img id="stageImage" alt="" src="assets/img/door.svg" />
+    </section>
+    <section class="panel panel-word">
+      <div id="stageWord">READY</div>
+    </section>
+  </main>
+
+  <div id="timer"><div id="timerFill"></div></div>
+
+  <!-- Overlays -->
+  <div id="titleOverlay" class="overlay">
+    <div class="card">
+      <h1>JANELIA <span>IT!</span></h1>
+      <p class="tagline">Five daily indignities. One shrinking clock.</p>
+      <ul class="legend">
+        <li><b>PUSH IT</b> — the button. Check the placard.</li>
+        <li><b>PULL IT</b> — the lever. Check the placard.</li>
+        <li><b>SOAP IT</b> — wave. Then wave again. And again.</li>
+        <li><b>SWIPE IT</b> — stripe up or stripe down, as pictured.</li>
+        <li><b>TAP IT</b> — face up or face down, as pictured.</li>
+      </ul>
+      <div class="row">
+        <button id="startBtn" class="primary" type="button">START</button>
+        <button id="hardBtn" type="button">Hard mode: <span id="hardToggle">OFF</span></button>
+        <button id="remapBtn" type="button">Controls</button>
+      </div>
+      <p class="hint">
+        <b>Space</b> start · <b>H</b> hard mode · <b>M</b> mute · <b>Esc</b> quit a run<br />
+        Hard mode: after a few rounds the <i>word</i> starts lying. The picture and the placard never do.
+      </p>
+    </div>
+  </div>
+
+  <div id="overOverlay" class="overlay hidden">
+    <div class="card">
+      <h2>YOU DID NOT GET IN</h2>
+      <p id="overReason" class="reason"></p>
+      <p class="bigscore"><span id="overScore">0</span></p>
+      <p class="tagline">Best: <span id="overBest">0</span></p>
+      <div class="row">
+        <button id="againBtn" class="primary" type="button">GO AGAIN</button>
+        <button id="menuBtn" type="button">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="remapOverlay" class="overlay hidden">
+    <div class="card">
+      <h2>CONTROLS</h2>
+      <p class="tagline">Click a control, then press the key it should listen for.<br />
+        The cabinet sends these as a USB keyboard — see HARDWARE.md.</p>
+      <div id="bindingList" class="bindings"></div>
+      <div class="row">
+        <button id="remapDoneBtn" class="primary" type="button">DONE</button>
+        <button id="remapResetBtn" type="button">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

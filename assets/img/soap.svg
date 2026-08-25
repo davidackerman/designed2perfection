@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 380" role="img" aria-label="A soap dispenser that will not dispense soap.">
+  <rect x="86" y="22" width="128" height="150" rx="10" fill="#1f2530" stroke="#4a5566" stroke-width="4"/>
+  <rect x="106" y="46" width="88" height="88" rx="6" fill="#121722" stroke="#3a4454" stroke-width="3"/>
+  <circle cx="150" cy="90" r="16" fill="#2b323d" stroke="#ff9e2c" stroke-width="3"/>
+  <circle cx="150" cy="90" r="5" fill="#ff9e2c"/>
+  <rect x="132" y="172" width="36" height="24" rx="4" fill="#4a5566"/>
+  <path d="M150 206 v18" stroke="#3fd67a" stroke-width="5" stroke-linecap="round" stroke-dasharray="6 10" opacity="0.5"/>
+  <path d="M104 300 q10 -46 46 -46 q36 0 46 46 q-46 22 -92 0 z" fill="#2b323d" stroke="#8b95a5" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M104 300 q46 22 92 0" fill="none" stroke="#8b95a5" stroke-width="4"/>
+</svg>
