@@ -8,17 +8,11 @@ import { CONFIG } from './config.js';
 
 export const MANIFEST = {
   // Command call-outs, one per action.
-  push: 'assets/audio/push.mp3',
-  pull: 'assets/audio/pull.mp3',
-  soap: 'assets/audio/soap.mp3',
-  swipe: 'assets/audio/swipe.mp3',
-  tap: 'assets/audio/tap.mp3',
-  // Button-press feedback, one per action.
-  pushit: 'assets/audio/pushit.mp3',
-  pullit: 'assets/audio/pullit.mp3',
-  soapit: 'assets/audio/soapit.mp3',
-  swipeit: 'assets/audio/swipeit.mp3',
-  tapit: 'assets/audio/tapit.mp3',
+  push: 'assets/audio/pushit.mp3',
+  pull: 'assets/audio/pullit.mp3',
+  soap: 'assets/audio/soapit.mp3',
+  swipe: 'assets/audio/swipeit.mp3',
+  tap: 'assets/audio/tapit.mp3',
   // Feedback.
   success: 'assets/audio/success.mp3',
   nothing: 'assets/audio/nothing.mp3',   // the soap dispenser doing nothing

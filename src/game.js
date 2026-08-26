@@ -87,7 +87,6 @@ export class Game {
   handleInput({ actionId, variantId }) {
     if (this.state !== STATE.PLAYING || !this.challenge) return;
     const ch = this.challenge;
-    this.audio.play(`${actionId}it`);
 
     if (actionId !== ch.action.id) {
       const doorMixUp =
