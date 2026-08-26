@@ -71,17 +71,14 @@ function rollHits(action, round) {
   return minHits + Math.floor(Math.random() * (maxHits - minHits + 1));
 }
 
-function mismatchChance(round, hardMode) {
-  if (!hardMode) return 0;
-  const { graceRounds, rampRounds, maxMismatch } = CONFIG.hardMode;
-  if (round <= graceRounds) return 0;
-  const progress = Math.min(1, (round - graceRounds) / rampRounds);
-  return progress * maxMismatch;
+// Disabled for now: the call-out video must always match the true action.
+function mismatchChance() {
+  return 0;
 }
 
 /**
- * Build one round's demand. The image (and placard) are always truthful; in
- * hard mode the *word* eventually starts lying to you.
+ * Build one round's demand. The image, placard, and call-out video always
+ * agree (see mismatchChance -- the hard-mode lie is disabled for now).
  */
 export function makeChallenge(action, round, hardMode) {
   const variant = pick(action.variants);

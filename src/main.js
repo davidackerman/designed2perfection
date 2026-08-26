@@ -161,6 +161,23 @@ clearBtn.addEventListener('click', () => {
 });
 document.querySelector('#muteBadge').addEventListener('click', toggleMute);
 
+// Debug cheat: while debug mode is on and a round is live, D always resolves
+// as correct and every other key as wrong -- drive the win/lose paths without
+// hunting for the real binding. Capture phase + stopImmediatePropagation so
+// this fully replaces normal input handling for the event instead of also
+// letting Input's own listener process it.
+window.addEventListener('keydown', (e) => {
+  if (!debug || game.state !== STATE.PLAYING || !game.challenge) return;
+  if (isTyping(e) || e.repeat) return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  if (e.code === 'KeyD') {
+    game.handleInput({ actionId: game.challenge.action.id, variantId: game.challenge.variantId });
+  } else {
+    game.fail('wrong');
+  }
+}, true);
+
 // Global keys. Action keys are consumed by Input before we get here, so these
 // only fire for keys that aren't bound to a control.
 window.addEventListener('keydown', (e) => {
