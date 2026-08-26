@@ -10,11 +10,16 @@ about 800 ms.
 
 | File | When it plays |
 | --- | --- |
-| `pushit.mp3` | "Push it!" — the command call-out |
-| `pullit.mp3` | "Pull it!" |
-| `soapit.mp3` | "Soap it!" |
-| `swipeit.mp3` | "Swipe it!" |
-| `tapit.mp3` | "Tap it!" |
+| `push.mp3` | "Push it!" — the command call-out |
+| `pull.mp3` | "Pull it!" |
+| `soap.mp3` | "Soap it!" |
+| `swipe.mp3` | "Swipe it!" |
+| `tap.mp3` | "Tap it!" |
+| `pushit.mp3` | Push button pressed |
+| `pullit.mp3` | Pull button pressed |
+| `soapit.mp3` | Soap button pressed |
+| `swipeit.mp3` | Swipe button pressed |
+| `tapit.mp3` | Tap button pressed |
 | `success.mp3` | Action completed |
 | `nothing.mp3` | Soap dispenser did nothing (a wave that didn't take) |
 | `denied.mp3` | Badge read at the wrong orientation |
