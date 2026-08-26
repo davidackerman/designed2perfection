@@ -15,10 +15,16 @@ about 800 ms.
 | `soap.mp3` | "Soap it!" |
 | `swipe.mp3` | "Swipe it!" |
 | `tap.mp3` | "Tap it!" |
+| `pushit.mp3` | Push button pressed |
+| `pullit.mp3` | Pull button pressed |
+| `soapit.mp3` | Soap button pressed |
+| `swipeit.mp3` | Swipe button pressed |
+| `tapit.mp3` | Tap button pressed |
 | `success.mp3` | Action completed |
 | `nothing.mp3` | Soap dispenser did nothing (a wave that didn't take) |
 | `denied.mp3` | Badge read at the wrong orientation |
-| `fail.mp3` | Wrong action or ran out of time |
+| `wrong.mp3` | Pressed the wrong button |
+| `fail.mp3` | Ran out of time |
 | `gameover.mp3` | Plays alongside `fail` at the end of a run |
 | `start.mp3` | A run begins |
 

@@ -87,6 +87,7 @@ export class Game {
   handleInput({ actionId, variantId }) {
     if (this.state !== STATE.PLAYING || !this.challenge) return;
     const ch = this.challenge;
+    this.audio.play(`${actionId}it`);
 
     if (actionId !== ch.action.id) {
       const doorMixUp =
@@ -137,7 +138,7 @@ export class Game {
     this.challenge = null;
     this.ui.setTimer(0);
     this.ui.flash('bad');
-    this.audio.play('fail');
+    this.audio.play(reason === 'wrong' || reason === 'wrongDoor' ? 'wrong' : 'fail');
     this.audio.play('gameover');
 
     const mode = this.mode;
