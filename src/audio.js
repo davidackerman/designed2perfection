@@ -17,8 +17,7 @@ export const MANIFEST = {
   success: 'assets/audio/success.mp3',
   nothing: 'assets/audio/nothing.mp3',   // the soap dispenser doing nothing
   denied: 'assets/audio/denied.mp3',     // card read at the wrong orientation
-  wrong: 'assets/audio/wrong.mp3',       // pressed the wrong button
-  fail: 'assets/audio/fail.mp3',
+  lose: 'assets/audio/lose.mp3',         // any way a run can end: wrong button or ran out of time
   gameover: 'assets/audio/gameover.mp3',
   start: 'assets/audio/start.mp3',
 };

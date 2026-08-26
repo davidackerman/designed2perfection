@@ -18,9 +18,8 @@ about 800 ms.
 | `success.mp3` | Action completed |
 | `nothing.mp3` | Soap dispenser did nothing (a wave that didn't take) |
 | `denied.mp3` | Badge read at the wrong orientation |
-| `wrong.mp3` | Pressed the wrong button |
-| `fail.mp3` | Ran out of time |
-| `gameover.mp3` | Plays alongside `fail` at the end of a run |
+| `lose.mp3` | A run ends: wrong button or ran out of time |
+| `gameover.mp3` | Plays alongside `lose` at the end of a run |
 | `start.mp3` | A run begins |
 
 Playback goes through a single WebAudio gain node, so `M` / the SOUND badge

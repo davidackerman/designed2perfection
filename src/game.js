@@ -137,7 +137,7 @@ export class Game {
     this.challenge = null;
     this.ui.setTimer(0);
     this.ui.flash('bad');
-    this.audio.play(reason === 'wrong' || reason === 'wrongDoor' ? 'wrong' : 'fail');
+    this.audio.play('lose');
     this.audio.play('gameover');
 
     const mode = this.mode;
