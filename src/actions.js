@@ -9,8 +9,8 @@ import { CONFIG } from './config.js';
 export const ACTIONS = [
   {
     id: 'push',
-    word: 'PUSH IT',
     audioKey: 'push',
+    video: 'assets/video/pushit.mp4',
     // Both doors look identical. The only tell is the placard, way up there.
     placard: 'PUSH',
     variants: [
@@ -19,8 +19,8 @@ export const ACTIONS = [
   },
   {
     id: 'pull',
-    word: 'PULL IT',
     audioKey: 'pull',
+    video: 'assets/video/pullit.mp4',
     placard: 'PULL',
     variants: [
       { id: 'default', key: 'KeyS', label: 'Pull', short: 'PULL', image: 'assets/img/door.svg' },
@@ -28,8 +28,8 @@ export const ACTIONS = [
   },
   {
     id: 'soap',
-    word: 'SOAP IT',
     audioKey: 'soap',
+    video: 'assets/video/soapit.mp4',
     repeatable: true,
     variants: [
       { id: 'default', key: 'KeyD', label: 'Wave', short: 'SOAP', image: 'assets/img/soap.svg' },
@@ -37,8 +37,8 @@ export const ACTIONS = [
   },
   {
     id: 'swipe',
-    word: 'SWIPE IT',
     audioKey: 'swipe',
+    video: 'assets/video/swipeit.mp4',
     variants: [
       { id: 'stripe-up', key: 'KeyF', label: 'Swipe stripe up', short: 'SWIPE \u2191', image: 'assets/img/swipe-up.svg' },
       { id: 'stripe-down', key: 'KeyR', label: 'Swipe stripe down', short: 'SWIPE \u2193', image: 'assets/img/swipe-down.svg' },
@@ -46,8 +46,8 @@ export const ACTIONS = [
   },
   {
     id: 'tap',
-    word: 'TAP IT',
     audioKey: 'tap',
+    video: 'assets/video/tapit.mp4',
     variants: [
       { id: 'face-up', key: 'KeyG', label: 'Tap face up', short: 'TAP \u2191', image: 'assets/img/tap-up.svg' },
       { id: 'face-down', key: 'KeyT', label: 'Tap face down', short: 'TAP \u2193', image: 'assets/img/tap-down.svg' },
@@ -97,7 +97,7 @@ export function makeChallenge(action, round, hardMode) {
     variantId: variant.id,
     image: variant.image,
     placard: action.placard || null,
-    word: wordAction.word,
+    video: wordAction.video,
     wordIsLying: wordAction.id !== action.id,
     requiredHits,
     hitsDone: 0,

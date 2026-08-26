@@ -90,6 +90,7 @@ export class UI {
   setMuted(muted) {
     this.el.muteBadge.textContent = muted ? 'MUTED' : 'SOUND';
     this.el.muteBadge.classList.toggle('off', muted);
+    this.el.word.muted = muted;
   }
 
   // ---- debug mode -------------------------------------------------------
@@ -175,7 +176,12 @@ export class UI {
   showChallenge(ch) {
     this.el.image.src = ch.image;
     this.el.image.alt = ch.action.id;
-    this.el.word.textContent = ch.word;
+    if (this.el.word.getAttribute('src') === ch.video) {
+      this.el.word.currentTime = 0;
+    } else {
+      this.el.word.src = ch.video;
+    }
+    this.el.word.play().catch(() => {}); // autoplay-with-sound can be blocked; fail silently
     if (ch.placard) {
       this.el.placard.textContent = ch.placard;
       this.el.placard.classList.remove('hidden');
@@ -189,6 +195,7 @@ export class UI {
   clearChallenge() {
     this.el.stage.classList.add('blank');
     this.el.placard.classList.add('hidden');
+    this.el.word.pause();
     this.setDebugExpected(null);
   }
 
