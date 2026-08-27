@@ -238,13 +238,21 @@ export class UI {
     // accuracyHistory is already capped to the last CONFIG.rotary.chartLength
     // picks (see Game.handleRotary) -- only that recent window is ever
     // shown, so an old spike can't leave the axis stuck too wide once it's
-    // scrolled past. Zoom the y-axis to how far accuracy has actually
-    // strayed from 50/50 within that window, with a floor so it doesn't
-    // over-zoom on a near-flat line.
-    const maxDeviation = accuracyHistory.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
-    const halfRange = Math.min(0.5, Math.max(0.05, maxDeviation * 1.2));
-    const domainMin = 0.5 - halfRange;
-    const domainMax = 0.5 + halfRange;
+    // scrolled past. These are lifetime accuracy values, which barely move
+    // once a session is long, so zoom to the *actual spread* of the values
+    // on screen (not their distance from 50%) -- otherwise a tight cluster
+    // sitting at, say, 65% renders as a flat line pinned near the top of a
+    // 50%-centered axis instead of showing the real movement within it.
+    let domainMin = 0.4;
+    let domainMax = 0.6;
+    if (accuracyHistory.length) {
+      const dataMin = Math.min(...accuracyHistory);
+      const dataMax = Math.max(...accuracyHistory);
+      const center = (dataMin + dataMax) / 2;
+      const span = Math.max(0.06, (dataMax - dataMin) * 1.3); // floor so it can't over-zoom noise
+      domainMin = Math.max(0, center - span / 2);
+      domainMax = Math.min(1, center + span / 2);
+    }
     this.el.oracleChartMax.textContent = `${Math.round(domainMax * 100)}%`;
     this.el.oracleChartMin.textContent = `${Math.round(domainMin * 100)}%`;
 
@@ -256,12 +264,15 @@ export class UI {
       })
       .join(' ');
 
-    // Chance sits at 50% accuracy, which the symmetric domain above always
-    // maps to y=50 -- shade above it red (the line is reading you: worse for
-    // you) and below it green (you're beating it: better for you).
+    // Chance is 50% accuracy, which no longer necessarily sits at y=50 now
+    // that the domain isn't forced to center on it -- place the red/green
+    // split (and the hairline) wherever 50% actually falls. If the whole
+    // window is solidly above or below chance, that's one solid color,
+    // which is itself the honest answer.
+    const y50 = Math.max(0, Math.min(100, toY(0.5)));
     const zones =
-      `<rect x="0" y="0" width="100" height="50" fill="var(--bad)" fill-opacity="0.12" />` +
-      `<rect x="0" y="50" width="100" height="50" fill="var(--good)" fill-opacity="0.12" />`;
+      `<rect x="0" y="0" width="100" height="${y50}" fill="var(--bad)" fill-opacity="0.12" />` +
+      `<rect x="0" y="${y50}" width="100" height="${100 - y50}" fill="var(--good)" fill-opacity="0.12" />`;
 
     // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
     // the bar's full width, which would turn a circle into an ellipse.
@@ -273,7 +284,7 @@ export class UI {
 
     this.el.oracleChart.innerHTML =
       zones +
-      `<line x1="0" y1="50" x2="100" y2="50" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
+      `<line x1="0" y1="${toY(0.5)}" x2="100" y2="${toY(0.5)}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
       line;
 
     this.el.oracleHits.innerHTML = hitHistory

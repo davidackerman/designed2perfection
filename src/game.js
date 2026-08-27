@@ -170,9 +170,9 @@ export class Game {
       this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
     }
 
-    // Rolling, not lifetime: the same value driving speed above, so the
-    // graph actually moves instead of crawling like a large-N average would.
-    this.accuracyHistory.push(accuracy);
+    // Lifetime, not rolling: the graph zooms to the actual range of these
+    // values (see ui.js) rather than needing a jumpier metric to look alive.
+    this.accuracyHistory.push(this.aaronson.accuracy());
     this.hitHistory.push(correct);
     const overflow = this.accuracyHistory.length - CONFIG.rotary.chartLength;
     if (overflow > 0) {
