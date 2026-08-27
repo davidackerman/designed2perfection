@@ -168,10 +168,11 @@ export class SimonGame {
   }
 
   /** Simon mode ignores which variant fired (e.g. swipe orientation) -- only
-   *  which of the four pads it was. */
+   *  which of the four pads it was. No Bop-It-style press sfx here -- a
+   *  correct press re-lights the pad itself (see lightPad below), the same
+   *  flash+tone as playback, same as a real Simon console. */
   handleInput({ actionId }) {
     if (this.state !== STATE.PLAYING || this.phase !== 'input') return;
-    this.audio.play(`${actionId}it`);
 
     const expected = this.sequence[this.inputIndex];
     if (actionId !== expected) {
