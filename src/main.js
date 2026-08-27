@@ -51,18 +51,32 @@ function newTeam() {
   startGame();
 }
 
+/** Just "the line": no reflex challenges, no timer, nothing to fail. The
+ *  debug panel is the point, so make sure it's on. */
+function startPractice() {
+  audio.unlock();
+  if (!debug) setDebug(true);
+  screen = 'playing';
+  game.startPractice();
+  ui.setRotaryVisible(true);
+}
+
 function toggleHard() {
   game.setHardMode(!game.hardMode);
   ui.setHardMode(game.hardMode);
   ui.setHud({ best: scores.best(game.mode) });
 }
 
-function toggleDebug() {
-  debug = !debug;
+function setDebug(on) {
+  debug = on;
   localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
   ui.setDebug(debug, slots);
   ui.setDebugExpected(game.challenge); // catch up if toggled mid-round
   game.pushOracleDebug();
+}
+
+function toggleDebug() {
+  setDebug(!debug);
 }
 
 function toggleMute() {
@@ -133,6 +147,7 @@ document.querySelector('#startBtn').addEventListener('click', startGame);
 document.querySelector('#againBtn').addEventListener('click', startGame);
 document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#newTeamBtn').addEventListener('click', newTeam);
+document.querySelector('#practiceBtn').addEventListener('click', startPractice);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);

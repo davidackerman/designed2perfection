@@ -32,6 +32,7 @@ export class Game {
     // purely so debug mode can show which one actually calls you better.
     this.aaronson = new AaronsonOracle({ accuracyWindow: CONFIG.rotary.accuracyWindow });
     this.rotarySpeed = 1;
+    this.practice = false;
   }
 
   /** A different team steps up: wipe what "the line" has learned so far.
@@ -65,6 +66,7 @@ export class Game {
     this.stopTimers();
     this.state = STATE.PLAYING;
     this.paused = false;
+    this.practice = false;
     this.round = 0;
     this.score = 0;
     this.lastActionId = null;
@@ -73,6 +75,21 @@ export class Game {
     this.audio.play('start');
     this.nextRound();
     this.frame = requestAnimationFrame(() => this.tick());
+  }
+
+  /** Skip the reflex challenges entirely: just "the line", nothing to fail. */
+  startPractice() {
+    this.stopTimers();
+    this.state = STATE.PLAYING;
+    this.paused = false;
+    this.practice = true;
+    this.round = 0;
+    this.score = 0;
+    this.challenge = null;
+    this.ui.hideOverlays();
+    this.ui.clearChallenge();
+    this.ui.setTimer(0);
+    this.ui.setHud({ score: 0, round: 0, best: this.scores.best(this.mode) });
   }
 
   nextRound() {
@@ -215,6 +232,7 @@ export class Game {
   resume() {
     if (this.state !== STATE.PLAYING || !this.paused) return;
     this.paused = false;
+    if (this.practice) return; // nothing timed to resume -- just "the line"
     if (this.remainingOnPause !== null) {
       this.deadline = performance.now() + Math.max(this.remainingOnPause, 0);
     } else {
