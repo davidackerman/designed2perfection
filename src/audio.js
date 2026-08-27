@@ -44,7 +44,10 @@ export class AudioManager {
     this.musicToken = 0; // invalidates a playMusic() still waiting on preload
   }
 
-  /** Must be called from a user gesture before the first sound. */
+  /** Safe to call before any user gesture (e.g. right on page load): a
+   *  kiosk/browser with autoplay allowed will actually start making sound;
+   *  one that blocks it just ends up with a suspended context and preloaded
+   *  buffers, ready for the first real gesture to resume(). */
   unlock() {
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -59,7 +62,9 @@ export class AudioManager {
       this.musicGain.gain.value = this.musicVolume;
       this.musicGain.connect(this.gain);
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    // Autoplay policy can reject this outside a user gesture; that's fine,
+    // it just means the fallback gesture listener resumes it instead.
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
     if (!this.loaded) this.preloadPromise = this.preload();
   }
 

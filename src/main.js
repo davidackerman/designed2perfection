@@ -33,11 +33,14 @@ ui.setMuted(audio.muted);
 ui.setDebug(debug, slots);
 applyModeUI();
 ui.showOverlay('title');
-audio.playMusic('song'); // silently does nothing pre-unlock; caught by the listener below
 
-// Browsers won't play sound before a user gesture, so the very first title
-// screen would otherwise sit silent until START. Catch the first interaction
-// of any kind (not just START) and start the title music right then.
+// Try right away, on load, with no gesture at all: a kiosk browser with
+// autoplay allowed will actually start playing. Most browsers still block
+// this, so it just leaves a suspended context with buffers preloading.
+audio.unlock();
+audio.playMusic('song');
+
+// Catch the first interaction of any kind (not just START) and resume it.
 function unlockOnFirstGesture() {
   audio.unlock();
   if (screen === 'title') audio.playMusic('song');
@@ -52,7 +55,6 @@ function applyModeUI() {
   ui.setScoreLabel(classicMode ? 'Score' : 'Pts');
   ui.setHud({ score: 0, round: 0, best: scores.best(activeGame().mode) });
   document.querySelector('#classicToggle').textContent = classicMode ? 'ON' : 'OFF';
-  document.querySelector('#simonTagline').classList.toggle('hidden', classicMode);
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
