@@ -12,12 +12,10 @@
 // entirely (see git history if you want to re-enable the comparison).
 
 export class AaronsonOracle {
-  constructor({ maxOrder = 5, accuracyWindow = 12 } = {}) {
+  constructor({ maxOrder = 5 } = {}) {
     this.maxOrder = maxOrder;
-    this.accuracyWindow = accuracyWindow;
     this.history = [];
     this.tables = Array.from({ length: maxOrder + 1 }, () => new Map()); // context -> [count0, count1]
-    this.recentResults = [];
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;
@@ -61,31 +59,23 @@ export class AaronsonOracle {
     }
 
     if (this.lastPrediction) {
-      const hit = this.lastPrediction.choice === actual;
-      if (hit) this.correct++;
+      if (this.lastPrediction.choice === actual) this.correct++;
       this.total++;
-      this.recentResults.push(hit);
-      if (this.recentResults.length > this.accuracyWindow) this.recentResults.shift();
     }
 
     this.history.push(actual);
     this.lastPrediction = null;
   }
 
-  /** Lifetime accuracy -- the number worth comparing against RotaryPredictor. */
+  /** Cumulative accuracy since the run started -- the only accuracy number
+   *  this game uses; everywhere it's shown or acted on is this same value. */
   accuracy() {
     return this.total ? this.correct / this.total : 0;
-  }
-
-  rollingAccuracy() {
-    if (!this.recentResults.length) return 0.5;
-    return this.recentResults.filter(Boolean).length / this.recentResults.length;
   }
 
   reset() {
     this.history = [];
     this.tables = Array.from({ length: this.maxOrder + 1 }, () => new Map());
-    this.recentResults = [];
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;

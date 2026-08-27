@@ -26,7 +26,7 @@ export class Game {
     this.gapTimer = null;
     this.paused = false;
     this.remainingOnPause = null;
-    this.aaronson = new AaronsonOracle({ accuracyWindow: CONFIG.rotary.accuracyWindow });
+    this.aaronson = new AaronsonOracle();
     this.accuracyHistory = []; // debug-mode graph: lifetime accuracy per pick
     this.hitHistory = [];      // debug-mode graph: hit/miss per pick, same window
     this.rotarySpeed = 1;
@@ -157,7 +157,9 @@ export class Game {
     const guess = this.aaronson.predict();
     this.aaronson.update(bit);
     const correct = guess.choice === bit;
-    const accuracy = this.aaronson.rollingAccuracy();
+    // Cumulative since the run started -- the one accuracy number, used
+    // everywhere: the dial, the speed knob, and the debug graph below.
+    const accuracy = this.aaronson.accuracy();
 
     const r = CONFIG.rotary;
     if (this.aaronson.total > r.warmupPicks) {
@@ -170,9 +172,7 @@ export class Game {
       this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
     }
 
-    // Lifetime, not rolling: the graph zooms to the actual range of these
-    // values (see ui.js) rather than needing a jumpier metric to look alive.
-    this.accuracyHistory.push(this.aaronson.accuracy());
+    this.accuracyHistory.push(accuracy);
     this.hitHistory.push(correct);
     const overflow = this.accuracyHistory.length - CONFIG.rotary.chartLength;
     if (overflow > 0) {
