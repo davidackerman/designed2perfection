@@ -170,7 +170,9 @@ export class Game {
       this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
     }
 
-    this.accuracyHistory.push(this.aaronson.accuracy());
+    // Rolling, not lifetime: the same value driving speed above, so the
+    // graph actually moves instead of crawling like a large-N average would.
+    this.accuracyHistory.push(accuracy);
     this.hitHistory.push(correct);
     const overflow = this.accuracyHistory.length - CONFIG.rotary.chartLength;
     if (overflow > 0) {
