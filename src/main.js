@@ -16,13 +16,7 @@ let classicMode = localStorage.getItem(CONFIG.storage.classicMode) === '1';
 const activeGame = () => (classicMode ? reflexGame : simonGame);
 
 const input = new Input(
-  (evt) => {
-    if (evt.actionId === 'rotary') {
-      if (classicMode) reflexGame.handleRotary(Number(evt.variantId));
-    } else {
-      activeGame().handleInput(evt);
-    }
-  },
+  (evt) => activeGame().handleInput(evt),
   (raw) => ui.markKey(raw)
 );
 ui.keyFor = (slot) => input.keyFor(slot);
@@ -52,7 +46,6 @@ function applyModeUI() {
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
-  document.querySelector('#practiceBtn').classList.toggle('hidden', !classicMode);
 }
 
 function toggleClassic() {
@@ -66,7 +59,6 @@ function toTitle() {
   screen = 'title';
   activeGame().abort(); // stops any run music
   ui.showOverlay('title');
-  ui.setRotaryVisible(false);
   audio.playMusic('song');
 }
 
@@ -74,24 +66,11 @@ function startGame() {
   audio.unlock();
   screen = 'playing';
   activeGame().start();
-  ui.setRotaryVisible(classicMode);
 }
 
 function newTeam() {
   activeGame().newTeam();
   startGame();
-}
-
-/** Just "the line": no reflex challenges, no timer, nothing to fail. The
- *  debug panel is the point, so make sure it's on. Classic mode only --
- *  Simon has no "line" to practice. */
-function startPractice() {
-  if (!classicMode) return;
-  audio.unlock();
-  if (!debug) setDebug(true);
-  screen = 'playing';
-  reflexGame.startPractice();
-  ui.setRotaryVisible(true);
 }
 
 function toggleHard() {
@@ -104,8 +83,9 @@ function setDebug(on) {
   debug = on;
   localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
   ui.setDebug(debug, slots);
-  ui.setDebugExpected(reflexGame.challenge); // catch up if toggled mid-round
-  reflexGame.pushOracleDebug();
+  // Catch the key hint up if toggled mid-round.
+  if (classicMode) ui.setDebugExpected(reflexGame.challenge);
+  else ui.setSimonDebugStep(simonGame.lastDebugStep);
 }
 
 function toggleDebug() {
@@ -121,7 +101,6 @@ function toggleMute() {
 function handleGameOver(result) {
   screen = 'over';
   pending = result.qualifies ? result : null;
-  ui.setRotaryVisible(false);
   ui.setHud({ best: scores.best(result.mode) });
   ui.showGameOver({
     ...result,
@@ -145,7 +124,6 @@ function showScores(mode = scoresTab) {
   scoresTab = mode;
   screen = 'scores';
   activeGame().abort();
-  ui.setRotaryVisible(false);
   ui.showScores({
     mode,
     board: scores.board(mode),
@@ -171,7 +149,6 @@ function beginRebind(slotId) {
 function toRemap() {
   screen = 'remap';
   activeGame().abort();
-  ui.setRotaryVisible(false);
   drawBindings();
   ui.showOverlay('remap');
 }
@@ -180,7 +157,6 @@ document.querySelector('#startBtn').addEventListener('click', startGame);
 document.querySelector('#againBtn').addEventListener('click', startGame);
 document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#newTeamBtn').addEventListener('click', newTeam);
-document.querySelector('#practiceBtn').addEventListener('click', startPractice);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
@@ -231,9 +207,6 @@ musicVolumeInput.value = audio.musicVolume;
 musicVolumeInput.addEventListener('input', (e) => {
   audio.setMusicVolume(parseFloat(e.target.value));
 });
-document.querySelector('#rotaryZero').addEventListener('click', () => reflexGame.handleRotary(0));
-document.querySelector('#rotaryOne').addEventListener('click', () => reflexGame.handleRotary(1));
-
 // Debug cheat: while debug mode is on and a round is live, D always resolves
 // as correct and every other key as wrong -- drive the win/lose paths without
 // hunting for the real binding. Capture phase + stopImmediatePropagation so

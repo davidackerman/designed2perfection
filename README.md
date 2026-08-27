@@ -6,7 +6,17 @@ ignore you, and badge readers that care very much which way you hold the card.
 
 **Play:** https://davidackerman.github.io/designed2perfection/
 
-## The five commands
+## Modes
+
+The game defaults to a Simon-style mode: a tone-and-picture sequence over
+four of the controls (push/pull/soap/swipe) that grows by one step each round
+and speeds up as it goes. Nothing on screen explains the rule — it's meant to
+be worked out by watching. See [`src/simon.js`](src/simon.js).
+
+The original reflex game below is still there as **Classic mode**, a toggle
+on the title screen (off by default).
+
+## The five commands (Classic mode)
 
 | Command | Cabinet control | Default key | The flaw it re-creates |
 | --- | --- | --- | --- |
@@ -16,14 +26,7 @@ ignore you, and badge readers that care very much which way you hold the card.
 | **SWIPE IT** | card swiper | `F` / `R` | Stripe up or stripe down, as pictured |
 | **TAP IT** | card tap pad | `G` / `T` | Face up or face down, as pictured |
 
-Alongside all five, **the line** runs the whole time you're playing: a dial
-with two positions, `0` and `1` (default keys `0`/`1`), and a predictor that's
-trying to call your next pick from your history so far. Hold it near a 50/50
-guess rate and the round windows above ease up; let it read you and they
-tighten — see [`src/predictor.js`](src/predictor.js) for how it guesses and
-`CONFIG.rotary` in [`src/config.js`](src/config.js) for how much that's worth.
-
-Other keys: `Space` (or `Enter`) start · `H` hard mode · `M` mute · `` ` `` debug · `Esc` quit a run.
+Other keys: `Space` (or `Enter`) start · `H` hard mode (Classic only) · `M` mute · `` ` `` debug · `Esc` quit a run.
 
 Every control is re-bindable from the title screen (**Controls**), and the
 mapping persists in `localStorage`.
@@ -33,15 +36,17 @@ mapping persists in `localStorage`.
 Press `` ` `` (backtick) or hit **Debug** on the title screen. A bar appears
 under the timer showing:
 
-- **A keycap on the stage** showing the key this round wants, its
-  `action:variant` slot, and how many hits it needs — counting up as you wave
-  at a stubborn soap dispenser (`soap:default 1/3`). It sits where you're
-  already looking, and disappears between rounds.
+- **A keycap on the stage** showing the key this moment wants. In Classic mode
+  that's the current challenge's `action:variant` slot and how many hits it
+  needs, counting up as you wave at a stubborn soap dispenser (`soap:default
+  1/3`). In Simon mode it's whichever pad comes next in the sequence, plus
+  how far through it you are (`3/5`). It sits where you're already looking,
+  and disappears between rounds.
 - **A chip per control** with the key it currently listens for. The chip lights
   up on every press, so you can confirm a physical control is wired to what you
   think it is.
-- **expected** — the same answer in the bar, plus whether the word is currently
-  lying to you.
+- **expected** — the same answer in the bar, plus (Classic only) whether the
+  word is currently lying to you.
 - **last key** — the raw `KeyboardEvent.code` of the last key pressed and which
   control it resolved to, *including keys bound to nothing* (`Q unbound KeyQ`).
   This is the one to watch when bringing up the cabinet: it shows exactly what
@@ -62,8 +67,9 @@ call-out plays. Hit the right control before the timer bar empties.
 
 ## High scores
 
-Separate top-10 boards for normal and hard, because a hard-mode 20 is worth a
-great deal more than a normal-mode 20.
+Separate top-10 boards for Simon, normal, and hard, because a hard-mode 20 is
+worth a great deal more than a normal-mode 20 — and a Simon score means
+something different from either.
 
 - Beat the bottom of the board and you're asked for three initials, arcade
   style, prefilled with the last name entered. Ties don't bump anyone: you have
@@ -102,15 +108,16 @@ python3 -m http.server 8000
 
 | Path | What's in it |
 | --- | --- |
-| [`src/config.js`](src/config.js) | Every tunable: timings, difficulty curve, hard-mode ramp |
-| [`src/actions.js`](src/actions.js) | The five actions, their variants, and how a round is composed |
-| [`src/game.js`](src/game.js) | Round loop, scoring, failure states |
+| [`src/config.js`](src/config.js) | Every tunable: timings, difficulty curve, hard-mode ramp, Simon's pacing/tones |
+| [`src/actions.js`](src/actions.js) | The five actions, their variants, and how a round is composed (Classic mode) |
+| [`src/game.js`](src/game.js) | Classic mode: round loop, scoring, failure states |
+| [`src/simon.js`](src/simon.js) | Simon mode: growing sequence, playback/input timing, scoring |
+| [`src/state.js`](src/state.js) | Shared `STATE` enum used by both game engines |
 | [`src/input.js`](src/input.js) | Keyboard → action events, re-bindable, HID-friendly |
 | [`src/scores.js`](src/scores.js) | High score boards, stats, and the storage backend |
-| [`src/predictor.js`](src/predictor.js) | The 0/1 predictor behind "the line" |
-| [`src/audio.js`](src/audio.js) | Sound manifest and playback |
+| [`src/audio.js`](src/audio.js) | Sound manifest, playback, and Simon's synthesized tones |
 | [`src/ui.js`](src/ui.js) | All DOM writes |
-| [`assets/img/`](assets/img/) | Placeholder SVG art — swap for photos of the actual doors |
+| [`assets/img/`](assets/img/) | Placeholder SVG art (Classic) and photos of the actual hardware (Simon pads) |
 | [`assets/audio/`](assets/audio/) | Empty; see its README for the expected filenames |
 | [`HARDWARE.md`](HARDWARE.md) | Wiring the physical cabinet as a USB keyboard |
 

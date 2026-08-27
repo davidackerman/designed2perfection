@@ -3,8 +3,6 @@
 
 import { CONFIG } from './config.js';
 import { pickAction, makeChallenge } from './actions.js';
-import { AaronsonOracle } from './aaronsonOracle.js';
-import { RotaryPredictor } from './predictor.js';
 import { STATE } from './state.js';
 
 export { STATE };
@@ -28,27 +26,12 @@ export class Game {
     this.gapTimer = null;
     this.paused = false;
     this.remainingOnPause = null;
-    this.aaronson = new AaronsonOracle();
-    // Shadow only: same picks, never touches speed -- purely for the debug
-    // graph, since aaronson is what actually drives the game.
-    this.rotaryPredictor = new RotaryPredictor();
-    this.accuracyHistory = { ensemble: [], aaronson: [] }; // debug-mode graph: lifetime accuracy per pick
-    this.hitHistory = [];      // debug-mode hit strip: aaronson hit/miss per pick, same window
-    this.rotarySpeed = 1;
-    this.practice = false;
   }
 
-  /** A different team steps up: wipe what "the line" has learned so far.
-   *  Everyday retries ("go again") deliberately don't touch this -- the read
-   *  it has on a team is supposed to persist across their attempts. */
-  newTeam() {
-    this.aaronson.reset();
-    this.rotaryPredictor.reset();
-    this.accuracyHistory = { ensemble: [], aaronson: [] };
-    this.hitHistory = [];
-    this.rotarySpeed = 1;
-    this.pushOracleDebug();
-  }
+  /** A different team steps up. Everyday retries ("go again") don't reset
+   *  anything here -- this exists so main.js has a consistent newTeam() to
+   *  call across both game engines. */
+  newTeam() {}
 
   setHardMode(on) {
     this.hardMode = on;
@@ -65,14 +48,13 @@ export class Game {
     const decayRounds = Math.max(0, round - t.warmupRounds); // flat through warmupRounds
     const base = Math.max(floor, t.startWindowMs * Math.pow(t.decay, decayRounds));
     const extraHits = Math.max(0, challenge.requiredHits - 1);
-    return (base + extraHits * CONFIG.soap.perExtraHitMs) * this.rotarySpeed;
+    return base + extraHits * CONFIG.soap.perExtraHitMs;
   }
 
   start() {
     this.stopTimers();
     this.state = STATE.PLAYING;
     this.paused = false;
-    this.practice = false;
     this.round = 0;
     this.score = 0;
     this.lastActionId = null;
@@ -82,21 +64,6 @@ export class Game {
     this.audio.playMusic('song');
     this.nextRound();
     this.frame = requestAnimationFrame(() => this.tick());
-  }
-
-  /** Skip the reflex challenges entirely: just "the line", nothing to fail. */
-  startPractice() {
-    this.stopTimers();
-    this.state = STATE.PLAYING;
-    this.paused = false;
-    this.practice = true;
-    this.round = 0;
-    this.score = 0;
-    this.challenge = null;
-    this.ui.hideOverlays();
-    this.ui.clearChallenge();
-    this.ui.setTimer(0);
-    this.ui.setHud({ score: 0, round: 0, best: this.scores.best(this.mode) });
   }
 
   nextRound() {
@@ -159,57 +126,6 @@ export class Game {
     this.succeed();
   }
 
-  /** One pick on the rotary dial: 0 or 1. Runs alongside whatever round is live. */
-  handleRotary(bit) {
-    if (this.state !== STATE.PLAYING) return;
-    const guess = this.aaronson.predict();
-    this.aaronson.update(bit);
-    const correct = guess.choice === bit;
-    // Cumulative since the run started -- the one accuracy number, used
-    // everywhere: the dial, the speed knob, and the debug graph below.
-    const accuracy = this.aaronson.accuracy();
-
-    const r = CONFIG.rotary;
-    if (this.aaronson.total > r.warmupPicks) {
-      const edgePoints = (accuracy - 0.5) * 100; // + = it's reading you, - = you're fooling it
-      const factor = r.perPointFactor ** Math.abs(edgePoints); // compounds per point past 50%
-      const target =
-        edgePoints >= 0
-          ? Math.max(r.minMultiplier, factor) // reading you: rounds speed up
-          : Math.min(r.maxMultiplier, 1 / factor); // fooling it: rounds slow down
-      this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
-    }
-
-    this.rotaryPredictor.predict();
-    this.rotaryPredictor.update(bit);
-
-    const h = this.accuracyHistory;
-    h.ensemble.push(this.rotaryPredictor.accuracy());
-    h.aaronson.push(accuracy);
-    this.hitHistory.push(correct);
-    const overflow = h.aaronson.length - CONFIG.rotary.chartLength;
-    if (overflow > 0) {
-      h.ensemble.splice(0, overflow);
-      h.aaronson.splice(0, overflow);
-      this.hitHistory.splice(0, overflow);
-    }
-
-    this.ui.setRotary({ bit, correct, accuracy });
-    this.pushOracleDebug();
-  }
-
-  /** Also called from main.js when debug mode is toggled on, to catch up. */
-  pushOracleDebug() {
-    this.ui.setOracleDebug({
-      ensembleAcc: this.rotaryPredictor.accuracy(),
-      ensembleN: this.rotaryPredictor.total,
-      aaronsonAcc: this.aaronson.accuracy(),
-      aaronsonN: this.aaronson.total,
-      history: this.accuracyHistory,
-      hitHistory: this.hitHistory,
-    });
-  }
-
   succeed() {
     this.score += 1;
     this.challenge = null;
@@ -256,7 +172,6 @@ export class Game {
   resume() {
     if (this.state !== STATE.PLAYING || !this.paused) return;
     this.paused = false;
-    if (this.practice) return; // nothing timed to resume -- just "the line"
     if (this.remainingOnPause !== null) {
       this.deadline = performance.now() + Math.max(this.remainingOnPause, 0);
     } else {

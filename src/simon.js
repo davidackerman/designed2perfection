@@ -12,17 +12,21 @@ import { STATE } from './state.js';
 
 const PADS = ['push', 'pull', 'soap', 'swipe'];
 
-// Placeholder art: the existing door/soap images, mirrored where needed so
-// all four pads are at least visually distinct until real per-pad images
-// exist. Deliberately NOT using the swipe/tap art here -- those have their
-// "STRIPE UP" / "FACE DOWN" labels baked into the SVG, which would spell out
-// the answer on screen. Swap all four for real images once they exist, and
-// `flip` can go once each pad has its own source image.
+// One real photo per pad.
 const PAD_ART = {
-  push: { image: 'assets/img/door.svg', flip: false },
-  pull: { image: 'assets/img/door.svg', flip: true },
-  soap: { image: 'assets/img/soap.svg', flip: false },
-  swipe: { image: 'assets/img/soap.svg', flip: true },
+  push: 'assets/img/pushit.jpeg',
+  pull: 'assets/img/pullit.jpeg',
+  soap: 'assets/img/soapit.jpeg',
+  swipe: 'assets/img/swipeit.jpeg',
+};
+
+// Debug hint only: which bound key(s) count as this pad. Swipe has two
+// variants (stripe up/down) and Simon accepts either, so both show up.
+const PAD_SLOTS = {
+  push: ['push:default'],
+  pull: ['pull:default'],
+  soap: ['soap:default'],
+  swipe: ['swipe:stripe-up', 'swipe:stripe-down'],
 };
 
 const REASONS = {
@@ -49,10 +53,11 @@ export class SimonGame {
     this.remainingOnPause = null;
     this.bonus = 0;
     this.bonusMax = CONFIG.simon.bonusMax;
+    this.lastDebugStep = null; // for main.js to catch the debug hint up when toggled mid-round
   }
 
-  /** A different team steps up: the bonus meter is per-team, same as "the
-   *  line"'s read in the classic game. Everyday retries don't touch it. */
+  /** A different team steps up: the bonus meter is per-team. Everyday
+   *  retries ("go again") don't touch it. */
   newTeam() {
     this.bonus = 0;
   }
@@ -127,8 +132,7 @@ export class SimonGame {
   }
 
   lightPad(actionId, durationMs) {
-    const art = PAD_ART[actionId];
-    this.ui.flashSimonStep(actionId, art.image, art.flip);
+    this.ui.flashSimonStep(actionId, PAD_ART[actionId]);
     this.audio.playTone(CONFIG.simon.tones[actionId], durationMs);
   }
 
@@ -141,6 +145,15 @@ export class SimonGame {
     this.windowMs = this.inputWindowFor(this.round);
     this.deadline = performance.now() + this.windowMs;
     this.frame = requestAnimationFrame(() => this.tickInput());
+
+    const actionId = this.sequence[this.inputIndex];
+    this.lastDebugStep = {
+      actionId,
+      slots: PAD_SLOTS[actionId],
+      index: this.inputIndex + 1,
+      total: this.sequence.length,
+    };
+    this.ui.setSimonDebugStep(this.lastDebugStep);
   }
 
   tickInput() {
@@ -187,6 +200,8 @@ export class SimonGame {
     this.ui.setTimer(0);
     this.ui.flash('good');
     this.audio.play('success');
+    this.lastDebugStep = null;
+    this.ui.setSimonDebugStep(null);
     this.gapTimer = setTimeout(() => {
       if (this.state === STATE.PLAYING) this.nextRound();
     }, CONFIG.simon.interRoundMs);
@@ -202,6 +217,8 @@ export class SimonGame {
     this.audio.stopMusic();
     this.audio.play('lose');
     this.audio.play('gameover');
+    this.lastDebugStep = null;
+    this.ui.setSimonDebugStep(null);
 
     this.scores.recordGame({ score: this.score, causeAction });
     this.onGameOver({
@@ -244,6 +261,8 @@ export class SimonGame {
     this.state = STATE.TITLE;
     this.ui.clearSimonStep();
     this.ui.setTimer(0);
+    this.lastDebugStep = null;
+    this.ui.setSimonDebugStep(null);
   }
 
   stopTimers() {

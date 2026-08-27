@@ -47,23 +47,6 @@
 
   <div id="timer"><div id="timerFill"></div></div>
 
-  <!-- Runs the whole time a round is live: pick 0 or 1, the line tries to
-       call your next pick. Hold it near 50/50 and the round windows above
-       ease up; let it read you and they tighten. -->
-  <div id="rotary" class="rotary hidden">
-    <div class="rotary-label">THE LINE IS LISTENING</div>
-    <div class="rotary-dial">
-      <div class="rotary-pulse"></div>
-      <div id="rotaryNeedle" class="rotary-needle"></div>
-      <button id="rotaryZero" class="rotary-slot rotary-slot-0" type="button">0</button>
-      <button id="rotaryOne" class="rotary-slot rotary-slot-1" type="button">1</button>
-    </div>
-    <div class="rotary-readout">
-      <span>reading you</span>
-      <span id="rotaryAccuracy">--</span>
-    </div>
-  </div>
-
   <!-- Debug mode: what each control listens for, what this round wants, and
        what the keyboard/cabinet actually sent. -->
   <div id="debugBar" class="hidden">
@@ -72,29 +55,6 @@
       <span class="debug-label">expected</span><span id="debugExpected"><span class="dim">--</span></span>
       <span class="debug-label">last key</span><span id="debugLast"><span class="dim">--</span></span>
       <span class="debug-label">cheat</span><span class="dim"><b>D</b> = right, anything else = wrong</span>
-    </div>
-
-    <!-- The line, unpacked: aaronson's running lifetime accuracy (which
-         drives round speed) vs the shadow ensemble, plus the hit/miss
-         behind each of aaronson's last 10 picks underneath. -->
-    <div class="oracle-debug">
-      <span class="debug-label">the line -- lifetime accuracy, last 10 picks shown, range 40-70%</span>
-      <div class="oracle-chart-wrap">
-        <span class="oracle-chart-axis oracle-chart-axis-top">70%</span>
-        <span class="oracle-chart-axis oracle-chart-axis-bottom">40%</span>
-        <svg id="oracleChart" class="oracle-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
-      </div>
-      <div class="oracle-legend">
-        <span class="oracle-legend-item">
-          <span class="oracle-swatch oracle-swatch-ensemble"></span>ensemble
-          <b id="oracleEnsembleVal">--</b>
-        </span>
-        <span class="oracle-legend-item">
-          <span class="oracle-swatch oracle-swatch-aaronson"></span>aaronson (drives speed)
-          <b id="oracleAaronsonVal">--</b>
-        </span>
-      </div>
-      <div id="oracleHits" class="oracle-hits"></div>
     </div>
   </div>
 
@@ -109,7 +69,6 @@
         <li><b>SOAP IT</b> — wave. Then wave again. And again.</li>
         <li><b>SWIPE IT</b> — stripe up or stripe down, as pictured.</li>
         <li><b>TAP IT</b> — face up or face down, as pictured.</li>
-        <li><b>THE LINE</b> — pick 0 or 1, over and over. Confuse it and everything above eases up.</li>
       </ul>
       <div class="row">
         <button id="startBtn" class="primary" type="button">START</button>
@@ -118,7 +77,6 @@
         <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
         <button id="debugBtn" type="button">Debug: <span id="debugToggle">OFF</span></button>
-        <button id="practiceBtn" type="button" class="hidden">Practice: the line</button>
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
@@ -152,7 +110,7 @@
         <button id="overNewTeamBtn" type="button">New team</button>
         <button id="menuBtn" type="button">Menu</button>
       </div>
-      <p class="hint">"Go again" keeps the line's read on you. "New team" wipes it.</p>
+      <p class="hint">"Go again" keeps the bonus meter running. "New team" resets it.</p>
     </div>
   </div>
 

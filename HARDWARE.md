@@ -15,8 +15,6 @@ HID keyboard** works with no code changes — an Arduino Pro Micro / Leonardo
 | Swipe, stripe down | card slot, orientation sensor B | `R` |
 | Tap, face up | RFID pad, orientation sensor A | `G` |
 | Tap, face down | RFID pad, orientation sensor B | `T` |
-| The line: dial at 0 | rotary switch / button, position A | `0` |
-| The line: dial at 1 | rotary switch / button, position B | `1` |
 
 Any of these can be re-bound in-game (title screen → **Controls**); the mapping
 persists in `localStorage`, so you set it once on the cabinet's browser.

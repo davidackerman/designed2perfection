@@ -1,7 +1,6 @@
 // All DOM writes live here; game.js stays free of element ids.
 
 import { Input } from './input.js';
-import { CONFIG } from './config.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -59,20 +58,12 @@ export class UI {
       keyHintKey: $('#keyHintKey'),
       keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
-      rotary: $('#rotary'),
-      rotaryNeedle: $('#rotaryNeedle'),
-      rotaryAccuracy: $('#rotaryAccuracy'),
-      oracleChart: $('#oracleChart'),
-      oracleEnsembleVal: $('#oracleEnsembleVal'),
-      oracleAaronsonVal: $('#oracleAaronsonVal'),
-      oracleHits: $('#oracleHits'),
     };
     this.flashTimer = null;
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
     this.keyFor = () => null;    // set by main.js so chips track re-binds
-    this.el.rotary.style.setProperty('--rotary-tick', `${CONFIG.rotary.tickMs}ms`);
   }
 
   showOverlay(name) {
@@ -234,10 +225,9 @@ export class UI {
 
   /** Light one pad: its picture, and a flash of its colour -- no placard, no
    *  video, nothing that would tell you what you're looking at. */
-  flashSimonStep(actionId, image, flip = false) {
+  flashSimonStep(actionId, image) {
     this.el.image.src = image;
     this.el.image.alt = '';
-    this.el.image.classList.toggle('simon-flip', flip);
     this.el.stage.classList.remove('blank');
     this.el.stage.classList.remove('simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
     this.el.stage.classList.add('simon-lit', `simon-${actionId}`);
@@ -248,69 +238,42 @@ export class UI {
     this.el.stage.classList.remove('simon-lit', 'simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
   }
 
+  /** Debug mode only: which key(s) resolve the pad Simon is currently
+   *  waiting on, plus how far through the sequence you are. `step` is
+   *  `{ actionId, slots, index, total }` or null between/outside rounds. */
+  setSimonDebugStep(step) {
+    this.lastSimonStep = step;
+    this.renderSimonDebugStep();
+  }
+
+  renderSimonDebugStep() {
+    if (!this.debug) {
+      this.el.keyHint.classList.add('hidden');
+      return;
+    }
+    const step = this.lastSimonStep;
+    if (!step) {
+      this.el.debugExpected.innerHTML = '<span class="dim">--</span>';
+      this.el.keyHint.classList.add('hidden');
+      return;
+    }
+    const keyName = step.slots
+      .map((slot) => this.keyFor(slot))
+      .map((key) => (key ? Input.keyName(key) : '--'))
+      .join(' / ');
+    const progress = ` <span class="ok">${step.index}/${step.total}</span>`;
+
+    this.el.debugExpected.innerHTML = `<b>${keyName}</b> <span class="dim">${step.actionId}</span>${progress}`;
+    this.el.keyHintKey.textContent = keyName;
+    this.el.keyHintKey.classList.toggle('wide', keyName.length > 2);
+    this.el.keyHintSlot.innerHTML = `${step.actionId}${progress}`;
+    this.el.keyHint.classList.remove('hidden');
+  }
+
   setTimer(fraction) {
     const pct = Math.max(0, Math.min(1, fraction)) * 100;
     this.el.timerFill.style.width = `${pct}%`;
     this.el.timerFill.classList.toggle('critical', fraction < 0.25);
-  }
-
-  setRotaryVisible(on) {
-    this.el.rotary.classList.toggle('hidden', !on);
-  }
-
-  setRotary({ bit, correct, accuracy }) {
-    const needle = this.el.rotaryNeedle;
-    needle.classList.toggle('pick-1', bit === 1);
-    needle.classList.remove('correct', 'wrong');
-    void needle.offsetWidth; // force reflow so back-to-back picks retrigger the flash
-    needle.classList.add(correct ? 'correct' : 'wrong');
-    this.el.rotaryAccuracy.textContent = `${Math.round(accuracy * 100)}%`;
-  }
-
-  /** Debug only: lifetime accuracy for both predictors (aaronson drives
-   *  round speed; the ensemble runs in shadow for comparison), plus the
-   *  hit/miss behind each of aaronson's last 10 picks. */
-  setOracleDebug({ ensembleAcc, ensembleN, aaronsonAcc, aaronsonN, history, hitHistory }) {
-    if (!this.debug) return;
-
-    this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
-    this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
-
-    // Fixed range rather than auto-zoomed: simpler to read at a glance, and
-    // this game's accuracy realistically lives in this band. Values outside
-    // it just clip against the top/bottom edge instead of resizing the axis.
-    const { chartRangeMin: domainMin, chartRangeMax: domainMax } = CONFIG.rotary;
-    const toY = (v) => 100 - ((v - domainMin) / (domainMax - domainMin)) * 100;
-    const toPoints = (series) =>
-      series
-        .map((v, i) => `${series.length > 1 ? (i / (series.length - 1)) * 100 : 50},${toY(v)}`)
-        .join(' ');
-
-    // Chance is 50% accuracy, which doesn't sit at the vertical center of an
-    // asymmetric 40-70% range -- place the red/green split (and the
-    // hairline) wherever 50% actually falls.
-    const y50 = Math.max(0, Math.min(100, toY(0.5)));
-    const zones =
-      `<rect x="0" y="0" width="100" height="${y50}" fill="var(--bad)" fill-opacity="0.12" />` +
-      `<rect x="0" y="${y50}" width="100" height="${100 - y50}" fill="var(--good)" fill-opacity="0.12" />`;
-
-    // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
-    // the bar's full width, which would turn a circle into an ellipse.
-    const line = (series, color) =>
-      series.length < 2
-        ? ''
-        : `<polyline points="${toPoints(series)}" fill="none" stroke="${color}" stroke-width="1.5" ` +
-          `stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />`;
-
-    this.el.oracleChart.innerHTML =
-      zones +
-      `<line x1="0" y1="${y50}" x2="100" y2="${y50}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
-      line(history.ensemble, '#3987e5') +
-      line(history.aaronson, '#d95926');
-
-    this.el.oracleHits.innerHTML = hitHistory
-      .map((hit) => `<span class="oracle-hit-dot ${hit ? 'hit' : 'miss'}"></span>`)
-      .join('');
   }
 
   flash(kind) {

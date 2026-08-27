@@ -155,7 +155,6 @@ html, body {
 /* ---- simon mode: one pad at a time, no word/video panel, no placard ---- */
 #stage.simon-mode { grid-template-columns: 1fr; }
 #stage.simon-mode .panel-word { display: none; }
-#stageImage.simon-flip { transform: scaleX(-1); }
 
 /* The colour needs to land on the panel, not #stage -- the panel is the
    opaque div actually covering the stage; #stage itself only shows through
@@ -220,90 +219,6 @@ html, body {
   border-radius: 999px;
 }
 #timerFill.critical { background: var(--bad); }
-
-/* ---- the rotary dial: pick 0/1, confuse the predictor ---- */
-.rotary {
-  position: fixed;
-  right: 14px;
-  bottom: 14px;
-  width: 128px;
-  padding: 10px;
-  background: var(--bg-panel);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  font-family: var(--mono);
-  text-align: center;
-  z-index: 5;
-}
-.rotary.hidden { display: none; }
-.rotary-label {
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  color: var(--dim);
-  margin-bottom: 8px;
-}
-.rotary-dial {
-  position: relative;
-  width: 92px;
-  height: 92px;
-  margin: 0 auto 8px;
-  border-radius: 50%;
-  border: 2px solid var(--line);
-  background: radial-gradient(circle at 50% 50%, var(--bg) 0%, var(--bg-panel) 75%);
-}
-.rotary-pulse {
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-  opacity: 0;
-  animation: rotary-tick var(--rotary-tick, 950ms) ease-out infinite;
-}
-@keyframes rotary-tick {
-  0% { transform: scale(0.86); opacity: 0.55; }
-  70%, 100% { transform: scale(1.18); opacity: 0; }
-}
-.rotary-needle {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 3px;
-  height: 38px;
-  margin-left: -1.5px;
-  margin-top: -38px;
-  background: var(--dim);
-  transform-origin: 50% 100%;
-  transform: rotate(-35deg);
-  transition: transform 160ms ease;
-}
-.rotary-needle.pick-1 { transform: rotate(35deg); }
-.rotary-needle.correct { background: var(--bad); }  /* it read you */
-.rotary-needle.wrong { background: var(--good); }   /* you fooled it */
-.rotary-slot {
-  position: absolute;
-  bottom: 6px;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-}
-.rotary-slot-0 { left: 6px; }
-.rotary-slot-1 { right: 6px; }
-.rotary-slot:hover { border-color: var(--dim); }
-.rotary-readout {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--dim);
-  letter-spacing: 0.04em;
-}
-#rotaryAccuracy { color: var(--text); font-weight: 700; }
 
 /* ---- high score board ---- */
 .board-wrap { margin: 4px 0 18px; }
@@ -409,65 +324,6 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 .debug-readout .ok { color: var(--good); }
 .debug-readout .no { color: var(--bad); }
 #debugExpected { margin-right: 14px; }
-
-/* ---- debug: the line, unpacked (ensemble vs aaronson, fixed 40-70% range) ---- */
-.oracle-debug {
-  margin-top: 10px;
-  padding-top: 9px;
-  border-top: 1px solid var(--line);
-}
-.oracle-chart-wrap {
-  position: relative;
-  margin-top: 6px;
-  padding-left: 30px;
-}
-.oracle-chart {
-  display: block;
-  width: 100%;
-  height: 56px;
-}
-.oracle-chart-axis {
-  position: absolute;
-  left: 0;
-  font-size: 9px;
-  color: var(--dim);
-  font-family: var(--mono);
-}
-.oracle-chart-axis-top { top: -1px; }
-.oracle-chart-axis-bottom { bottom: -1px; }
-
-.oracle-legend {
-  display: flex;
-  gap: 16px;
-  margin-top: 6px;
-  font-size: 10px;
-  color: var(--dim);
-}
-.oracle-legend-item { display: flex; align-items: center; gap: 5px; }
-.oracle-legend-item b { color: var(--text); font-size: 11px; }
-.oracle-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.oracle-swatch-ensemble { background: #3987e5; }
-.oracle-swatch-aaronson { background: #d95926; }
-
-.oracle-hits {
-  display: flex;
-  gap: 3px;
-  margin-top: 6px;
-  padding-left: 30px;
-}
-.oracle-hit-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--line);
-}
-.oracle-hit-dot.hit { background: var(--bad); }   /* it called your pick */
-.oracle-hit-dot.miss { background: var(--good); } /* you fooled it */
 
 /* ---- overlays ---- */
 .hidden { display: none !important; }
