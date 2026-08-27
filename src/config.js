@@ -38,7 +38,6 @@ export const CONFIG = {
     inputMinWindowMs: 1200,  // floor for that same window
     inputDecay: 0.95,        // inputWindowMs *= decay per round
     interRoundMs: 900,       // pause after a correct sequence before it grows
-    ackMs: 160,              // flash/tone length for the player's own presses
     bonusMax: 10,            // bonus meter ceiling; scoring TBD
     tones: {
       // One tone per pad, in a rough Simon-style spread across an octave-ish

@@ -230,17 +230,32 @@ musicVolumeInput.addEventListener('input', (e) => {
 // as correct and every other key as wrong -- drive the win/lose paths without
 // hunting for the real binding. Capture phase + stopImmediatePropagation so
 // this fully replaces normal input handling for the event instead of also
-// letting Input's own listener process it. Classic mode only: Simon has no
-// `challenge` object shaped like this to resolve.
+// letting Input's own listener process it. Works in both modes.
 window.addEventListener('keydown', (e) => {
-  if (!debug || !classicMode || reflexGame.state !== STATE.PLAYING || !reflexGame.challenge) return;
+  if (!debug || activeGame().state !== STATE.PLAYING) return;
   if (isTyping(e) || e.repeat) return;
+
+  if (classicMode) {
+    if (!reflexGame.challenge) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (e.code === 'KeyD') {
+      reflexGame.handleInput({ actionId: reflexGame.challenge.action.id, variantId: reflexGame.challenge.variantId });
+    } else {
+      reflexGame.fail('wrong');
+    }
+    return;
+  }
+
+  // Simon: no variants, no tap pad, and swipe doesn't care which way --
+  // just push/pull/soap/swipe, so lastDebugStep.actionId is enough.
+  if (!simonGame.lastDebugStep) return;
   e.preventDefault();
   e.stopImmediatePropagation();
   if (e.code === 'KeyD') {
-    reflexGame.handleInput({ actionId: reflexGame.challenge.action.id, variantId: reflexGame.challenge.variantId });
+    simonGame.handleInput({ actionId: simonGame.lastDebugStep.actionId });
   } else {
-    reflexGame.fail('wrong');
+    simonGame.fail('wrong');
   }
 }, true);
 

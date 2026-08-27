@@ -162,13 +162,15 @@ export class SimonGame {
   /** Simon mode ignores which variant fired (e.g. swipe orientation) -- only
    *  which of the four pads it was. No Bop-It-style press sfx here -- whatever
    *  pad you press lights up with its own flash+tone, same as a real Simon
-   *  console, whether you turn out to be right or wrong. */
+   *  console, whether you turn out to be right or wrong. Lit for the same
+   *  duration as this round's own playback step, not a separate fixed length. */
   handleInput({ actionId }) {
     if (this.state !== STATE.PLAYING || this.phase !== 'input') return;
 
-    this.lightPad(actionId, CONFIG.simon.ackMs);
+    const stepMs = this.stepMsFor(this.round);
+    this.lightPad(actionId, stepMs);
     clearTimeout(this.ackTimer);
-    this.ackTimer = setTimeout(() => this.ui.clearSimonStep(), CONFIG.simon.ackMs);
+    this.ackTimer = setTimeout(() => this.ui.clearSimonStep(), stepMs);
 
     const expected = this.sequence[this.inputIndex];
     if (actionId !== expected) {
