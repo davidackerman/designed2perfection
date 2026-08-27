@@ -77,6 +77,7 @@ export class Game {
     this.ui.hideOverlays();
     this.ui.setHud({ score: 0, round: 0, best: this.scores.best(this.mode) });
     this.audio.play('start');
+    this.audio.playMusic('song');
     this.nextRound();
     this.frame = requestAnimationFrame(() => this.tick());
   }
@@ -227,6 +228,7 @@ export class Game {
     this.challenge = null;
     this.ui.setTimer(0);
     this.ui.flash('bad');
+    this.audio.stopMusic();
     this.audio.play('lose');
     this.audio.play('gameover');
 
@@ -266,6 +268,7 @@ export class Game {
 
   abort() {
     this.stopTimers();
+    this.audio.stopMusic();
     this.state = STATE.TITLE;
     this.challenge = null;
     this.ui.clearChallenge();

@@ -191,6 +191,11 @@ clearBtn.addEventListener('click', () => {
   }, 3000);
 });
 document.querySelector('#muteBadge').addEventListener('click', toggleMute);
+const musicVolumeInput = document.querySelector('#musicVolume');
+musicVolumeInput.value = audio.musicVolume;
+musicVolumeInput.addEventListener('input', (e) => {
+  audio.setMusicVolume(parseFloat(e.target.value));
+});
 document.querySelector('#rotaryZero').addEventListener('click', () => game.handleRotary(0));
 document.querySelector('#rotaryOne').addEventListener('click', () => game.handleRotary(1));
 

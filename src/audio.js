@@ -26,7 +26,10 @@ export const MANIFEST = {
   lose: 'assets/audio/lose.mp3',         // any way a run can end: wrong button or ran out of time
   gameover: 'assets/audio/gameover.mp3',
   start: 'assets/audio/start.mp3',
+  song: 'assets/audio/song.mp3', // looping background music for a run
 };
+
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
 
 export class AudioManager {
   constructor(manifest = MANIFEST) {
@@ -34,7 +37,11 @@ export class AudioManager {
     this.buffers = new Map();
     this.ctx = null;
     this.muted = localStorage.getItem(CONFIG.storage.muted) === '1';
+    this.musicVolume = clamp01(parseFloat(localStorage.getItem(CONFIG.storage.musicVolume)) || 0.5);
     this.loaded = false;
+    this.preloadPromise = null;
+    this.music = null;
+    this.musicToken = 0; // invalidates a playMusic() still waiting on preload
   }
 
   /** Must be called from a user gesture before the first sound. */
@@ -46,9 +53,14 @@ export class AudioManager {
       this.gain = this.ctx.createGain();
       this.gain.connect(this.ctx.destination);
       this.gain.gain.value = this.muted ? 0 : 1;
+      // Persistent node so the volume slider can adjust a track that's
+      // already playing, not just future ones.
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = this.musicVolume;
+      this.musicGain.connect(this.gain);
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    if (!this.loaded) this.preload();
+    if (!this.loaded) this.preloadPromise = this.preload();
   }
 
   async preload() {
@@ -73,6 +85,41 @@ export class AudioManager {
     src.buffer = buffer;
     src.connect(this.gain);
     src.start();
+  }
+
+  /** Loops until stopMusic(). Waits out preload if this fires before the
+   *  (often multi-MB) track has finished decoding, unlike one-shot play(). */
+  playMusic(key) {
+    this.stopMusic();
+    const token = this.musicToken;
+    const start = () => {
+      if (token !== this.musicToken || !this.ctx) return; // superseded meanwhile
+      const buffer = this.buffers.get(key);
+      if (!buffer) return;
+      const src = this.ctx.createBufferSource();
+      src.buffer = buffer;
+      src.loop = true;
+      src.connect(this.musicGain); // routes through both the volume node and mute
+      src.start();
+      this.music = src;
+    };
+    if (this.buffers.has(key)) start();
+    else if (this.preloadPromise) this.preloadPromise.then(start);
+  }
+
+  stopMusic() {
+    this.musicToken++; // cancel any playMusic() still waiting on preload
+    if (!this.music) return;
+    try {
+      this.music.stop();
+    } catch { /* already stopped */ }
+    this.music = null;
+  }
+
+  setMusicVolume(volume) {
+    this.musicVolume = clamp01(volume);
+    if (this.musicGain) this.musicGain.gain.value = this.musicVolume;
+    localStorage.setItem(CONFIG.storage.musicVolume, String(this.musicVolume));
   }
 
   setMuted(muted) {

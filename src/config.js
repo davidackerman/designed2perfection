@@ -54,6 +54,7 @@ export const CONFIG = {
     best: 'janelia-it:best', // legacy single value, migrated into the board
     hardMode: 'janelia-it:hard',
     muted: 'janelia-it:muted',
+    musicVolume: 'janelia-it:music-volume',
     bindings: 'janelia-it:bindings',
     debug: 'janelia-it:debug',
   },

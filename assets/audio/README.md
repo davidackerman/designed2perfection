@@ -26,6 +26,7 @@ about 800 ms.
 | `lose.mp3` | A run ends: wrong button or ran out of time |
 | `gameover.mp3` | Plays alongside `lose` at the end of a run |
 | `start.mp3` | A run begins |
+| `song.mp3` | Loops in the background for the whole run, quieter than the SFX above. Stops on game over or quitting to menu. |
 
 Playback goes through a single WebAudio gain node, so `M` / the SOUND badge
 mutes everything at once.
