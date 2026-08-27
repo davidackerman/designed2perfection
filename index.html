@@ -69,17 +69,25 @@
       <span class="debug-label">cheat</span><span class="dim"><b>D</b> = right, anything else = wrong</span>
     </div>
 
-    <!-- The line, unpacked: aaronson's running lifetime accuracy, and the
-         hit/miss for each of the same picks underneath it. -->
+    <!-- The line, unpacked: aaronson's running lifetime accuracy (which
+         drives round speed) vs the shadow ensemble, plus the hit/miss
+         behind each of aaronson's last 10 picks underneath. -->
     <div class="oracle-debug">
-      <div class="oracle-debug-head">
-        <span class="debug-label">the line -- lifetime accuracy, last 10 picks shown (red = reading you, green = winning)</span>
-        <b id="oracleAaronsonVal" class="oracle-value">--</b>
-      </div>
+      <span class="debug-label">the line -- lifetime accuracy, last 10 picks shown, range 40-70%</span>
       <div class="oracle-chart-wrap">
-        <span id="oracleChartMax" class="oracle-chart-axis oracle-chart-axis-top">--</span>
-        <span id="oracleChartMin" class="oracle-chart-axis oracle-chart-axis-bottom">--</span>
+        <span class="oracle-chart-axis oracle-chart-axis-top">70%</span>
+        <span class="oracle-chart-axis oracle-chart-axis-bottom">40%</span>
         <svg id="oracleChart" class="oracle-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <div class="oracle-legend">
+        <span class="oracle-legend-item">
+          <span class="oracle-swatch oracle-swatch-ensemble"></span>ensemble
+          <b id="oracleEnsembleVal">--</b>
+        </span>
+        <span class="oracle-legend-item">
+          <span class="oracle-swatch oracle-swatch-aaronson"></span>aaronson (drives speed)
+          <b id="oracleAaronsonVal">--</b>
+        </span>
       </div>
       <div id="oracleHits" class="oracle-hits"></div>
     </div>

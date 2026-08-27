@@ -59,8 +59,7 @@ export class UI {
       rotaryNeedle: $('#rotaryNeedle'),
       rotaryAccuracy: $('#rotaryAccuracy'),
       oracleChart: $('#oracleChart'),
-      oracleChartMax: $('#oracleChartMax'),
-      oracleChartMin: $('#oracleChartMin'),
+      oracleEnsembleVal: $('#oracleEnsembleVal'),
       oracleAaronsonVal: $('#oracleAaronsonVal'),
       oracleHits: $('#oracleHits'),
     };
@@ -228,47 +227,28 @@ export class UI {
     this.el.rotaryAccuracy.textContent = `${Math.round(accuracy * 100)}%`;
   }
 
-  /** Debug only: aaronson's running lifetime accuracy, and the hit/miss
-   *  behind each of those same picks. */
-  setOracleDebug({ aaronsonAcc, aaronsonN, accuracyHistory, hitHistory }) {
+  /** Debug only: lifetime accuracy for both predictors (aaronson drives
+   *  round speed; the ensemble runs in shadow for comparison), plus the
+   *  hit/miss behind each of aaronson's last 10 picks. */
+  setOracleDebug({ ensembleAcc, ensembleN, aaronsonAcc, aaronsonN, history, hitHistory }) {
     if (!this.debug) return;
 
+    this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
     this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
 
-    // accuracyHistory is already capped to the last CONFIG.rotary.chartLength
-    // picks (see Game.handleRotary) -- only that recent window is ever
-    // shown, so an old spike can't leave the axis stuck too wide once it's
-    // scrolled past. These are lifetime accuracy values, which barely move
-    // once a session is long, so zoom to the *actual spread* of the values
-    // on screen (not their distance from 50%) -- otherwise a tight cluster
-    // sitting at, say, 65% renders as a flat line pinned near the top of a
-    // 50%-centered axis instead of showing the real movement within it.
-    let domainMin = 0.4;
-    let domainMax = 0.6;
-    if (accuracyHistory.length) {
-      const dataMin = Math.min(...accuracyHistory);
-      const dataMax = Math.max(...accuracyHistory);
-      const center = (dataMin + dataMax) / 2;
-      const span = Math.max(0.06, (dataMax - dataMin) * 1.3); // floor so it can't over-zoom noise
-      domainMin = Math.max(0, center - span / 2);
-      domainMax = Math.min(1, center + span / 2);
-    }
-    this.el.oracleChartMax.textContent = `${Math.round(domainMax * 100)}%`;
-    this.el.oracleChartMin.textContent = `${Math.round(domainMin * 100)}%`;
-
+    // Fixed range rather than auto-zoomed: simpler to read at a glance, and
+    // this game's accuracy realistically lives in this band. Values outside
+    // it just clip against the top/bottom edge instead of resizing the axis.
+    const { chartRangeMin: domainMin, chartRangeMax: domainMax } = CONFIG.rotary;
     const toY = (v) => 100 - ((v - domainMin) / (domainMax - domainMin)) * 100;
-    const points = accuracyHistory
-      .map((v, i) => {
-        const x = accuracyHistory.length > 1 ? (i / (accuracyHistory.length - 1)) * 100 : 50;
-        return `${x},${toY(v)}`;
-      })
-      .join(' ');
+    const toPoints = (series) =>
+      series
+        .map((v, i) => `${series.length > 1 ? (i / (series.length - 1)) * 100 : 50},${toY(v)}`)
+        .join(' ');
 
-    // Chance is 50% accuracy, which no longer necessarily sits at y=50 now
-    // that the domain isn't forced to center on it -- place the red/green
-    // split (and the hairline) wherever 50% actually falls. If the whole
-    // window is solidly above or below chance, that's one solid color,
-    // which is itself the honest answer.
+    // Chance is 50% accuracy, which doesn't sit at the vertical center of an
+    // asymmetric 40-70% range -- place the red/green split (and the
+    // hairline) wherever 50% actually falls.
     const y50 = Math.max(0, Math.min(100, toY(0.5)));
     const zones =
       `<rect x="0" y="0" width="100" height="${y50}" fill="var(--bad)" fill-opacity="0.12" />` +
@@ -276,16 +256,17 @@ export class UI {
 
     // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
     // the bar's full width, which would turn a circle into an ellipse.
-    const line =
-      accuracyHistory.length < 2
+    const line = (series, color) =>
+      series.length < 2
         ? ''
-        : `<polyline points="${points}" fill="none" stroke="#d95926" stroke-width="1.5" ` +
+        : `<polyline points="${toPoints(series)}" fill="none" stroke="${color}" stroke-width="1.5" ` +
           `stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />`;
 
     this.el.oracleChart.innerHTML =
       zones +
-      `<line x1="0" y1="${toY(0.5)}" x2="100" y2="${toY(0.5)}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
-      line;
+      `<line x1="0" y1="${y50}" x2="100" y2="${y50}" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
+      line(history.ensemble, '#3987e5') +
+      line(history.aaronson, '#d95926');
 
     this.el.oracleHits.innerHTML = hitHistory
       .map((hit) => `<span class="oracle-hit-dot ${hit ? 'hit' : 'miss'}"></span>`)

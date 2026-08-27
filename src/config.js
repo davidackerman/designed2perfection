@@ -40,6 +40,8 @@ export const CONFIG = {
     minMultiplier: 0.35,     // floor: fastest the line can push rounds
     maxMultiplier: 3,        // ceiling: most generous the line can make rounds
     chartLength: 10,         // debug mode: how many recent picks the accuracy graph/hit strip show
+    chartRangeMin: 0.4,      // debug mode: fixed y-axis floor for the accuracy graph
+    chartRangeMax: 0.7,      // debug mode: fixed y-axis ceiling for the accuracy graph
   },
 
   scores: {

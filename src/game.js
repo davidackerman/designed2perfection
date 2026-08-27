@@ -4,6 +4,7 @@
 import { CONFIG } from './config.js';
 import { pickAction, makeChallenge } from './actions.js';
 import { AaronsonOracle } from './aaronsonOracle.js';
+import { RotaryPredictor } from './predictor.js';
 
 export const STATE = { TITLE: 'title', PLAYING: 'playing', OVER: 'over' };
 
@@ -27,8 +28,11 @@ export class Game {
     this.paused = false;
     this.remainingOnPause = null;
     this.aaronson = new AaronsonOracle();
-    this.accuracyHistory = []; // debug-mode graph: lifetime accuracy per pick
-    this.hitHistory = [];      // debug-mode graph: hit/miss per pick, same window
+    // Shadow only: same picks, never touches speed -- purely for the debug
+    // graph, since aaronson is what actually drives the game.
+    this.rotaryPredictor = new RotaryPredictor();
+    this.accuracyHistory = { ensemble: [], aaronson: [] }; // debug-mode graph: lifetime accuracy per pick
+    this.hitHistory = [];      // debug-mode hit strip: aaronson hit/miss per pick, same window
     this.rotarySpeed = 1;
     this.practice = false;
   }
@@ -38,7 +42,8 @@ export class Game {
    *  it has on a team is supposed to persist across their attempts. */
   newTeam() {
     this.aaronson.reset();
-    this.accuracyHistory = [];
+    this.rotaryPredictor.reset();
+    this.accuracyHistory = { ensemble: [], aaronson: [] };
     this.hitHistory = [];
     this.rotarySpeed = 1;
     this.pushOracleDebug();
@@ -172,11 +177,17 @@ export class Game {
       this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
     }
 
-    this.accuracyHistory.push(accuracy);
+    this.rotaryPredictor.predict();
+    this.rotaryPredictor.update(bit);
+
+    const h = this.accuracyHistory;
+    h.ensemble.push(this.rotaryPredictor.accuracy());
+    h.aaronson.push(accuracy);
     this.hitHistory.push(correct);
-    const overflow = this.accuracyHistory.length - CONFIG.rotary.chartLength;
+    const overflow = h.aaronson.length - CONFIG.rotary.chartLength;
     if (overflow > 0) {
-      this.accuracyHistory.splice(0, overflow);
+      h.ensemble.splice(0, overflow);
+      h.aaronson.splice(0, overflow);
       this.hitHistory.splice(0, overflow);
     }
 
@@ -187,9 +198,11 @@ export class Game {
   /** Also called from main.js when debug mode is toggled on, to catch up. */
   pushOracleDebug() {
     this.ui.setOracleDebug({
+      ensembleAcc: this.rotaryPredictor.accuracy(),
+      ensembleN: this.rotaryPredictor.total,
       aaronsonAcc: this.aaronson.accuracy(),
       aaronsonN: this.aaronson.total,
-      accuracyHistory: this.accuracyHistory,
+      history: this.accuracyHistory,
       hitHistory: this.hitHistory,
     });
   }

@@ -14,9 +14,9 @@
 //
 // In practice this still loses to the plain backoff in src/aaronsonOracle.js
 // (blending across context orders dilutes a sharp n-gram signal that backoff
-// commits to fully), so that one drives round speed instead. This module is
-// currently disconnected from game.js -- not deleted, just unused for now,
-// in case the comparison is worth reviving later.
+// commits to fully), so that one drives round speed instead. This runs in
+// shadow on the same picks, purely so debug mode can chart the two against
+// each other -- see Game.handleRotary.
 
 export class RotaryPredictor {
   constructor({

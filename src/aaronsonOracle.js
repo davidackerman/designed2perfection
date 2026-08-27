@@ -7,9 +7,8 @@
 // to the empty context. If nothing ever qualifies, it flips a coin.
 //
 // This is what drives round speed. An ensemble predictor (src/predictor.js)
-// used to run alongside it for a debug-mode comparison, but this kept
-// winning in practice testing -- for now the ensemble is disconnected
-// entirely (see git history if you want to re-enable the comparison).
+// runs alongside it in shadow for a debug-mode comparison, but this kept
+// winning in practice testing, so it's the only one that affects gameplay.
 
 export class AaronsonOracle {
   constructor({ maxOrder = 5 } = {}) {
