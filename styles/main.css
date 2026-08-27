@@ -383,12 +383,25 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
   padding-top: 9px;
   border-top: 1px solid var(--line);
 }
+.oracle-chart-wrap {
+  position: relative;
+  margin-top: 6px;
+  padding-left: 30px;
+}
 .oracle-chart {
   display: block;
   width: 100%;
   height: 56px;
-  margin-top: 6px;
 }
+.oracle-chart-axis {
+  position: absolute;
+  left: 0;
+  font-size: 9px;
+  color: var(--dim);
+  font-family: var(--mono);
+}
+.oracle-chart-axis-top { top: -1px; }
+.oracle-chart-axis-bottom { bottom: -1px; }
 .oracle-legend {
   display: flex;
   gap: 16px;

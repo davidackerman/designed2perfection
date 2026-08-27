@@ -59,6 +59,8 @@ export class UI {
       rotaryNeedle: $('#rotaryNeedle'),
       rotaryAccuracy: $('#rotaryAccuracy'),
       oracleChart: $('#oracleChart'),
+      oracleChartMax: $('#oracleChartMax'),
+      oracleChartMin: $('#oracleChartMin'),
       oracleEnsembleVal: $('#oracleEnsembleVal'),
       oracleAaronsonVal: $('#oracleAaronsonVal'),
     };
@@ -234,11 +236,29 @@ export class UI {
     this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
     this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
 
+    // Zoom the y-axis to how far accuracy has actually strayed from 50/50,
+    // with a floor so it doesn't over-zoom on a near-flat line -- a few
+    // points of edge over chance should read as visible, not a flat line
+    // near the top of a 0-100% axis. The first handful of picks are excluded
+    // from the range calculation: cumulative accuracy after 1-2 picks is
+    // always 0% or 100%, and that warm-up noise would blow the zoom back out
+    // to the full range right when there's the least reason to trust it.
+    const warmup = 10;
+    const settled = (series) => series.slice(Math.min(warmup, series.length));
+    const settledValues = settled(history.ensemble).concat(settled(history.aaronson));
+    const maxDeviation = settledValues.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
+    const halfRange = Math.min(0.5, Math.max(0.05, maxDeviation * 1.2));
+    const domainMin = 0.5 - halfRange;
+    const domainMax = 0.5 + halfRange;
+    this.el.oracleChartMax.textContent = `${Math.round(domainMax * 100)}%`;
+    this.el.oracleChartMin.textContent = `${Math.round(domainMin * 100)}%`;
+
+    const toY = (v) => 100 - ((v - domainMin) / (domainMax - domainMin)) * 100;
     const toPoints = (series) =>
       series
         .map((v, i) => {
           const x = series.length > 1 ? (i / (series.length - 1)) * 100 : 50;
-          return `${x},${100 - v * 100}`;
+          return `${x},${toY(v)}`;
         })
         .join(' ');
 

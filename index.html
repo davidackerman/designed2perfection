@@ -73,8 +73,12 @@
          drives round speed) vs the shadow ensemble, so you can see which
          is actually reading the picks better over a session. -->
     <div class="oracle-debug">
-      <span class="debug-label">the line -- accuracy over time (hairline = chance)</span>
-      <svg id="oracleChart" class="oracle-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <span class="debug-label">the line -- accuracy over time (hairline = 50/50 chance)</span>
+      <div class="oracle-chart-wrap">
+        <span id="oracleChartMax" class="oracle-chart-axis oracle-chart-axis-top">--</span>
+        <span id="oracleChartMin" class="oracle-chart-axis oracle-chart-axis-bottom">--</span>
+        <svg id="oracleChart" class="oracle-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
       <div class="oracle-legend">
         <span class="oracle-legend-item">
           <span class="oracle-swatch oracle-swatch-ensemble"></span>ensemble
