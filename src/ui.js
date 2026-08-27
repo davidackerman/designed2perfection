@@ -49,7 +49,6 @@ export class UI {
       tabHard: $('#tabHard'),
       tabSimon: $('#tabSimon'),
       hardToggle: $('#hardToggle'),
-      debugToggle: $('#debugToggle'),
       bindingList: $('#bindingList'),
       debugBar: $('#debugBar'),
       debugKeys: $('#debugKeys'),
@@ -58,6 +57,12 @@ export class UI {
       keyHintKey: $('#keyHintKey'),
       keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
+    };
+    this.simonPads = {
+      push: $('#simonPadPush'),
+      pull: $('#simonPadPull'),
+      soap: $('#simonPadSoap'),
+      swipe: $('#simonPadSwipe'),
     };
     this.flashTimer = null;
     this.debug = false;
@@ -122,8 +127,6 @@ export class UI {
   setDebug(on, slots) {
     this.debug = on;
     this.el.debugBar.classList.toggle('hidden', !on);
-    this.el.debugToggle.textContent = on ? 'ON' : 'OFF';
-    this.el.debugToggle.classList.toggle('on', on);
     if (on) this.renderDebugKeys(slots);
   }
 
@@ -223,19 +226,16 @@ export class UI {
     this.setDebugExpected(null);
   }
 
-  /** Light one pad: its picture, and a flash of its colour -- no placard, no
-   *  video, nothing that would tell you what you're looking at. */
-  flashSimonStep(actionId, image) {
-    this.el.image.src = image;
-    this.el.image.alt = '';
-    this.el.stage.classList.remove('blank');
-    this.el.stage.classList.remove('simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
-    this.el.stage.classList.add('simon-lit', `simon-${actionId}`);
+  /** Brighten one pad in the diamond -- whether the game is playing it back
+   *  or you just pressed its control, it lights up the same way. */
+  flashSimonStep(actionId) {
+    for (const [id, el] of Object.entries(this.simonPads)) {
+      el.classList.toggle('active', id === actionId);
+    }
   }
 
   clearSimonStep() {
-    this.el.stage.classList.add('blank');
-    this.el.stage.classList.remove('simon-lit', 'simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
+    for (const el of Object.values(this.simonPads)) el.classList.remove('active');
   }
 
   /** Debug mode only: which key(s) resolve the pad Simon is currently

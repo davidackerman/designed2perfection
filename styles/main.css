@@ -152,17 +152,58 @@ html, body {
 #stage.flash-deny { box-shadow: inset 0 0 0 3px var(--deny); }
 #stage.flash-nothing { animation: nudge 220ms ease; }
 
-/* ---- simon mode: one pad at a time, no word/video panel, no placard ---- */
+/* ---- simon mode: all four pads shown at once, diamond formation ---- */
 #stage.simon-mode { grid-template-columns: 1fr; }
+#stage.simon-mode .panel-image,
 #stage.simon-mode .panel-word { display: none; }
+#stage:not(.simon-mode) .panel-simon { display: none; }
 
-/* The colour needs to land on the panel, not #stage -- the panel is the
-   opaque div actually covering the stage; #stage itself only shows through
-   the 2px gap between panels. */
-#stage.simon-lit.simon-push .panel-image { background: #1fae57; }
-#stage.simon-lit.simon-pull .panel-image { background: #d64545; }
-#stage.simon-lit.simon-soap .panel-image { background: #d9b62a; }
-#stage.simon-lit.simon-swipe .panel-image { background: #2f6fd6; }
+.simon-diamond {
+  width: 100%;
+  height: 100%;
+  max-width: 560px;
+  max-height: 560px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.simon-pos-top { grid-column: 2; grid-row: 1; }
+.simon-pos-left { grid-column: 1; grid-row: 2; }
+.simon-pos-right { grid-column: 3; grid-row: 2; }
+.simon-pos-bottom { grid-column: 2; grid-row: 3; }
+
+.simon-pad {
+  /* Grid items default to a min size based on their content -- for an <img>
+     that's its intrinsic aspect ratio, which can push the 1fr tracks wider
+     than the container and overflow it. Force them down to 0 so the tracks
+     actually shrink to fit instead. */
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  opacity: 0.3;
+  filter: saturate(0.5) brightness(0.65);
+  box-shadow: inset 0 0 0 2px var(--line);
+  transition: opacity 140ms ease, filter 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+/* Lit either by the game's own playback or by your press -- same look
+   either way, so there's no visual "gotcha" between the two. */
+.simon-pad.active {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.05);
+}
+.simon-pad-push.active { box-shadow: 0 0 0 4px #1fae57, 0 0 30px 6px rgba(31, 174, 87, 0.5); }
+.simon-pad-pull.active { box-shadow: 0 0 0 4px #d64545, 0 0 30px 6px rgba(214, 69, 69, 0.5); }
+.simon-pad-soap.active { box-shadow: 0 0 0 4px #d9b62a, 0 0 30px 6px rgba(217, 182, 42, 0.5); }
+.simon-pad-swipe.active { box-shadow: 0 0 0 4px #2f6fd6, 0 0 30px 6px rgba(47, 111, 214, 0.5); }
 
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
@@ -415,4 +456,5 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   #debugBar { margin: 0 14px 12px; font-size: 10px; }
   #stage { margin: 0 14px; }
   #timer { margin: 10px 14px 14px; }
+  .simon-diamond { max-width: 340px; max-height: 340px; gap: 8px; }
 }

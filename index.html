@@ -37,6 +37,18 @@
       <video id="stageWord" playsinline></video>
     </section>
 
+    <!-- Simon mode: all four pads shown at once in a diamond, dim by
+         default. A pad brightens either when the game plays it back, or
+         when you press its control -- same visual either way. -->
+    <section class="panel panel-simon">
+      <div class="simon-diamond">
+        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-top" src="assets/img/pushit.jpeg" alt="" />
+        <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-left" src="assets/img/soapit.jpeg" alt="" />
+        <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-right" src="assets/img/swipeit.jpeg" alt="" />
+        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bottom" src="assets/img/pullit.jpeg" alt="" />
+      </div>
+    </section>
+
     <!-- Debug mode only: the key this round wants, on the stage where you're
          already looking. -->
     <div id="keyHint" class="hidden">
@@ -75,11 +87,10 @@
         <button id="hardBtn" type="button" class="hidden">Hard mode: <span id="hardToggle">OFF</span></button>
         <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
-        <button id="debugBtn" type="button">Debug: <span id="debugToggle">OFF</span></button>
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>Space</b> start · <b>M</b> mute · <b>`</b> debug · <b>Esc</b> quit a run
+        <b>Space</b> start · <b>M</b> mute · <b>Esc</b> quit a run
       </p>
       <p class="hint hidden" id="classicHint">
         <b>H</b> hard mode<br />

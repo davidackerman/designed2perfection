@@ -28,6 +28,14 @@ let pending = null;    // the run awaiting initials
 const slots = allBindingSlots();
 let debug = localStorage.getItem(CONFIG.storage.debug) === '1';
 
+// No visible button, no documented shortcut -- just a link:
+// ?debug=1 turns it on (and remembers that), ?debug=0 turns it off.
+const debugParam = new URLSearchParams(location.search).get('debug');
+if (debugParam !== null) {
+  debug = debugParam !== '0';
+  localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
+}
+
 ui.setHardMode(reflexGame.hardMode);
 ui.setMuted(audio.muted);
 ui.setDebug(debug, slots);
@@ -179,7 +187,6 @@ document.querySelector('#remapResetBtn').addEventListener('click', () => {
 });
 document.querySelector('#hardBtn').addEventListener('click', toggleHard);
 document.querySelector('#classicBtn').addEventListener('click', toggleClassic);
-document.querySelector('#debugBtn').addEventListener('click', toggleDebug);
 document.querySelector('#scoresBtn').addEventListener('click', () => showScores(activeGame().mode));
 document.querySelector('#scoresDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#tabSimon').addEventListener('click', () => showScores('simon'));

@@ -12,14 +12,6 @@ import { STATE } from './state.js';
 
 const PADS = ['push', 'pull', 'soap', 'swipe'];
 
-// One real photo per pad.
-const PAD_ART = {
-  push: 'assets/img/pushit.jpeg',
-  pull: 'assets/img/pullit.jpeg',
-  soap: 'assets/img/soapit.jpeg',
-  swipe: 'assets/img/swipeit.jpeg',
-};
-
 // Debug hint only: which bound key(s) count as this pad. Swipe has two
 // variants (stripe up/down) and Simon accepts either, so both show up.
 const PAD_SLOTS = {
@@ -132,7 +124,7 @@ export class SimonGame {
   }
 
   lightPad(actionId, durationMs) {
-    this.ui.flashSimonStep(actionId, PAD_ART[actionId]);
+    this.ui.flashSimonStep(actionId);
     this.audio.playTone(CONFIG.simon.tones[actionId], durationMs);
   }
 
@@ -168,21 +160,21 @@ export class SimonGame {
   }
 
   /** Simon mode ignores which variant fired (e.g. swipe orientation) -- only
-   *  which of the four pads it was. No Bop-It-style press sfx here -- a
-   *  correct press re-lights the pad itself (see lightPad below), the same
-   *  flash+tone as playback, same as a real Simon console. */
+   *  which of the four pads it was. No Bop-It-style press sfx here -- whatever
+   *  pad you press lights up with its own flash+tone, same as a real Simon
+   *  console, whether you turn out to be right or wrong. */
   handleInput({ actionId }) {
     if (this.state !== STATE.PLAYING || this.phase !== 'input') return;
+
+    this.lightPad(actionId, CONFIG.simon.ackMs);
+    clearTimeout(this.ackTimer);
+    this.ackTimer = setTimeout(() => this.ui.clearSimonStep(), CONFIG.simon.ackMs);
 
     const expected = this.sequence[this.inputIndex];
     if (actionId !== expected) {
       this.fail('wrong');
       return;
     }
-
-    this.lightPad(actionId, CONFIG.simon.ackMs);
-    clearTimeout(this.ackTimer);
-    this.ackTimer = setTimeout(() => this.ui.clearSimonStep(), CONFIG.simon.ackMs);
 
     this.inputIndex += 1;
     if (this.inputIndex >= this.sequence.length) {
