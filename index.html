@@ -69,16 +69,22 @@
       <span class="debug-label">cheat</span><span class="dim"><b>D</b> = right, anything else = wrong</span>
     </div>
 
-    <!-- The line, unpacked: the aaronson oracle's context bands (see
-         aaronsonoracle.com), plus a live comparison against the ensemble
-         predictor that actually drives round speed. -->
+    <!-- The line, unpacked: running lifetime accuracy for aaronson (which
+         drives round speed) vs the shadow ensemble, so you can see which
+         is actually reading the picks better over a session. -->
     <div class="oracle-debug">
-      <div class="oracle-debug-head">
-        <span class="debug-label">the line</span>
-        <span id="oracleStats" class="oracle-stats"><span class="dim">--</span></span>
+      <span class="debug-label">the line -- accuracy over time (hairline = chance)</span>
+      <svg id="oracleChart" class="oracle-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="oracle-legend">
+        <span class="oracle-legend-item">
+          <span class="oracle-swatch oracle-swatch-ensemble"></span>ensemble
+          <b id="oracleEnsembleVal">--</b>
+        </span>
+        <span class="oracle-legend-item">
+          <span class="oracle-swatch oracle-swatch-aaronson"></span>aaronson (drives speed)
+          <b id="oracleAaronsonVal">--</b>
+        </span>
       </div>
-      <div id="oracleBands" class="oracle-bands"></div>
-      <div id="oracleStrips" class="oracle-strips"></div>
     </div>
   </div>
 

@@ -58,9 +58,9 @@ export class UI {
       rotary: $('#rotary'),
       rotaryNeedle: $('#rotaryNeedle'),
       rotaryAccuracy: $('#rotaryAccuracy'),
-      oracleStats: $('#oracleStats'),
-      oracleBands: $('#oracleBands'),
-      oracleStrips: $('#oracleStrips'),
+      oracleChart: $('#oracleChart'),
+      oracleEnsembleVal: $('#oracleEnsembleVal'),
+      oracleAaronsonVal: $('#oracleAaronsonVal'),
     };
     this.flashTimer = null;
     this.debug = false;
@@ -226,41 +226,34 @@ export class UI {
     this.el.rotaryAccuracy.textContent = `${Math.round(accuracy * 100)}%`;
   }
 
-  /** Debug only: the aaronson oracle's bands, plus a live comparison strip. */
-  setOracleDebug({ ensembleAcc, ensembleN, ensembleHits, aaronsonAcc, aaronsonN, aaronsonHits, bands }) {
+  /** Debug only: running lifetime accuracy for both predictors, so you can
+   *  see which is actually reading the picks better over a session. */
+  setOracleDebug({ ensembleAcc, ensembleN, aaronsonAcc, aaronsonN, history }) {
     if (!this.debug) return;
 
-    const ensembleWins = ensembleAcc > aaronsonAcc;
-    const aaronsonWins = aaronsonAcc > ensembleAcc;
-    this.el.oracleStats.innerHTML =
-      `<span class="${ensembleWins ? 'ok' : ''}">ensemble ${Math.round(ensembleAcc * 100)}%</span> ` +
-      `<span class="dim">(${ensembleN})</span> vs ` +
-      `<span class="${aaronsonWins ? 'ok' : ''}">aaronson ${Math.round(aaronsonAcc * 100)}%</span> ` +
-      `<span class="dim">(${aaronsonN})</span>`;
+    this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
+    this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
 
-    const maxTotal = bands.reduce((m, b) => Math.max(m, b.total), 1);
-    this.el.oracleBands.innerHTML = bands
-      .map((b) => {
-        const label = b.order === 0 ? 'ANY' : `LAST ${b.order}`;
-        const w0 = Math.min(100, (b.count0 / maxTotal) * 100);
-        const w1 = Math.min(100, (b.count1 / maxTotal) * 100);
-        return (
-          `<div class="oracle-band${b.active ? ' active' : ''}">` +
-          `<span class="oracle-band-label">${label}</span>` +
-          `<span class="oracle-band-bar">` +
-          `<span class="oracle-band-half oracle-band-half-0"><span class="oracle-band-fill" style="width:${w0}%"></span></span>` +
-          `<span class="oracle-band-half oracle-band-half-1"><span class="oracle-band-fill" style="width:${w1}%"></span></span>` +
-          `</span>` +
-          `<span class="oracle-band-count">${b.total}</span>` +
-          `</div>`
-        );
-      })
-      .join('');
+    const toPoints = (series) =>
+      series
+        .map((v, i) => {
+          const x = series.length > 1 ? (i / (series.length - 1)) * 100 : 50;
+          return `${x},${100 - v * 100}`;
+        })
+        .join(' ');
 
-    const dots = (hits) => hits.map((h) => `<span class="oracle-dot ${h ? 'hit' : 'miss'}"></span>`).join('');
-    this.el.oracleStrips.innerHTML =
-      `<div class="oracle-strip-row"><span class="oracle-strip-label">ensemble</span><span class="oracle-strip-dots">${dots(ensembleHits)}</span></div>` +
-      `<div class="oracle-strip-row"><span class="oracle-strip-label">aaronson</span><span class="oracle-strip-dots">${dots(aaronsonHits)}</span></div>`;
+    // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
+    // the bar's full width, which would turn a circle into an ellipse.
+    const line = (series, color) =>
+      series.length < 2
+        ? ''
+        : `<polyline points="${toPoints(series)}" fill="none" stroke="${color}" stroke-width="1.5" ` +
+          `stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />`;
+
+    this.el.oracleChart.innerHTML =
+      `<line x1="0" y1="50" x2="100" y2="50" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
+      line(history.ensemble, '#3987e5') +
+      line(history.aaronson, '#d95926');
   }
 
   flash(kind) {

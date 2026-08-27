@@ -27,10 +27,11 @@ export class Game {
     this.gapTimer = null;
     this.paused = false;
     this.remainingOnPause = null;
-    this.rotaryPredictor = new RotaryPredictor({ accuracyWindow: CONFIG.rotary.accuracyWindow });
-    // Runs in shadow alongside it -- same picks, never touches game speed --
-    // purely so debug mode can show which one actually calls you better.
+    // aaronson drives round speed; rotaryPredictor runs in shadow on the same
+    // picks, never touching speed, purely for the debug comparison chart.
     this.aaronson = new AaronsonOracle({ accuracyWindow: CONFIG.rotary.accuracyWindow });
+    this.rotaryPredictor = new RotaryPredictor({ accuracyWindow: CONFIG.rotary.accuracyWindow });
+    this.accuracyHistory = { ensemble: [], aaronson: [] }; // debug-mode running graph
     this.rotarySpeed = 1;
     this.practice = false;
   }
@@ -41,6 +42,7 @@ export class Game {
   newTeam() {
     this.rotaryPredictor.reset();
     this.aaronson.reset();
+    this.accuracyHistory = { ensemble: [], aaronson: [] };
     this.rotarySpeed = 1;
     this.pushOracleDebug();
   }
@@ -155,20 +157,30 @@ export class Game {
   /** One pick on the rotary dial: 0 or 1. Runs alongside whatever round is live. */
   handleRotary(bit) {
     if (this.state !== STATE.PLAYING) return;
-    const guess = this.rotaryPredictor.predict();
-    this.rotaryPredictor.update(bit);
-    const correct = guess.choice === bit;
-    const accuracy = this.rotaryPredictor.rollingAccuracy();
-
-    // Shadow predictor: same pick, never affects speed -- comparison only.
-    this.aaronson.predict();
+    // The aaronson oracle drives speed -- its context backoff kept beating
+    // the ensemble in practice, which now just runs in shadow for comparison.
+    const guess = this.aaronson.predict();
     this.aaronson.update(bit);
+    const correct = guess.choice === bit;
+    const accuracy = this.aaronson.rollingAccuracy();
+
+    this.rotaryPredictor.predict();
+    this.rotaryPredictor.update(bit);
 
     const r = CONFIG.rotary;
     const span = Math.max(1e-6, r.hardAccuracy - r.easyAccuracy);
     const t = Math.min(1, Math.max(0, (accuracy - r.easyAccuracy) / span));
     const target = r.maxMultiplier + (r.minMultiplier - r.maxMultiplier) * t;
     this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
+
+    const h = this.accuracyHistory;
+    h.ensemble.push(this.rotaryPredictor.accuracy());
+    h.aaronson.push(this.aaronson.accuracy());
+    const overflow = h.ensemble.length - CONFIG.rotary.chartLength;
+    if (overflow > 0) {
+      h.ensemble.splice(0, overflow);
+      h.aaronson.splice(0, overflow);
+    }
 
     this.ui.setRotary({ bit, correct, accuracy });
     this.pushOracleDebug();
@@ -179,11 +191,9 @@ export class Game {
     this.ui.setOracleDebug({
       ensembleAcc: this.rotaryPredictor.accuracy(),
       ensembleN: this.rotaryPredictor.total,
-      ensembleHits: this.rotaryPredictor.hitHistory,
       aaronsonAcc: this.aaronson.accuracy(),
       aaronsonN: this.aaronson.total,
-      aaronsonHits: this.aaronson.hitHistory,
-      bands: this.aaronson.bands(),
+      history: this.accuracyHistory,
     });
   }
 

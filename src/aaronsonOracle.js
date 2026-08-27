@@ -6,23 +6,20 @@
 // it gives up on that question and asks a shorter, less specific one, down
 // to the empty context. If nothing ever qualifies, it flips a coin.
 //
-// This exists purely as a yardstick: RotaryPredictor (src/predictor.js) runs
-// the game, this runs alongside it in debug mode so the two can be compared
-// on the same live sequence -- see Game.handleRotary.
+// This is what actually drives round speed -- it kept beating the ensemble
+// predictor (src/predictor.js) in practice, so that one now runs in shadow
+// instead, purely so debug mode can chart the two against each other.
 
 export class AaronsonOracle {
-  constructor({ maxOrder = 5, accuracyWindow = 12, stripLength = 50 } = {}) {
+  constructor({ maxOrder = 5, accuracyWindow = 12 } = {}) {
     this.maxOrder = maxOrder;
     this.accuracyWindow = accuracyWindow;
-    this.stripLength = stripLength;
     this.history = [];
     this.tables = Array.from({ length: maxOrder + 1 }, () => new Map()); // context -> [count0, count1]
     this.recentResults = [];
-    this.hitHistory = [];
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;
-    this.lastUsedOrder = null;
   }
 
   contextKey(order) {
@@ -31,16 +28,6 @@ export class AaronsonOracle {
 
   countsFor(order) {
     return this.tables[order].get(this.contextKey(order)) || [0, 0];
-  }
-
-  /** One row per context length, longest first -- what the bands visualize. */
-  bands() {
-    const rows = [];
-    for (let order = this.maxOrder; order >= 0; order--) {
-      const [count0, count1] = this.countsFor(order);
-      rows.push({ order, count0, count1, total: count0 + count1, active: order === this.lastUsedOrder });
-    }
-    return rows;
   }
 
   /** Call once per pick, before update(). Backoff from the longest context down. */
@@ -62,7 +49,6 @@ export class AaronsonOracle {
 
   update(actual) {
     actual = actual ? 1 : 0;
-    this.lastUsedOrder = this.lastPrediction ? this.lastPrediction.order : null;
 
     // One press, every context length gets an entry: the full run down to
     // no context at all. A context of length n needs n prior bits to exist.
@@ -79,8 +65,6 @@ export class AaronsonOracle {
       this.total++;
       this.recentResults.push(hit);
       if (this.recentResults.length > this.accuracyWindow) this.recentResults.shift();
-      this.hitHistory.push(hit);
-      if (this.hitHistory.length > this.stripLength) this.hitHistory.shift();
     }
 
     this.history.push(actual);
@@ -101,10 +85,8 @@ export class AaronsonOracle {
     this.history = [];
     this.tables = Array.from({ length: this.maxOrder + 1 }, () => new Map());
     this.recentResults = [];
-    this.hitHistory = [];
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;
-    this.lastUsedOrder = null;
   }
 }

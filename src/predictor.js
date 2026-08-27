@@ -11,6 +11,11 @@
 // expert: that needs hundreds of samples to say anything useful, and a play
 // session here is a couple dozen picks -- at that length it was just noise,
 // so it's gone.
+//
+// In practice this still loses to the plain backoff in src/aaronsonOracle.js
+// (blending across context orders dilutes a sharp n-gram signal that backoff
+// commits to fully), so that one drives round speed now. This runs in shadow
+// purely for the debug comparison chart.
 
 export class RotaryPredictor {
   constructor({
@@ -19,14 +24,12 @@ export class RotaryPredictor {
     expertRate = 0.35,
     minProbability = 0.12,
     accuracyWindow = 12,
-    stripLength = 50,
   } = {}) {
     this.maxContext = maxContext;
     this.decay = decay;
     this.expertRate = expertRate;
     this.minProbability = minProbability;
     this.accuracyWindow = accuracyWindow;
-    this.stripLength = stripLength;
 
     this.history = [];
     this.contexts = new Map(); // context string -> [weighted 0s, weighted 1s]
@@ -35,7 +38,6 @@ export class RotaryPredictor {
     this.expertWeights = Object.fromEntries(this.expertNames.map((n) => [n, 1]));
 
     this.recentResults = []; // booleans, capped to accuracyWindow
-    this.hitHistory = []; // booleans, capped to stripLength -- for the debug strip
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;
@@ -228,8 +230,6 @@ export class RotaryPredictor {
       this.total++;
       this.recentResults.push(hit);
       if (this.recentResults.length > this.accuracyWindow) this.recentResults.shift();
-      this.hitHistory.push(hit);
-      if (this.hitHistory.length > this.stripLength) this.hitHistory.shift();
     }
 
     this.history.push(actual);
@@ -252,7 +252,6 @@ export class RotaryPredictor {
     this.contexts = new Map();
     this.expertWeights = Object.fromEntries(this.expertNames.map((n) => [n, 1]));
     this.recentResults = [];
-    this.hitHistory = [];
     this.correct = 0;
     this.total = 0;
     this.lastPrediction = null;
