@@ -89,7 +89,8 @@ export class SimonGame {
       bonusMax: this.bonusMax,
     });
     this.audio.play('start');
-    this.audio.playMusic('song');
+    // No background music once a round is live -- title screen only.
+    this.audio.stopMusic();
     this.nextRound();
   }
 

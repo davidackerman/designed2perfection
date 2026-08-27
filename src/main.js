@@ -39,6 +39,7 @@ ui.setMuted(audio.muted);
 ui.setDebug(debug, slots);
 applyModeUI();
 ui.showOverlay('title');
+audio.playMusic('song'); // silently does nothing pre-unlock; the very first load is muted until then
 
 /** Everything on the title screen (and HUD) that differs between the
  *  default Simon mode and the classic reflex game. */
@@ -63,9 +64,10 @@ function toggleClassic() {
 
 function toTitle() {
   screen = 'title';
-  activeGame().abort();
+  activeGame().abort(); // stops any run music
   ui.showOverlay('title');
   ui.setRotaryVisible(false);
+  audio.playMusic('song');
 }
 
 function startGame() {
