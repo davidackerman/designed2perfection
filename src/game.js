@@ -61,7 +61,8 @@ export class Game {
   windowFor(round, challenge) {
     const t = CONFIG.timing;
     const floor = round >= t.brutalRound ? t.brutalMinWindowMs : t.minWindowMs;
-    const base = Math.max(floor, t.startWindowMs * Math.pow(t.decay, round - 1));
+    const decayRounds = Math.max(0, round - t.warmupRounds); // flat through warmupRounds
+    const base = Math.max(floor, t.startWindowMs * Math.pow(t.decay, decayRounds));
     const extraHits = Math.max(0, challenge.requiredHits - 1);
     return (base + extraHits * CONFIG.soap.perExtraHitMs) * this.rotarySpeed;
   }

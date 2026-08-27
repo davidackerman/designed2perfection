@@ -54,8 +54,8 @@ The setting persists, and the chips re-render after a re-bind.
 The screen shows a **picture** on one side and a **word** on the other, and the
 call-out plays. Hit the right control before the timer bar empties.
 
-- The window starts at 3 s and shrinks every round, down to 800 ms — then to
-  550 ms past round 30.
+- The window holds at 4 s for the first 5 rounds, then shrinks every round,
+  down to 800 ms — then to 550 ms past round 30.
 - Wrong control → run over.
 - Right control, wrong card orientation → "denied", and you lose 450 ms.
 - Soap that didn't take → nothing happens, keep waving; the clock keeps running.

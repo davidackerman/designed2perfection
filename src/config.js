@@ -2,9 +2,10 @@
 
 export const CONFIG = {
   timing: {
-    startWindowMs: 3000,     // time allowed on round 1
+    startWindowMs: 4000,     // flat time allowed during the first warmupRounds
+    warmupRounds: 5,         // rounds held at startWindowMs before decay begins
     minWindowMs: 800,        // floor before "brutal" kicks in
-    decay: 0.955,            // window *= decay each round
+    decay: 0.955,            // window *= decay each round, once warmupRounds has passed
     brutalRound: 30,         // past this round the floor drops again
     brutalMinWindowMs: 550,
     interRoundMs: 380,       // pause between a success and the next command

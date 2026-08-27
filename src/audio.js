@@ -87,10 +87,15 @@ export class AudioManager {
     src.start();
   }
 
-  /** Loops until stopMusic(). Waits out preload if this fires before the
-   *  (often multi-MB) track has finished decoding, unlike one-shot play(). */
+  /** Loops until stopMusic(). A no-op if this key is already playing -- call
+   *  it at the start of every run without worrying about restarting the
+   *  track partway through; it just keeps going. Waits out preload if this
+   *  fires before the (often multi-MB) track has finished decoding, unlike
+   *  one-shot play(). */
   playMusic(key) {
+    if (this.music && this.musicKey === key) return; // already running -- leave it alone
     this.stopMusic();
+    this.musicKey = key;
     const token = this.musicToken;
     const start = () => {
       if (token !== this.musicToken || !this.ctx) return; // superseded meanwhile
@@ -109,6 +114,7 @@ export class AudioManager {
 
   stopMusic() {
     this.musicToken++; // cancel any playMusic() still waiting on preload
+    this.musicKey = null;
     if (!this.music) return;
     try {
       this.music.stop();
