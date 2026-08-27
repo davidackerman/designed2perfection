@@ -7,6 +7,14 @@ import { CONFIG } from './config.js';
 
 export const bindingId = (actionId, variantId) => `${actionId}:${variantId}`;
 
+// The rotary dial isn't a round challenge -- it runs continuously alongside
+// one -- so it's bound separately rather than living in ACTIONS/pickAction's
+// pool of things a round can demand.
+const ROTARY_SLOTS = [
+  { id: 'rotary:0', actionId: 'rotary', label: 'Rotary dial: 0', short: '0', key: 'Digit0' },
+  { id: 'rotary:1', actionId: 'rotary', label: 'Rotary dial: 1', short: '1', key: 'Digit1' },
+];
+
 export function defaultBindings() {
   const map = {};
   for (const action of ACTIONS) {
@@ -14,6 +22,7 @@ export function defaultBindings() {
       map[bindingId(action.id, variant.id)] = variant.key;
     }
   }
+  for (const slot of ROTARY_SLOTS) map[slot.id] = slot.key;
   return map;
 }
 
@@ -28,6 +37,9 @@ export function allBindingSlots() {
         short: variant.short || variant.label,
       });
     }
+  }
+  for (const slot of ROTARY_SLOTS) {
+    slots.push({ id: slot.id, actionId: slot.actionId, label: slot.label, short: slot.short });
   }
   return slots;
 }

@@ -188,6 +188,90 @@ html, body {
 }
 #timerFill.critical { background: var(--bad); }
 
+/* ---- the rotary dial: pick 0/1, confuse the predictor ---- */
+.rotary {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  width: 128px;
+  padding: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-family: var(--mono);
+  text-align: center;
+  z-index: 5;
+}
+.rotary.hidden { display: none; }
+.rotary-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.rotary-dial {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: radial-gradient(circle at 50% 50%, var(--bg) 0%, var(--bg-panel) 75%);
+}
+.rotary-pulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: rotary-tick var(--rotary-tick, 950ms) ease-out infinite;
+}
+@keyframes rotary-tick {
+  0% { transform: scale(0.86); opacity: 0.55; }
+  70%, 100% { transform: scale(1.18); opacity: 0; }
+}
+.rotary-needle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 38px;
+  margin-left: -1.5px;
+  margin-top: -38px;
+  background: var(--dim);
+  transform-origin: 50% 100%;
+  transform: rotate(-35deg);
+  transition: transform 160ms ease;
+}
+.rotary-needle.pick-1 { transform: rotate(35deg); }
+.rotary-needle.correct { background: var(--bad); }  /* it read you */
+.rotary-needle.wrong { background: var(--good); }   /* you fooled it */
+.rotary-slot {
+  position: absolute;
+  bottom: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+.rotary-slot-0 { left: 6px; }
+.rotary-slot-1 { right: 6px; }
+.rotary-slot:hover { border-color: var(--dim); }
+.rotary-readout {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
+#rotaryAccuracy { color: var(--text); font-weight: 700; }
+
 /* ---- high score board ---- */
 .board-wrap { margin: 4px 0 18px; }
 
@@ -292,6 +376,92 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 .debug-readout .ok { color: var(--good); }
 .debug-readout .no { color: var(--bad); }
 #debugExpected { margin-right: 14px; }
+
+/* ---- debug: the line, unpacked (aaronson oracle bands + comparison) ---- */
+.oracle-debug {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+.oracle-debug-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.oracle-stats { font-size: 11px; }
+.oracle-stats .dim { color: #5c6672; }
+.oracle-stats .ok { color: var(--good); font-weight: 700; }
+
+.oracle-band {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 0;
+}
+.oracle-band-label {
+  width: 34px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 9px;
+  color: var(--dim);
+}
+.oracle-band-count {
+  width: 26px;
+  flex-shrink: 0;
+  font-size: 9px;
+  color: var(--dim);
+}
+.oracle-band.active .oracle-band-label,
+.oracle-band.active .oracle-band-count {
+  color: var(--accent);
+  font-weight: 700;
+}
+.oracle-band-bar {
+  flex: 1;
+  display: flex;
+  height: 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--bg);
+}
+.oracle-band-half {
+  width: 50%;
+  height: 100%;
+  display: flex;
+}
+.oracle-band-half-0 { justify-content: flex-end; border-right: 1px solid var(--line); }
+.oracle-band-half-1 { justify-content: flex-start; }
+.oracle-band-fill { height: 100%; background: var(--dim); }
+.oracle-band.active .oracle-band-fill { background: var(--accent); }
+
+.oracle-strips { margin-top: 8px; }
+.oracle-strip-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.oracle-strip-label {
+  width: 54px;
+  flex-shrink: 0;
+  font-size: 9px;
+  color: var(--dim);
+}
+.oracle-strip-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.oracle-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--line);
+}
+.oracle-dot.hit { background: var(--bad); }   /* it called your pick */
+.oracle-dot.miss { background: var(--good); } /* you fooled it */
 
 /* ---- overlays ---- */
 .hidden { display: none !important; }

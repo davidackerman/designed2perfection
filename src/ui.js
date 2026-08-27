@@ -1,6 +1,7 @@
 // All DOM writes live here; game.js stays free of element ids.
 
 import { Input } from './input.js';
+import { CONFIG } from './config.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -54,12 +55,19 @@ export class UI {
       keyHintKey: $('#keyHintKey'),
       keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
+      rotary: $('#rotary'),
+      rotaryNeedle: $('#rotaryNeedle'),
+      rotaryAccuracy: $('#rotaryAccuracy'),
+      oracleStats: $('#oracleStats'),
+      oracleBands: $('#oracleBands'),
+      oracleStrips: $('#oracleStrips'),
     };
     this.flashTimer = null;
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
     this.keyFor = () => null;    // set by main.js so chips track re-binds
+    this.el.rotary.style.setProperty('--rotary-tick', `${CONFIG.rotary.tickMs}ms`);
   }
 
   showOverlay(name) {
@@ -203,6 +211,56 @@ export class UI {
     const pct = Math.max(0, Math.min(1, fraction)) * 100;
     this.el.timerFill.style.width = `${pct}%`;
     this.el.timerFill.classList.toggle('critical', fraction < 0.25);
+  }
+
+  setRotaryVisible(on) {
+    this.el.rotary.classList.toggle('hidden', !on);
+  }
+
+  setRotary({ bit, correct, accuracy }) {
+    const needle = this.el.rotaryNeedle;
+    needle.classList.toggle('pick-1', bit === 1);
+    needle.classList.remove('correct', 'wrong');
+    void needle.offsetWidth; // force reflow so back-to-back picks retrigger the flash
+    needle.classList.add(correct ? 'correct' : 'wrong');
+    this.el.rotaryAccuracy.textContent = `${Math.round(accuracy * 100)}%`;
+  }
+
+  /** Debug only: the aaronson oracle's bands, plus a live comparison strip. */
+  setOracleDebug({ ensembleAcc, ensembleN, ensembleHits, aaronsonAcc, aaronsonN, aaronsonHits, bands }) {
+    if (!this.debug) return;
+
+    const ensembleWins = ensembleAcc > aaronsonAcc;
+    const aaronsonWins = aaronsonAcc > ensembleAcc;
+    this.el.oracleStats.innerHTML =
+      `<span class="${ensembleWins ? 'ok' : ''}">ensemble ${Math.round(ensembleAcc * 100)}%</span> ` +
+      `<span class="dim">(${ensembleN})</span> vs ` +
+      `<span class="${aaronsonWins ? 'ok' : ''}">aaronson ${Math.round(aaronsonAcc * 100)}%</span> ` +
+      `<span class="dim">(${aaronsonN})</span>`;
+
+    const maxTotal = bands.reduce((m, b) => Math.max(m, b.total), 1);
+    this.el.oracleBands.innerHTML = bands
+      .map((b) => {
+        const label = b.order === 0 ? 'ANY' : `LAST ${b.order}`;
+        const w0 = Math.min(100, (b.count0 / maxTotal) * 100);
+        const w1 = Math.min(100, (b.count1 / maxTotal) * 100);
+        return (
+          `<div class="oracle-band${b.active ? ' active' : ''}">` +
+          `<span class="oracle-band-label">${label}</span>` +
+          `<span class="oracle-band-bar">` +
+          `<span class="oracle-band-half oracle-band-half-0"><span class="oracle-band-fill" style="width:${w0}%"></span></span>` +
+          `<span class="oracle-band-half oracle-band-half-1"><span class="oracle-band-fill" style="width:${w1}%"></span></span>` +
+          `</span>` +
+          `<span class="oracle-band-count">${b.total}</span>` +
+          `</div>`
+        );
+      })
+      .join('');
+
+    const dots = (hits) => hits.map((h) => `<span class="oracle-dot ${h ? 'hit' : 'miss'}"></span>`).join('');
+    this.el.oracleStrips.innerHTML =
+      `<div class="oracle-strip-row"><span class="oracle-strip-label">ensemble</span><span class="oracle-strip-dots">${dots(ensembleHits)}</span></div>` +
+      `<div class="oracle-strip-row"><span class="oracle-strip-label">aaronson</span><span class="oracle-strip-dots">${dots(aaronsonHits)}</span></div>`;
   }
 
   flash(kind) {

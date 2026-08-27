@@ -25,6 +25,19 @@ export const CONFIG = {
     perExtraHitMs: 420,      // extra time granted per required extra wave
   },
 
+  rotary: {
+    // The dial you spin at the AI all run: pick 0 or 1, it tries to call
+    // your next pick. Hold it near 50/50 and the round windows ease up;
+    // let it read you and they tighten -- on top of the normal decay above.
+    tickMs: 950,             // suggested pace for the on-screen pulse cue
+    accuracyWindow: 12,      // how many recent picks the difficulty knob looks at
+    adaptRate: 0.045,        // speed drift per pick, tuned to ~(1 - timing.decay)
+    minMultiplier: 0.72,     // predictor reading you well: windows shrink faster
+    maxMultiplier: 1.35,     // holding it near 50/50: windows stay generous
+    easyAccuracy: 0.5,       // rolling accuracy at/below this drifts toward maxMultiplier
+    hardAccuracy: 0.75,      // rolling accuracy at/above this drifts toward minMultiplier
+  },
+
   scores: {
     maxEntries: 10,          // per board
     initialsLength: 3,

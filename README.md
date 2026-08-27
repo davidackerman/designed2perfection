@@ -16,6 +16,13 @@ ignore you, and badge readers that care very much which way you hold the card.
 | **SWIPE IT** | card swiper | `F` / `R` | Stripe up or stripe down, as pictured |
 | **TAP IT** | card tap pad | `G` / `T` | Face up or face down, as pictured |
 
+Alongside all five, **the line** runs the whole time you're playing: a dial
+with two positions, `0` and `1` (default keys `0`/`1`), and a predictor that's
+trying to call your next pick from your history so far. Hold it near a 50/50
+guess rate and the round windows above ease up; let it read you and they
+tighten — see [`src/predictor.js`](src/predictor.js) for how it guesses and
+`CONFIG.rotary` in [`src/config.js`](src/config.js) for how much that's worth.
+
 Other keys: `Space` (or `Enter`) start · `H` hard mode · `M` mute · `` ` `` debug · `Esc` quit a run.
 
 Every control is re-bindable from the title screen (**Controls**), and the
@@ -100,6 +107,7 @@ python3 -m http.server 8000
 | [`src/game.js`](src/game.js) | Round loop, scoring, failure states |
 | [`src/input.js`](src/input.js) | Keyboard → action events, re-bindable, HID-friendly |
 | [`src/scores.js`](src/scores.js) | High score boards, stats, and the storage backend |
+| [`src/predictor.js`](src/predictor.js) | The 0/1 predictor behind "the line" |
 | [`src/audio.js`](src/audio.js) | Sound manifest and playback |
 | [`src/ui.js`](src/ui.js) | All DOM writes |
 | [`assets/img/`](assets/img/) | Placeholder SVG art — swap for photos of the actual doors |

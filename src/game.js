@@ -3,6 +3,8 @@
 
 import { CONFIG } from './config.js';
 import { pickAction, makeChallenge } from './actions.js';
+import { RotaryPredictor } from './predictor.js';
+import { AaronsonOracle } from './aaronsonOracle.js';
 
 export const STATE = { TITLE: 'title', PLAYING: 'playing', OVER: 'over' };
 
@@ -25,6 +27,21 @@ export class Game {
     this.gapTimer = null;
     this.paused = false;
     this.remainingOnPause = null;
+    this.rotaryPredictor = new RotaryPredictor({ accuracyWindow: CONFIG.rotary.accuracyWindow });
+    // Runs in shadow alongside it -- same picks, never touches game speed --
+    // purely so debug mode can show which one actually calls you better.
+    this.aaronson = new AaronsonOracle({ accuracyWindow: CONFIG.rotary.accuracyWindow });
+    this.rotarySpeed = 1;
+  }
+
+  /** A different team steps up: wipe what "the line" has learned so far.
+   *  Everyday retries ("go again") deliberately don't touch this -- the read
+   *  it has on a team is supposed to persist across their attempts. */
+  newTeam() {
+    this.rotaryPredictor.reset();
+    this.aaronson.reset();
+    this.rotarySpeed = 1;
+    this.pushOracleDebug();
   }
 
   setHardMode(on) {
@@ -41,7 +58,7 @@ export class Game {
     const floor = round >= t.brutalRound ? t.brutalMinWindowMs : t.minWindowMs;
     const base = Math.max(floor, t.startWindowMs * Math.pow(t.decay, round - 1));
     const extraHits = Math.max(0, challenge.requiredHits - 1);
-    return base + extraHits * CONFIG.soap.perExtraHitMs;
+    return (base + extraHits * CONFIG.soap.perExtraHitMs) * this.rotarySpeed;
   }
 
   start() {
@@ -116,6 +133,41 @@ export class Game {
     }
 
     this.succeed();
+  }
+
+  /** One pick on the rotary dial: 0 or 1. Runs alongside whatever round is live. */
+  handleRotary(bit) {
+    if (this.state !== STATE.PLAYING) return;
+    const guess = this.rotaryPredictor.predict();
+    this.rotaryPredictor.update(bit);
+    const correct = guess.choice === bit;
+    const accuracy = this.rotaryPredictor.rollingAccuracy();
+
+    // Shadow predictor: same pick, never affects speed -- comparison only.
+    this.aaronson.predict();
+    this.aaronson.update(bit);
+
+    const r = CONFIG.rotary;
+    const span = Math.max(1e-6, r.hardAccuracy - r.easyAccuracy);
+    const t = Math.min(1, Math.max(0, (accuracy - r.easyAccuracy) / span));
+    const target = r.maxMultiplier + (r.minMultiplier - r.maxMultiplier) * t;
+    this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
+
+    this.ui.setRotary({ bit, correct, accuracy });
+    this.pushOracleDebug();
+  }
+
+  /** Also called from main.js when debug mode is toggled on, to catch up. */
+  pushOracleDebug() {
+    this.ui.setOracleDebug({
+      ensembleAcc: this.rotaryPredictor.accuracy(),
+      ensembleN: this.rotaryPredictor.total,
+      ensembleHits: this.rotaryPredictor.hitHistory,
+      aaronsonAcc: this.aaronson.accuracy(),
+      aaronsonN: this.aaronson.total,
+      aaronsonHits: this.aaronson.hitHistory,
+      bands: this.aaronson.bands(),
+    });
   }
 
   succeed() {

@@ -10,7 +10,10 @@ const audio = new AudioManager();
 const scores = new ScoreStore();
 const game = new Game({ ui, audio, scores, onGameOver: handleGameOver });
 const input = new Input(
-  (evt) => game.handleInput(evt),
+  (evt) => {
+    if (evt.actionId === 'rotary') game.handleRotary(Number(evt.variantId));
+    else game.handleInput(evt);
+  },
   (raw) => ui.markKey(raw)
 );
 ui.keyFor = (slot) => input.keyFor(slot);
@@ -33,12 +36,19 @@ function toTitle() {
   screen = 'title';
   game.abort();
   ui.showOverlay('title');
+  ui.setRotaryVisible(false);
 }
 
 function startGame() {
   audio.unlock();
   screen = 'playing';
   game.start();
+  ui.setRotaryVisible(true);
+}
+
+function newTeam() {
+  game.newTeam();
+  startGame();
 }
 
 function toggleHard() {
@@ -52,6 +62,7 @@ function toggleDebug() {
   localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
   ui.setDebug(debug, slots);
   ui.setDebugExpected(game.challenge); // catch up if toggled mid-round
+  game.pushOracleDebug();
 }
 
 function toggleMute() {
@@ -63,6 +74,7 @@ function toggleMute() {
 function handleGameOver(result) {
   screen = 'over';
   pending = result.qualifies ? result : null;
+  ui.setRotaryVisible(false);
   ui.setHud({ best: scores.best(result.mode) });
   ui.showGameOver({
     ...result,
@@ -86,6 +98,7 @@ function showScores(mode = scoresTab) {
   scoresTab = mode;
   screen = 'scores';
   game.abort();
+  ui.setRotaryVisible(false);
   ui.showScores({
     mode,
     board: scores.board(mode),
@@ -111,12 +124,15 @@ function beginRebind(slotId) {
 function toRemap() {
   screen = 'remap';
   game.abort();
+  ui.setRotaryVisible(false);
   drawBindings();
   ui.showOverlay('remap');
 }
 
 document.querySelector('#startBtn').addEventListener('click', startGame);
 document.querySelector('#againBtn').addEventListener('click', startGame);
+document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
+document.querySelector('#newTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
@@ -160,6 +176,8 @@ clearBtn.addEventListener('click', () => {
   }, 3000);
 });
 document.querySelector('#muteBadge').addEventListener('click', toggleMute);
+document.querySelector('#rotaryZero').addEventListener('click', () => game.handleRotary(0));
+document.querySelector('#rotaryOne').addEventListener('click', () => game.handleRotary(1));
 
 // Debug cheat: while debug mode is on and a round is live, D always resolves
 // as correct and every other key as wrong -- drive the win/lose paths without

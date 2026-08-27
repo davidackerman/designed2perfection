@@ -42,6 +42,23 @@
 
   <div id="timer"><div id="timerFill"></div></div>
 
+  <!-- Runs the whole time a round is live: pick 0 or 1, the line tries to
+       call your next pick. Hold it near 50/50 and the round windows above
+       ease up; let it read you and they tighten. -->
+  <div id="rotary" class="rotary hidden">
+    <div class="rotary-label">THE LINE IS LISTENING</div>
+    <div class="rotary-dial">
+      <div class="rotary-pulse"></div>
+      <div id="rotaryNeedle" class="rotary-needle"></div>
+      <button id="rotaryZero" class="rotary-slot rotary-slot-0" type="button">0</button>
+      <button id="rotaryOne" class="rotary-slot rotary-slot-1" type="button">1</button>
+    </div>
+    <div class="rotary-readout">
+      <span>reading you</span>
+      <span id="rotaryAccuracy">--</span>
+    </div>
+  </div>
+
   <!-- Debug mode: what each control listens for, what this round wants, and
        what the keyboard/cabinet actually sent. -->
   <div id="debugBar" class="hidden">
@@ -50,6 +67,18 @@
       <span class="debug-label">expected</span><span id="debugExpected"><span class="dim">--</span></span>
       <span class="debug-label">last key</span><span id="debugLast"><span class="dim">--</span></span>
       <span class="debug-label">cheat</span><span class="dim"><b>D</b> = right, anything else = wrong</span>
+    </div>
+
+    <!-- The line, unpacked: the aaronson oracle's context bands (see
+         aaronsonoracle.com), plus a live comparison against the ensemble
+         predictor that actually drives round speed. -->
+    <div class="oracle-debug">
+      <div class="oracle-debug-head">
+        <span class="debug-label">the line</span>
+        <span id="oracleStats" class="oracle-stats"><span class="dim">--</span></span>
+      </div>
+      <div id="oracleBands" class="oracle-bands"></div>
+      <div id="oracleStrips" class="oracle-strips"></div>
     </div>
   </div>
 
@@ -64,9 +93,11 @@
         <li><b>SOAP IT</b> — wave. Then wave again. And again.</li>
         <li><b>SWIPE IT</b> — stripe up or stripe down, as pictured.</li>
         <li><b>TAP IT</b> — face up or face down, as pictured.</li>
+        <li><b>THE LINE</b> — pick 0 or 1, over and over. Confuse it and everything above eases up.</li>
       </ul>
       <div class="row">
         <button id="startBtn" class="primary" type="button">START</button>
+        <button id="newTeamBtn" type="button">New team</button>
         <button id="hardBtn" type="button">Hard mode: <span id="hardToggle">OFF</span></button>
         <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
@@ -97,8 +128,10 @@
 
       <div class="row">
         <button id="againBtn" class="primary" type="button">GO AGAIN</button>
+        <button id="overNewTeamBtn" type="button">New team</button>
         <button id="menuBtn" type="button">Menu</button>
       </div>
+      <p class="hint">"Go again" keeps the line's read on you. "New team" wipes it.</p>
     </div>
   </div>
 
