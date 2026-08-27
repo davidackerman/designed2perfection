@@ -236,17 +236,14 @@ export class UI {
     this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
     this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
 
-    // Zoom the y-axis to how far accuracy has actually strayed from 50/50
-    // *recently* -- last 10 picks, not the whole session -- with a floor so
-    // it doesn't over-zoom on a near-flat line. Scoping to the recent window
-    // means an old spike (or the inherently-0%-or-100% first pick or two)
-    // can't leave the axis stuck too wide once it's scrolled past; the
-    // current point is always inside the window that sizes it, so nothing at
-    // the leading edge ever clips.
-    const recentWindow = 10;
-    const recent = (series) => series.slice(-recentWindow);
-    const recentValues = recent(history.ensemble).concat(recent(history.aaronson));
-    const maxDeviation = recentValues.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
+    // history is already capped to the last CONFIG.rotary.chartLength picks
+    // (see Game.handleRotary) -- only that recent window is ever shown, so
+    // an old spike can't leave the axis stuck too wide once it's scrolled
+    // past. Zoom the y-axis to how far accuracy has actually strayed from
+    // 50/50 within that window, with a floor so it doesn't over-zoom on a
+    // near-flat line.
+    const allValues = history.ensemble.concat(history.aaronson);
+    const maxDeviation = allValues.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
     const halfRange = Math.min(0.5, Math.max(0.05, maxDeviation * 1.2));
     const domainMin = 0.5 - halfRange;
     const domainMax = 0.5 + halfRange;
@@ -262,6 +259,13 @@ export class UI {
         })
         .join(' ');
 
+    // Chance sits at 50% accuracy, which the symmetric domain above always
+    // maps to y=50 -- shade above it red (the line is reading you: worse for
+    // you) and below it green (you're beating it: better for you).
+    const zones =
+      `<rect x="0" y="0" width="100" height="50" fill="var(--bad)" fill-opacity="0.12" />` +
+      `<rect x="0" y="50" width="100" height="50" fill="var(--good)" fill-opacity="0.12" />`;
+
     // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
     // the bar's full width, which would turn a circle into an ellipse.
     const line = (series, color) =>
@@ -271,6 +275,7 @@ export class UI {
           `stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />`;
 
     this.el.oracleChart.innerHTML =
+      zones +
       `<line x1="0" y1="50" x2="100" y2="50" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
       line(history.ensemble, '#3987e5') +
       line(history.aaronson, '#d95926');

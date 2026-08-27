@@ -36,7 +36,7 @@ export const CONFIG = {
     maxMultiplier: 1.35,     // holding it near 50/50: windows stay generous
     easyAccuracy: 0.5,       // rolling accuracy at/below this drifts toward maxMultiplier
     hardAccuracy: 0.75,      // rolling accuracy at/above this drifts toward minMultiplier
-    chartLength: 300,        // debug mode: how many recent picks the accuracy graph keeps
+    chartLength: 10,         // debug mode: how many recent picks the accuracy graph shows
   },
 
   scores: {
