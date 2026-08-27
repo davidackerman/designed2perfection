@@ -33,7 +33,17 @@ ui.setMuted(audio.muted);
 ui.setDebug(debug, slots);
 applyModeUI();
 ui.showOverlay('title');
-audio.playMusic('song'); // silently does nothing pre-unlock; the very first load is muted until then
+audio.playMusic('song'); // silently does nothing pre-unlock; caught by the listener below
+
+// Browsers won't play sound before a user gesture, so the very first title
+// screen would otherwise sit silent until START. Catch the first interaction
+// of any kind (not just START) and start the title music right then.
+function unlockOnFirstGesture() {
+  audio.unlock();
+  if (screen === 'title') audio.playMusic('song');
+}
+window.addEventListener('pointerdown', unlockOnFirstGesture, { once: true });
+window.addEventListener('keydown', unlockOnFirstGesture, { once: true });
 
 /** Everything on the title screen (and HUD) that differs between the
  *  default Simon mode and the classic reflex game. */
