@@ -5,8 +5,9 @@ import { CONFIG } from './config.js';
 import { pickAction, makeChallenge } from './actions.js';
 import { AaronsonOracle } from './aaronsonOracle.js';
 import { RotaryPredictor } from './predictor.js';
+import { STATE } from './state.js';
 
-export const STATE = { TITLE: 'title', PLAYING: 'playing', OVER: 'over' };
+export { STATE };
 
 const REASONS = {
   timeout: 'Too slow. The door closed.',

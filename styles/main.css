@@ -152,6 +152,19 @@ html, body {
 #stage.flash-deny { box-shadow: inset 0 0 0 3px var(--deny); }
 #stage.flash-nothing { animation: nudge 220ms ease; }
 
+/* ---- simon mode: one pad at a time, no word/video panel, no placard ---- */
+#stage.simon-mode { grid-template-columns: 1fr; }
+#stage.simon-mode .panel-word { display: none; }
+#stageImage.simon-flip { transform: scaleX(-1); }
+
+/* The colour needs to land on the panel, not #stage -- the panel is the
+   opaque div actually covering the stage; #stage itself only shows through
+   the 2px gap between panels. */
+#stage.simon-lit.simon-push .panel-image { background: #1fae57; }
+#stage.simon-lit.simon-pull .panel-image { background: #d64545; }
+#stage.simon-lit.simon-soap .panel-image { background: #d9b62a; }
+#stage.simon-lit.simon-swipe .panel-image { background: #2f6fd6; }
+
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }

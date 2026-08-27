@@ -1,5 +1,6 @@
 import { UI } from './ui.js';
 import { Game, STATE } from './game.js';
+import { SimonGame } from './simon.js';
 import { AudioManager } from './audio.js';
 import { Input, allBindingSlots } from './input.js';
 import { CONFIG } from './config.js';
@@ -8,33 +9,61 @@ import { ScoreStore } from './scores.js';
 const ui = new UI();
 const audio = new AudioManager();
 const scores = new ScoreStore();
-const game = new Game({ ui, audio, scores, onGameOver: handleGameOver });
+const reflexGame = new Game({ ui, audio, scores, onGameOver: handleGameOver });
+const simonGame = new SimonGame({ ui, audio, scores, onGameOver: handleGameOver });
+
+let classicMode = localStorage.getItem(CONFIG.storage.classicMode) === '1';
+const activeGame = () => (classicMode ? reflexGame : simonGame);
+
 const input = new Input(
   (evt) => {
-    if (evt.actionId === 'rotary') game.handleRotary(Number(evt.variantId));
-    else game.handleInput(evt);
+    if (evt.actionId === 'rotary') {
+      if (classicMode) reflexGame.handleRotary(Number(evt.variantId));
+    } else {
+      activeGame().handleInput(evt);
+    }
   },
   (raw) => ui.markKey(raw)
 );
 ui.keyFor = (slot) => input.keyFor(slot);
 
 let screen = 'title'; // title | playing | over | remap | scores
-let scoresTab = 'normal';
+let scoresTab = 'simon';
 let pending = null;    // the run awaiting initials
 
 const slots = allBindingSlots();
 let debug = localStorage.getItem(CONFIG.storage.debug) === '1';
 
-ui.setHardMode(game.hardMode);
+ui.setHardMode(reflexGame.hardMode);
 ui.setMuted(audio.muted);
-ui.setHud({ score: 0, round: 0, best: scores.best(game.mode) });
-ui.clearChallenge();
 ui.setDebug(debug, slots);
+applyModeUI();
 ui.showOverlay('title');
+
+/** Everything on the title screen (and HUD) that differs between the
+ *  default Simon mode and the classic reflex game. */
+function applyModeUI() {
+  ui.setSimonMode(!classicMode);
+  ui.setScoreLabel(classicMode ? 'Score' : 'Pts');
+  ui.setHud({ score: 0, round: 0, best: scores.best(activeGame().mode) });
+  document.querySelector('#classicToggle').textContent = classicMode ? 'ON' : 'OFF';
+  document.querySelector('#simonTagline').classList.toggle('hidden', classicMode);
+  document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
+  document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
+  document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
+  document.querySelector('#practiceBtn').classList.toggle('hidden', !classicMode);
+}
+
+function toggleClassic() {
+  classicMode = !classicMode;
+  localStorage.setItem(CONFIG.storage.classicMode, classicMode ? '1' : '0');
+  toTitle();
+  applyModeUI();
+}
 
 function toTitle() {
   screen = 'title';
-  game.abort();
+  activeGame().abort();
   ui.showOverlay('title');
   ui.setRotaryVisible(false);
 }
@@ -42,37 +71,39 @@ function toTitle() {
 function startGame() {
   audio.unlock();
   screen = 'playing';
-  game.start();
-  ui.setRotaryVisible(true);
+  activeGame().start();
+  ui.setRotaryVisible(classicMode);
 }
 
 function newTeam() {
-  game.newTeam();
+  activeGame().newTeam();
   startGame();
 }
 
 /** Just "the line": no reflex challenges, no timer, nothing to fail. The
- *  debug panel is the point, so make sure it's on. */
+ *  debug panel is the point, so make sure it's on. Classic mode only --
+ *  Simon has no "line" to practice. */
 function startPractice() {
+  if (!classicMode) return;
   audio.unlock();
   if (!debug) setDebug(true);
   screen = 'playing';
-  game.startPractice();
+  reflexGame.startPractice();
   ui.setRotaryVisible(true);
 }
 
 function toggleHard() {
-  game.setHardMode(!game.hardMode);
-  ui.setHardMode(game.hardMode);
-  ui.setHud({ best: scores.best(game.mode) });
+  reflexGame.setHardMode(!reflexGame.hardMode);
+  ui.setHardMode(reflexGame.hardMode);
+  ui.setHud({ best: scores.best(reflexGame.mode) });
 }
 
 function setDebug(on) {
   debug = on;
   localStorage.setItem(CONFIG.storage.debug, debug ? '1' : '0');
   ui.setDebug(debug, slots);
-  ui.setDebugExpected(game.challenge); // catch up if toggled mid-round
-  game.pushOracleDebug();
+  ui.setDebugExpected(reflexGame.challenge); // catch up if toggled mid-round
+  reflexGame.pushOracleDebug();
 }
 
 function toggleDebug() {
@@ -111,7 +142,7 @@ function saveScore(initials) {
 function showScores(mode = scoresTab) {
   scoresTab = mode;
   screen = 'scores';
-  game.abort();
+  activeGame().abort();
   ui.setRotaryVisible(false);
   ui.showScores({
     mode,
@@ -137,7 +168,7 @@ function beginRebind(slotId) {
 
 function toRemap() {
   screen = 'remap';
-  game.abort();
+  activeGame().abort();
   ui.setRotaryVisible(false);
   drawBindings();
   ui.showOverlay('remap');
@@ -157,9 +188,11 @@ document.querySelector('#remapResetBtn').addEventListener('click', () => {
   if (debug) ui.renderDebugKeys(slots);
 });
 document.querySelector('#hardBtn').addEventListener('click', toggleHard);
+document.querySelector('#classicBtn').addEventListener('click', toggleClassic);
 document.querySelector('#debugBtn').addEventListener('click', toggleDebug);
-document.querySelector('#scoresBtn').addEventListener('click', () => showScores(game.mode));
+document.querySelector('#scoresBtn').addEventListener('click', () => showScores(activeGame().mode));
 document.querySelector('#scoresDoneBtn').addEventListener('click', toTitle);
+document.querySelector('#tabSimon').addEventListener('click', () => showScores('simon'));
 document.querySelector('#tabNormal').addEventListener('click', () => showScores('normal'));
 document.querySelector('#tabHard').addEventListener('click', () => showScores('hard'));
 
@@ -196,23 +229,24 @@ musicVolumeInput.value = audio.musicVolume;
 musicVolumeInput.addEventListener('input', (e) => {
   audio.setMusicVolume(parseFloat(e.target.value));
 });
-document.querySelector('#rotaryZero').addEventListener('click', () => game.handleRotary(0));
-document.querySelector('#rotaryOne').addEventListener('click', () => game.handleRotary(1));
+document.querySelector('#rotaryZero').addEventListener('click', () => reflexGame.handleRotary(0));
+document.querySelector('#rotaryOne').addEventListener('click', () => reflexGame.handleRotary(1));
 
 // Debug cheat: while debug mode is on and a round is live, D always resolves
 // as correct and every other key as wrong -- drive the win/lose paths without
 // hunting for the real binding. Capture phase + stopImmediatePropagation so
 // this fully replaces normal input handling for the event instead of also
-// letting Input's own listener process it.
+// letting Input's own listener process it. Classic mode only: Simon has no
+// `challenge` object shaped like this to resolve.
 window.addEventListener('keydown', (e) => {
-  if (!debug || game.state !== STATE.PLAYING || !game.challenge) return;
+  if (!debug || !classicMode || reflexGame.state !== STATE.PLAYING || !reflexGame.challenge) return;
   if (isTyping(e) || e.repeat) return;
   e.preventDefault();
   e.stopImmediatePropagation();
   if (e.code === 'KeyD') {
-    game.handleInput({ actionId: game.challenge.action.id, variantId: game.challenge.variantId });
+    reflexGame.handleInput({ actionId: reflexGame.challenge.action.id, variantId: reflexGame.challenge.variantId });
   } else {
-    game.fail('wrong');
+    reflexGame.fail('wrong');
   }
 }, true);
 
@@ -233,12 +267,12 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') {
     e.preventDefault();
-    if (game.state !== STATE.PLAYING) startGame();
+    if (activeGame().state !== STATE.PLAYING) startGame();
     return;
   }
 
-  if (e.code === 'KeyH' && game.state !== STATE.PLAYING) { toggleHard(); return; }
-  if (e.code === 'Escape' && game.state === STATE.PLAYING) toTitle();
+  if (e.code === 'KeyH' && classicMode && activeGame().state !== STATE.PLAYING) { toggleHard(); return; }
+  if (e.code === 'Escape' && activeGame().state === STATE.PLAYING) toTitle();
 });
 
 function isTyping(e) {
@@ -247,6 +281,6 @@ function isTyping(e) {
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) game.pause();
-  else game.resume();
+  if (document.hidden) activeGame().pause();
+  else activeGame().resume();
 });

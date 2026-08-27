@@ -15,9 +15,10 @@
   <div id="placard" class="hidden">PUSH</div>
 
   <header id="hud">
-    <div class="stat"><span class="stat-label">Score</span><span id="score">0</span></div>
+    <div class="stat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
     <div class="stat"><span class="stat-label">Round</span><span id="round">0</span></div>
     <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <div id="bonusStat" class="stat hidden"><span class="stat-label">Bonus</span><span id="bonus">0/10</span></div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
       <label class="music-vol" title="Background music volume">
@@ -101,8 +102,8 @@
   <div id="titleOverlay" class="overlay">
     <div class="card">
       <h1>JANELIA <span>IT!</span></h1>
-      <p class="tagline">Five daily indignities. One shrinking clock.</p>
-      <ul class="legend">
+      <p class="tagline" id="simonTagline">Watch. Listen. Repeat.</p>
+      <ul class="legend hidden" id="classicLegend">
         <li><b>PUSH IT</b> — the button. Check the placard.</li>
         <li><b>PULL IT</b> — the lever. Check the placard.</li>
         <li><b>SOAP IT</b> — wave. Then wave again. And again.</li>
@@ -113,14 +114,18 @@
       <div class="row">
         <button id="startBtn" class="primary" type="button">START</button>
         <button id="newTeamBtn" type="button">New team</button>
-        <button id="hardBtn" type="button">Hard mode: <span id="hardToggle">OFF</span></button>
+        <button id="hardBtn" type="button" class="hidden">Hard mode: <span id="hardToggle">OFF</span></button>
         <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
         <button id="debugBtn" type="button">Debug: <span id="debugToggle">OFF</span></button>
-        <button id="practiceBtn" type="button">Practice: the line</button>
+        <button id="practiceBtn" type="button" class="hidden">Practice: the line</button>
+        <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>Space</b> start · <b>H</b> hard mode · <b>M</b> mute · <b>`</b> debug · <b>Esc</b> quit a run<br />
+        <b>Space</b> start · <b>M</b> mute · <b>`</b> debug · <b>Esc</b> quit a run
+      </p>
+      <p class="hint hidden" id="classicHint">
+        <b>H</b> hard mode<br />
         Hard mode: after a few rounds the <i>word</i> starts lying. The picture and the placard never do.
       </p>
     </div>
@@ -155,6 +160,7 @@
     <div class="card">
       <h2>HIGH SCORES</h2>
       <div class="row tabs">
+        <button id="tabSimon" type="button" class="tab">SIMON</button>
         <button id="tabNormal" type="button" class="tab">NORMAL</button>
         <button id="tabHard" type="button" class="tab">HARD</button>
       </div>

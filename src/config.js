@@ -45,6 +45,30 @@ export const CONFIG = {
     chartRangeMax: 0.7,      // debug mode: fixed y-axis ceiling for the accuracy graph
   },
 
+  // The default mode: a growing tone-and-picture sequence you repeat back,
+  // exactly like the classic. Deliberately not explained anywhere on
+  // screen -- first-timers are meant to work out the rule by watching.
+  simon: {
+    startStepMs: 700,        // how long the first step of a run stays lit
+    minStepMs: 300,          // floor -- playback never gets faster than this
+    decay: 0.93,             // stepMs *= decay per round (i.e. per sequence length)
+    gapRatio: 0.5,           // dark gap between steps, as a fraction of stepMs
+    inputWindowMs: 2500,     // time allowed for the first press of a round
+    inputMinWindowMs: 1200,  // floor for that same window
+    inputDecay: 0.95,        // inputWindowMs *= decay per round
+    interRoundMs: 900,       // pause after a correct sequence before it grows
+    ackMs: 160,              // flash/tone length for the player's own presses
+    bonusMax: 10,            // bonus meter ceiling; scoring TBD
+    tones: {
+      // One tone per pad, in a rough Simon-style spread across an octave-ish
+      // range so they're easy to tell apart by ear.
+      push: 329.63,  // E4
+      pull: 277.18,  // C#4
+      soap: 220.0,   // A3
+      swipe: 164.81, // E3
+    },
+  },
+
   scores: {
     maxEntries: 10,          // per board
     initialsLength: 3,
@@ -54,6 +78,7 @@ export const CONFIG = {
     scores: 'janelia-it:scores',
     best: 'janelia-it:best', // legacy single value, migrated into the board
     hardMode: 'janelia-it:hard',
+    classicMode: 'janelia-it:classic',
     muted: 'janelia-it:muted',
     musicVolume: 'janelia-it:music-volume',
     bindings: 'janelia-it:bindings',

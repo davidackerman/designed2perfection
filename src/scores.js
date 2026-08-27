@@ -8,12 +8,12 @@
 import { CONFIG } from './config.js';
 
 const VERSION = 1;
-export const MODES = ['normal', 'hard'];
+export const MODES = ['normal', 'hard', 'simon'];
 
 function emptyData() {
   return {
     v: VERSION,
-    boards: { normal: [], hard: [] },
+    boards: { normal: [], hard: [], simon: [] },
     deaths: {},        // action id -> how many runs it ended
     games: 0,
     actions: 0,        // lifetime successful commands
@@ -32,7 +32,7 @@ export class ScoreStore {
     const saved = this.backend.read();
     if (saved && saved.v === VERSION) {
       Object.assign(data, saved);
-      data.boards = { normal: [], hard: [], ...saved.boards };
+      data.boards = { normal: [], hard: [], simon: [], ...saved.boards };
       return data;
     }
     // First run: carry over the old single-value best, if there is one.

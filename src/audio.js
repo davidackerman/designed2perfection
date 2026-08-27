@@ -87,6 +87,27 @@ export class AudioManager {
     src.start();
   }
 
+  /** A single synthesized note -- used for Simon's per-pad tones instead of a
+   *  sample, since there's one per action and they just need to be distinct
+   *  by ear. Short linear fades avoid a click at start/stop. */
+  playTone(freq, durationMs = 300) {
+    if (this.muted || !this.ctx || !freq) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    const now = this.ctx.currentTime;
+    const dur = Math.max(0.05, durationMs / 1000);
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(0.35, now + 0.015);
+    g.gain.setValueAtTime(0.35, now + Math.max(0.02, dur - 0.03));
+    g.gain.linearRampToValueAtTime(0, now + dur);
+    osc.connect(g);
+    g.connect(this.gain);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  }
+
   /** Loops until stopMusic(). A no-op if this key is already playing -- call
    *  it at the start of every run without worrying about restarting the
    *  track partway through; it just keeps going. Waits out preload if this

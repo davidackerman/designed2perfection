@@ -23,9 +23,12 @@ export class UI {
       image: $('#stageImage'),
       word: $('#stageWord'),
       timerFill: $('#timerFill'),
+      scoreLabel: $('#scoreLabel'),
       score: $('#score'),
       round: $('#round'),
       best: $('#best'),
+      bonusStat: $('#bonusStat'),
+      bonus: $('#bonus'),
       modeBadge: $('#modeBadge'),
       muteBadge: $('#muteBadge'),
       title: $('#titleOverlay'),
@@ -45,6 +48,7 @@ export class UI {
       scoresStats: $('#scoresStats'),
       tabNormal: $('#tabNormal'),
       tabHard: $('#tabHard'),
+      tabSimon: $('#tabSimon'),
       hardToggle: $('#hardToggle'),
       debugToggle: $('#debugToggle'),
       bindingList: $('#bindingList'),
@@ -83,10 +87,30 @@ export class UI {
     this.el.stage.classList.remove('idle');
   }
 
-  setHud({ score, round, best }) {
+  setHud({ score, round, best, bonus, bonusMax }) {
     if (score !== undefined) this.el.score.textContent = score;
     if (round !== undefined) this.el.round.textContent = round;
     if (best !== undefined) this.el.best.textContent = best;
+    if (bonus !== undefined || bonusMax !== undefined) {
+      const b = bonus !== undefined ? bonus : this._bonus || 0;
+      const bMax = bonusMax !== undefined ? bonusMax : this._bonusMax || 0;
+      this._bonus = b;
+      this._bonusMax = bMax;
+      this.el.bonus.textContent = `${b}/${bMax}`;
+    }
+  }
+
+  setScoreLabel(text) {
+    this.el.scoreLabel.textContent = text;
+  }
+
+  /** Toggles the stage between the two-panel classic layout (image + word
+   *  video) and Simon's single flashing pad, and shows/hides the HUD bits
+   *  that only make sense in one mode or the other. */
+  setSimonMode(on) {
+    this.el.stage.classList.toggle('simon-mode', on);
+    this.el.bonusStat.classList.toggle('hidden', !on);
+    this.el.modeBadge.classList.toggle('hidden', on);
   }
 
   setHardMode(on) {
@@ -206,6 +230,22 @@ export class UI {
     this.el.placard.classList.add('hidden');
     this.el.word.pause();
     this.setDebugExpected(null);
+  }
+
+  /** Light one pad: its picture, and a flash of its colour -- no placard, no
+   *  video, nothing that would tell you what you're looking at. */
+  flashSimonStep(actionId, image, flip = false) {
+    this.el.image.src = image;
+    this.el.image.alt = '';
+    this.el.image.classList.toggle('simon-flip', flip);
+    this.el.stage.classList.remove('blank');
+    this.el.stage.classList.remove('simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
+    this.el.stage.classList.add('simon-lit', `simon-${actionId}`);
+  }
+
+  clearSimonStep() {
+    this.el.stage.classList.add('blank');
+    this.el.stage.classList.remove('simon-lit', 'simon-push', 'simon-pull', 'simon-soap', 'simon-swipe');
   }
 
   setTimer(fraction) {
@@ -345,6 +385,7 @@ export class UI {
   showScores({ mode, board, stats, nemesis }) {
     this.el.tabNormal.classList.toggle('on', mode === 'normal');
     this.el.tabHard.classList.toggle('on', mode === 'hard');
+    this.el.tabSimon.classList.toggle('on', mode === 'simon');
     this.renderBoard(this.el.scoresBoard, board);
     const bits = [`${stats.games} run${stats.games === 1 ? '' : 's'}`,
                   `${stats.actions} commands survived`];
