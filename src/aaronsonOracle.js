@@ -6,9 +6,10 @@
 // it gives up on that question and asks a shorter, less specific one, down
 // to the empty context. If nothing ever qualifies, it flips a coin.
 //
-// This is what actually drives round speed -- it kept beating the ensemble
-// predictor (src/predictor.js) in practice, so that one now runs in shadow
-// instead, purely so debug mode can chart the two against each other.
+// This is what drives round speed. An ensemble predictor (src/predictor.js)
+// used to run alongside it for a debug-mode comparison, but this kept
+// winning in practice testing -- for now the ensemble is disconnected
+// entirely (see git history if you want to re-enable the comparison).
 
 export class AaronsonOracle {
   constructor({ maxOrder = 5, accuracyWindow = 12 } = {}) {

@@ -3,7 +3,6 @@
 
 import { CONFIG } from './config.js';
 import { pickAction, makeChallenge } from './actions.js';
-import { RotaryPredictor } from './predictor.js';
 import { AaronsonOracle } from './aaronsonOracle.js';
 
 export const STATE = { TITLE: 'title', PLAYING: 'playing', OVER: 'over' };
@@ -27,11 +26,9 @@ export class Game {
     this.gapTimer = null;
     this.paused = false;
     this.remainingOnPause = null;
-    // aaronson drives round speed; rotaryPredictor runs in shadow on the same
-    // picks, never touching speed, purely for the debug comparison chart.
     this.aaronson = new AaronsonOracle({ accuracyWindow: CONFIG.rotary.accuracyWindow });
-    this.rotaryPredictor = new RotaryPredictor({ accuracyWindow: CONFIG.rotary.accuracyWindow });
-    this.accuracyHistory = { ensemble: [], aaronson: [] }; // debug-mode running graph
+    this.accuracyHistory = []; // debug-mode graph: lifetime accuracy per pick
+    this.hitHistory = [];      // debug-mode graph: hit/miss per pick, same window
     this.rotarySpeed = 1;
     this.practice = false;
   }
@@ -40,9 +37,9 @@ export class Game {
    *  Everyday retries ("go again") deliberately don't touch this -- the read
    *  it has on a team is supposed to persist across their attempts. */
   newTeam() {
-    this.rotaryPredictor.reset();
     this.aaronson.reset();
-    this.accuracyHistory = { ensemble: [], aaronson: [] };
+    this.accuracyHistory = [];
+    this.hitHistory = [];
     this.rotarySpeed = 1;
     this.pushOracleDebug();
   }
@@ -157,29 +154,28 @@ export class Game {
   /** One pick on the rotary dial: 0 or 1. Runs alongside whatever round is live. */
   handleRotary(bit) {
     if (this.state !== STATE.PLAYING) return;
-    // The aaronson oracle drives speed -- its context backoff kept beating
-    // the ensemble in practice, which now just runs in shadow for comparison.
     const guess = this.aaronson.predict();
     this.aaronson.update(bit);
     const correct = guess.choice === bit;
     const accuracy = this.aaronson.rollingAccuracy();
 
-    this.rotaryPredictor.predict();
-    this.rotaryPredictor.update(bit);
-
     const r = CONFIG.rotary;
-    const span = Math.max(1e-6, r.hardAccuracy - r.easyAccuracy);
-    const t = Math.min(1, Math.max(0, (accuracy - r.easyAccuracy) / span));
-    const target = r.maxMultiplier + (r.minMultiplier - r.maxMultiplier) * t;
-    this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
+    if (this.aaronson.total > r.warmupPicks) {
+      const edgePoints = (accuracy - 0.5) * 100; // + = it's reading you, - = you're fooling it
+      const factor = r.perPointFactor ** Math.abs(edgePoints); // compounds per point past 50%
+      const target =
+        edgePoints >= 0
+          ? Math.max(r.minMultiplier, factor) // reading you: rounds speed up
+          : Math.min(r.maxMultiplier, 1 / factor); // fooling it: rounds slow down
+      this.rotarySpeed += (target - this.rotarySpeed) * r.adaptRate;
+    }
 
-    const h = this.accuracyHistory;
-    h.ensemble.push(this.rotaryPredictor.accuracy());
-    h.aaronson.push(this.aaronson.accuracy());
-    const overflow = h.ensemble.length - CONFIG.rotary.chartLength;
+    this.accuracyHistory.push(this.aaronson.accuracy());
+    this.hitHistory.push(correct);
+    const overflow = this.accuracyHistory.length - CONFIG.rotary.chartLength;
     if (overflow > 0) {
-      h.ensemble.splice(0, overflow);
-      h.aaronson.splice(0, overflow);
+      this.accuracyHistory.splice(0, overflow);
+      this.hitHistory.splice(0, overflow);
     }
 
     this.ui.setRotary({ bit, correct, accuracy });
@@ -189,11 +185,10 @@ export class Game {
   /** Also called from main.js when debug mode is toggled on, to catch up. */
   pushOracleDebug() {
     this.ui.setOracleDebug({
-      ensembleAcc: this.rotaryPredictor.accuracy(),
-      ensembleN: this.rotaryPredictor.total,
       aaronsonAcc: this.aaronson.accuracy(),
       aaronsonN: this.aaronson.total,
-      history: this.accuracyHistory,
+      accuracyHistory: this.accuracyHistory,
+      hitHistory: this.hitHistory,
     });
   }
 

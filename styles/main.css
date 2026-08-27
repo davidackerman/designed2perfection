@@ -377,12 +377,19 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 .debug-readout .no { color: var(--bad); }
 #debugExpected { margin-right: 14px; }
 
-/* ---- debug: the line, unpacked (running accuracy, ensemble vs aaronson) ---- */
+/* ---- debug: the line, unpacked (aaronson's running accuracy) ---- */
 .oracle-debug {
   margin-top: 10px;
   padding-top: 9px;
   border-top: 1px solid var(--line);
 }
+.oracle-debug-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.oracle-value { color: var(--text); font-size: 12px; }
 .oracle-chart-wrap {
   position: relative;
   margin-top: 6px;
@@ -402,23 +409,21 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 }
 .oracle-chart-axis-top { top: -1px; }
 .oracle-chart-axis-bottom { bottom: -1px; }
-.oracle-legend {
+
+.oracle-hits {
   display: flex;
-  gap: 16px;
+  gap: 3px;
   margin-top: 6px;
-  font-size: 10px;
-  color: var(--dim);
+  padding-left: 30px;
 }
-.oracle-legend-item { display: flex; align-items: center; gap: 5px; }
-.oracle-legend-item b { color: var(--text); font-size: 11px; }
-.oracle-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
+.oracle-hit-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--line);
 }
-.oracle-swatch-ensemble { background: #3987e5; }
-.oracle-swatch-aaronson { background: #d95926; }
+.oracle-hit-dot.hit { background: var(--bad); }   /* it called your pick */
+.oracle-hit-dot.miss { background: var(--good); } /* you fooled it */
 
 /* ---- overlays ---- */
 .hidden { display: none !important; }

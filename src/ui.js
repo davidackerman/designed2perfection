@@ -61,8 +61,8 @@ export class UI {
       oracleChart: $('#oracleChart'),
       oracleChartMax: $('#oracleChartMax'),
       oracleChartMin: $('#oracleChartMin'),
-      oracleEnsembleVal: $('#oracleEnsembleVal'),
       oracleAaronsonVal: $('#oracleAaronsonVal'),
+      oracleHits: $('#oracleHits'),
     };
     this.flashTimer = null;
     this.debug = false;
@@ -228,22 +228,20 @@ export class UI {
     this.el.rotaryAccuracy.textContent = `${Math.round(accuracy * 100)}%`;
   }
 
-  /** Debug only: running lifetime accuracy for both predictors, so you can
-   *  see which is actually reading the picks better over a session. */
-  setOracleDebug({ ensembleAcc, ensembleN, aaronsonAcc, aaronsonN, history }) {
+  /** Debug only: aaronson's running lifetime accuracy, and the hit/miss
+   *  behind each of those same picks. */
+  setOracleDebug({ aaronsonAcc, aaronsonN, accuracyHistory, hitHistory }) {
     if (!this.debug) return;
 
-    this.el.oracleEnsembleVal.textContent = `${Math.round(ensembleAcc * 100)}% (${ensembleN})`;
     this.el.oracleAaronsonVal.textContent = `${Math.round(aaronsonAcc * 100)}% (${aaronsonN})`;
 
-    // history is already capped to the last CONFIG.rotary.chartLength picks
-    // (see Game.handleRotary) -- only that recent window is ever shown, so
-    // an old spike can't leave the axis stuck too wide once it's scrolled
-    // past. Zoom the y-axis to how far accuracy has actually strayed from
-    // 50/50 within that window, with a floor so it doesn't over-zoom on a
-    // near-flat line.
-    const allValues = history.ensemble.concat(history.aaronson);
-    const maxDeviation = allValues.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
+    // accuracyHistory is already capped to the last CONFIG.rotary.chartLength
+    // picks (see Game.handleRotary) -- only that recent window is ever
+    // shown, so an old spike can't leave the axis stuck too wide once it's
+    // scrolled past. Zoom the y-axis to how far accuracy has actually
+    // strayed from 50/50 within that window, with a floor so it doesn't
+    // over-zoom on a near-flat line.
+    const maxDeviation = accuracyHistory.reduce((m, v) => Math.max(m, Math.abs(v - 0.5)), 0);
     const halfRange = Math.min(0.5, Math.max(0.05, maxDeviation * 1.2));
     const domainMin = 0.5 - halfRange;
     const domainMax = 0.5 + halfRange;
@@ -251,13 +249,12 @@ export class UI {
     this.el.oracleChartMin.textContent = `${Math.round(domainMin * 100)}%`;
 
     const toY = (v) => 100 - ((v - domainMin) / (domainMax - domainMin)) * 100;
-    const toPoints = (series) =>
-      series
-        .map((v, i) => {
-          const x = series.length > 1 ? (i / (series.length - 1)) * 100 : 50;
-          return `${x},${toY(v)}`;
-        })
-        .join(' ');
+    const points = accuracyHistory
+      .map((v, i) => {
+        const x = accuracyHistory.length > 1 ? (i / (accuracyHistory.length - 1)) * 100 : 50;
+        return `${x},${toY(v)}`;
+      })
+      .join(' ');
 
     // Chance sits at 50% accuracy, which the symmetric domain above always
     // maps to y=50 -- shade above it red (the line is reading you: worse for
@@ -268,17 +265,20 @@ export class UI {
 
     // No end-dot marker: preserveAspectRatio="none" stretches the viewBox to
     // the bar's full width, which would turn a circle into an ellipse.
-    const line = (series, color) =>
-      series.length < 2
+    const line =
+      accuracyHistory.length < 2
         ? ''
-        : `<polyline points="${toPoints(series)}" fill="none" stroke="${color}" stroke-width="1.5" ` +
+        : `<polyline points="${points}" fill="none" stroke="#d95926" stroke-width="1.5" ` +
           `stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />`;
 
     this.el.oracleChart.innerHTML =
       zones +
       `<line x1="0" y1="50" x2="100" y2="50" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke" />` +
-      line(history.ensemble, '#3987e5') +
-      line(history.aaronson, '#d95926');
+      line;
+
+    this.el.oracleHits.innerHTML = hitHistory
+      .map((hit) => `<span class="oracle-hit-dot ${hit ? 'hit' : 'miss'}"></span>`)
+      .join('');
   }
 
   flash(kind) {
