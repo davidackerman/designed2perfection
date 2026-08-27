@@ -32,7 +32,7 @@ export const CONFIG = {
     // on top of the normal decay above. No effect for the first warmupPicks,
     // since accuracy over a handful of picks is mostly noise.
     tickMs: 950,             // suggested pace for the on-screen pulse cue
-    accuracyWindow: 12,      // how many recent picks the difficulty knob looks at
+    accuracyWindow: 10,      // how many recent picks "reading you" and the difficulty knob look at
     adaptRate: 0.045,        // speed drift per pick, tuned to ~(1 - timing.decay)
     warmupPicks: 10,         // picks before the speed effect kicks in at all
     perPointFactor: 0.8,     // window *= this per point of accuracy past 50%, compounding
