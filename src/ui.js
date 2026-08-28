@@ -97,14 +97,14 @@ export class UI {
     if (name === 'title') this.startTitleHint();
   }
 
-  /** A minute of the title sitting untouched, then over the following minute
-   *  the code digits grow to 1.5x and the rest of the word shrinks to 0.5x --
-   *  an increasingly obvious nudge for a team that's stuck. Restarts every
-   *  time the title is (re)shown; stops itself once it's hidden again. */
+  /** From the moment the title shows, over the following minute, the code
+   *  digits grow to 1.5x and the rest of the word shrinks to 0.5x -- a
+   *  gradually obvious nudge for a team that's stuck. Restarts every time
+   *  the title is (re)shown; stops itself once it's hidden again. */
   startTitleHint() {
     const shownAt = Date.now();
     cancelAnimationFrame(this.hintFrame);
-    const HINT_DELAY_MS = 60000;
+    const HINT_DELAY_MS = 0;
     const HINT_RAMP_MS = 60000;
     const tick = () => {
       if (this.el.title.classList.contains('hidden')) return; // left the title
