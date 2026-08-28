@@ -28,11 +28,6 @@ export class Game {
     this.remainingOnPause = null;
   }
 
-  /** A different team steps up. Everyday retries ("go again") don't reset
-   *  anything here -- this exists so main.js has a consistent newTeam() to
-   *  call across both game engines. */
-  newTeam() {}
-
   setHardMode(on) {
     this.hardMode = on;
     localStorage.setItem(CONFIG.storage.hardMode, on ? '1' : '0');

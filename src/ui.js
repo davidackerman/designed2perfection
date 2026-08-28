@@ -82,13 +82,10 @@ export class UI {
       keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
     };
-    // The four marked characters in the title that spell out the number-pad
-    // code, in reading order -- see index.html. Index lines up with the code
-    // string in main.js.
-    this.titleCodeDigits = Array.from(document.querySelectorAll('#titleHeading .code-digit'));
-    // The rest of the title ("nc", "n", "eni", "nt"), grouped between the
-    // code digits -- greened out too once the whole code is right.
-    this.titleFillerEls = Array.from(document.querySelectorAll('#titleHeading .code-filler'));
+    // One dot per digit of the number-pad code, in reading order -- see
+    // index.html. Index lines up with the code string in main.js. The title
+    // text itself never reacts to any of this.
+    this.passwordDots = Array.from(document.querySelectorAll('#passwordField .password-dot'));
     this.simonPads = {
       push: $('#simonPadPush'),
       pull: $('#simonPadPull'),
@@ -385,18 +382,19 @@ export class UI {
   }
 
   /** Title screen's number-pad code, entered instead of pressing Start: each
-   *  correct digit turns its character in the title green and stays that
-   *  way. Nothing marks a wrong digit individually -- see flashTitleWrong. */
+   *  correct digit fills in its dot on the password field below the title
+   *  and stays that way. The title text itself never marks anything -- see
+   *  index.html/main.css. Nothing marks a wrong digit individually -- see
+   *  flashTitleWrong. */
   markTitleDigitGood(index) {
-    const el = this.titleCodeDigits[index];
+    const el = this.passwordDots[index];
     if (!el) return;
-    el.classList.remove('code-bad');
-    el.classList.add('code-good');
+    el.classList.add('good');
   }
 
   /** The "wrong digit" cue for the title screen: the whole card shakes and
-   *  the title word turns solid red for the beat, covering over whatever
-   *  digits were green -- not just the offending one (caller also clears
+   *  the password dots turn solid red for the beat, covering over whatever
+   *  dots were green -- not just the offending one (caller also clears
    *  progress -- see resetTitleDigits). Pressing a control instead of a
    *  digit gets only the wrong sound, not this -- see main.js's
    *  handleAction -- so the two mistakes don't look identical. */
@@ -410,14 +408,7 @@ export class UI {
   }
 
   resetTitleDigits() {
-    for (const el of this.titleCodeDigits) el.classList.remove('code-good', 'code-bad');
-    for (const el of this.titleFillerEls) el.classList.remove('code-good');
-  }
-
-  /** The whole code is right: green the rest of the title too, so the entire
-   *  word reads as done rather than just the four marked digits. */
-  markTitleAllGood() {
-    for (const el of this.titleFillerEls) el.classList.add('code-good');
+    for (const el of this.passwordDots) el.classList.remove('good');
   }
 
   /** A pair of doors sweeping open over whatever's about to appear

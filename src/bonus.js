@@ -133,21 +133,6 @@ export class BonusGame {
     this.render();
   }
 
-  /** A different team: back to round 1 with a fresh board, mirroring
-   *  SimonGame.newTeam() zeroing the same run's bonus count. A plain retry
-   *  leaves the board exactly as it was -- see start(). */
-  newTeam() {
-    this.stopTimers();
-    this.roundIndex = 0;
-    this.roundActive = false;
-    this.cards = [];
-    this.revealedPositions = [];
-    this.locked = false;
-    this.pendingRowKey = null;
-    this.janeliaProgress = 0;
-    this.janeliaSolved = false;
-  }
-
   abort() {
     this.stopTimers();
     this.active = false;

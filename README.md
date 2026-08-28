@@ -17,6 +17,10 @@ watching. See [`src/simon.js`](src/simon.js).
 
 When a run ends, the game-over card lays the round you died on against what you
 actually pressed, step by step, so you can see where the two parted company.
+There's no "go again" button to hunt for and no "new team" reset on offer —
+score and bonus always carry over from your best run so far, and pressing
+literally anything (a control, a key, a digit) just starts the next sequence.
+`Esc` is the one exception: that backs out to the menu instead.
 
 The original reflex game below is still there as **Classic mode**, a toggle
 on the title screen (off by default).
@@ -41,10 +45,12 @@ mapping persists in `localStorage`.
 There's no Start button, functionally — outside debug mode, the title screen
 only reacts to a number-pad code. It's the title itself: read off the digits
 and the one roman numeral in `1nc0nVeni3nt` in order (`1`, `0`, `V` = `5`,
-`3`) to get `1053`. Get it right and the title flashes green and the game
-begins; a wrong digit nudges it red and resets. In debug mode the old
-Start/`Space`/`Enter` shortcuts still work, so testing doesn't require
-dialing the code every time.
+`3`) to get `1053`. The title text never reacts to any of this — instead, a
+password-style row of dots below it fills in green one at a time as each
+digit lands right; a wrong digit shakes the card, flashes the dots red, and
+resets the whole attempt. Get all four and the game begins. In debug mode
+the old Start/`Space`/`Enter` shortcuts still work, so testing doesn't
+require dialing the code every time.
 
 Dialing `911` on the number pad at any point pops up the title code for a
 few seconds — for whoever's running the cabinet, not meant to be found by

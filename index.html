@@ -106,7 +106,17 @@
            rest of the word is grouped into "filler" spans so the two can grow
            and shrink against each other -- see the --hint-progress rules in
            main.css and UI.startTitleHint. -->
-      <h1 id="titleHeading"><span class="code-digit">1</span><span class="code-filler">nc</span><span class="code-digit">0</span><span class="code-filler">n</span><span class="code-digit">V</span><span class="code-filler">eni</span><span class="code-digit">3</span><span class="code-filler">nt</span></h1>
+      <h1 id="titleHeading">1nc0nVeni3nt</h1>
+      <!-- The number-pad code is validated one digit at a time, but it's no
+           longer the title text itself that shows progress -- a separate,
+           computery password field does, so the title stays plain no matter
+           what you dial. One dot per digit of TITLE_CODE in main.js. -->
+      <div class="password-field" id="passwordField">
+        <span class="password-dot"></span>
+        <span class="password-dot"></span>
+        <span class="password-dot"></span>
+        <span class="password-dot"></span>
+      </div>
       <ul class="legend hidden" id="classicLegend">
         <li><b>PUSH IT</b> — the button. Check the placard.</li>
         <li><b>PULL IT</b> — the lever. Check the placard.</li>
@@ -116,7 +126,6 @@
       </ul>
       <div class="row">
         <button id="startBtn" class="primary" type="button">START</button>
-        <button id="newTeamBtn" type="button">New team</button>
         <button id="hardBtn" type="button" class="hidden">Hard mode: <span id="hardToggle">OFF</span></button>
         <button id="scoresBtn" type="button">High scores</button>
         <button id="remapBtn" type="button">Controls</button>
@@ -155,11 +164,9 @@
       <div id="overBoard" class="board-wrap"></div>
 
       <div class="row">
-        <button id="againBtn" class="primary" type="button">GO AGAIN</button>
-        <button id="overNewTeamBtn" type="button">New team</button>
         <button id="menuBtn" type="button">Menu</button>
       </div>
-      <p class="hint">"Go again" keeps the bonus meter running. "New team" resets it.</p>
+      <p class="hint">Press anything to go again -- score and bonus carry over.</p>
     </div>
   </div>
 

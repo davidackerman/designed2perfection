@@ -45,17 +45,6 @@ export class SimonGame {
     this.holdFirstStep = false; // set by start(): double the very next step's duration
   }
 
-  /** A different team steps up: the bonus meter is per-team, and so is the
-   *  round you'd otherwise pick back up at -- a fresh team starts at round 1,
-   *  not wherever the last team left off. Everyday retries ("go again", or
-   *  walking back to the title and starting over without this) keep both. */
-  newTeam() {
-    this.bonus = 0;
-    this.sequence = [];
-    this.round = 0;
-    this.score = 0;
-  }
-
   get mode() {
     return 'simon';
   }
@@ -69,9 +58,10 @@ export class SimonGame {
     this.stopTimers();
     this.state = STATE.PLAYING;
     this.paused = false;
-    // A run already in progress (failed and not yet cleared by newTeam())
-    // picks back up at the round it ended on, replaying the same sequence,
-    // rather than starting over at round 1.
+    // A run already in progress (failed, then started again) picks back up
+    // at the round it ended on, replaying the same sequence, rather than
+    // starting over at round 1 -- score and bonus carry over the same way.
+    // Nothing ever resets this mid-session; only a fresh page load does.
     const resuming = this.sequence.length > 0;
     if (!resuming) {
       this.sequence = [];

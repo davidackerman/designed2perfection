@@ -47,6 +47,15 @@ for (let i = 0; i <= 9; i++) {
 }
 
 function handleDigit(digit) {
+  // Game over: no dedicated "go again" button to hunt for -- any digit
+  // (same as any other key or a control press, see handleAction/the global
+  // keydown handler) just goes again, unless a high score is still waiting
+  // on initials.
+  if (screen === 'over') {
+    if (!pending) startGame();
+    return;
+  }
+
   // 911 rides on top of whatever else digits mean on the current screen --
   // mid-run, that's the bonus board (below), so the '9' and the first '1'
   // of a mid-game 911 dial also land there as ordinary row/column presses
@@ -72,7 +81,6 @@ function handleDigit(digit) {
       titleCodeProgress++;
       if (titleCodeProgress === TITLE_CODE.length) {
         titleCodeProgress = 0;
-        ui.markTitleAllGood(); // the rest of the word goes green too, not just the four digits
         // Hold on the all-green moment for a beat -- time to orient yourself --
         // before the success tone and the game itself begin, rather than
         // firing both immediately.
@@ -179,6 +187,13 @@ function handleAction(evt) {
     audio.play('wrong');
     return;
   }
+  // Game over: whatever control you just pressed also just means "go
+  // again" -- see handleDigit. Not while a high score is still waiting on
+  // initials, though.
+  if (screen === 'over') {
+    if (!pending) startGame();
+    return;
+  }
   activeGame().handleInput(evt);
 }
 
@@ -190,12 +205,6 @@ function startGame(opts) {
     bonusGame.start();
     refreshBonusHud();
   }
-}
-
-function newTeam() {
-  activeGame().newTeam();
-  bonusGame.newTeam();
-  startGame();
 }
 
 function toggleHard() {
@@ -284,10 +293,16 @@ function toRemap() {
 // code (see handleDigit above) is the only way in. Debug mode keeps the old
 // one-click behavior so testing doesn't require dialing a code every time.
 document.querySelector('#startBtn').addEventListener('click', () => { if (debug) startGame(); });
-document.querySelector('#newTeamBtn').addEventListener('click', () => { if (debug) newTeam(); });
-document.querySelector('#againBtn').addEventListener('click', startGame);
-document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
+// No "GO AGAIN" button -- clicking anywhere on the game-over card that isn't
+// itself an interactive element (Menu, the initials form, ...) does the same
+// thing a keypress or a control press does. See handleDigit/handleAction for
+// the keyboard/cabinet side of the same rule.
+document.querySelector('#overOverlay').addEventListener('click', (e) => {
+  if (screen !== 'over' || pending) return;
+  if (e.target.closest('button, input, a')) return;
+  startGame();
+});
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#remapResetBtn').addEventListener('click', () => {
@@ -385,6 +400,18 @@ window.addEventListener('keydown', (e) => {
 
   if (screen === 'remap' || screen === 'scores') {
     if (e.code === 'Escape') toTitle();
+    return;
+  }
+
+  // Game over: Escape backs out to the menu; literally anything else just
+  // goes again -- there's no "go again" button to find, and no "new team"
+  // reset on offer, since a retry already carries the score and bonus
+  // forward on its own (see SimonGame.start()'s resuming check). Not while
+  // a high score is still waiting on initials, though -- isTyping already
+  // guards that above.
+  if (screen === 'over') {
+    if (e.code === 'Escape') { toTitle(); return; }
+    if (!pending && !e.repeat) { e.preventDefault(); startGame(); }
     return;
   }
 
