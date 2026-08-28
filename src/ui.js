@@ -418,26 +418,34 @@ export class UI {
 
   /** The bonus board: rebuilt from scratch every call, same as renderBoard/
    *  renderBindings below -- there are at most 16 cards, so there's no need
-   *  to diff. `peeking` (the 911 cheat) shows every unmatched card's face
-   *  without touching its real revealed/matched state. */
+   *  to diff. Cards never show their own address -- row/column headers
+   *  around the grid are what you dial instead (see BonusGame.handleKey) --
+   *  so a face-down card is just a card, no printed hint on it. `peeking`
+   *  (the 911 cheat) shows every unmatched card's face without touching its
+   *  real revealed/matched state. */
   renderBonusBoard({ size, cards, peeking }) {
     const el = this.el.bonusBoard;
     el.style.setProperty('--bonus-size', size);
-    el.innerHTML = cards
-      .map((c) => {
-        const flipped = peeking || c.revealed || c.matched;
-        const cls = ['bonus-card', flipped && 'flipped', c.matched && 'matched']
-          .filter(Boolean)
-          .join(' ');
-        const decoy = c.decoy ? `<span class="decoy">${c.decoy}</span>` : '';
-        return (
-          `<div class="${cls}"><div class="bonus-card-inner">` +
-          `<div class="bonus-card-back">${c.label}${decoy}</div>` +
-          `<div class="bonus-card-face">${c.faceSymbol}</div>` +
-          '</div></div>'
-        );
-      })
-      .join('');
+    const cardHtml = (card) => {
+      const flipped = peeking || card.revealed || card.matched;
+      const cls = ['bonus-card', flipped && 'flipped', card.matched && 'matched']
+        .filter(Boolean)
+        .join(' ');
+      const decoy = card.decoy ? `<span class="decoy">${card.decoy}</span>` : '';
+      return (
+        `<div class="${cls}"><div class="bonus-card-inner">` +
+        `<div class="bonus-card-back">${decoy}</div>` +
+        `<div class="bonus-card-face">${card.faceSymbol}</div>` +
+        '</div></div>'
+      );
+    };
+    const header = (i) => `<div class="bonus-header">${i}</div>`;
+    let html = '<div class="bonus-corner"></div>' + Array.from({ length: size }, (_, c) => header(c)).join('');
+    for (let r = 0; r < size; r++) {
+      html += header(r);
+      for (let c = 0; c < size; c++) html += cardHtml(cards[r * size + c]);
+    }
+    el.innerHTML = html;
   }
 
   /** Render one board as a table; `highlight` marks the run just played. */

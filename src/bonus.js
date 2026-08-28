@@ -2,12 +2,11 @@
 // by side with Simon, on the number pad. It never ends on its own -- it just
 // keeps producing bonus points (see onMatch) until the run itself does.
 //
-// Every card has two independent identities:
-//  - `label`: always visible, face-down. What you dial to pick this card.
-//  - `faceSymbol`: hidden until flipped. What has to match another card's.
-// Round 1 makes those the same idea (dial 0-3, get shapes back) so the
-// mechanic reads as trivial; round 2 splits them so memorizing "where"
-// isn't the same as memorizing "what's under there" -- see config.js.
+// Cards never carry their own address -- that would give away that a card
+// is "special" before it's even flipped, which doesn't read as a real
+// face-down card. Instead the grid's row/column headers (see UI.
+// renderBonusBoard) are what you dial: a row digit, then a column digit,
+// the same two-key shape for every round regardless of size.
 
 import { CONFIG } from './config.js';
 
@@ -33,17 +32,6 @@ function roundFor(index) {
   return rounds[Math.min(index, rounds.length - 1)];
 }
 
-/** Which key(s) dial a label: a bare digit is itself + '0'; a letter is
- *  found on a phone key at some 1-based index -> that key + that index. */
-function keysFor(label) {
-  if (/^[0-9]$/.test(label)) return [label, '0'];
-  for (const [key, letters] of Object.entries(CONFIG.bonus.phoneKeys)) {
-    const i = letters.indexOf(label);
-    if (i !== -1) return [key, String(i + 1)];
-  }
-  return null; // unreachable given how labels are generated
-}
-
 export class BonusGame {
   constructor({ ui, audio, onMatch }) {
     this.ui = ui;
@@ -52,7 +40,7 @@ export class BonusGame {
     this.active = false;
     this.peeking = false;
     this.locked = false;
-    this.pendingKey = null;
+    this.pendingRow = null;
     this.roundIndex = 0;
     this.cards = [];
     this.revealedPositions = [];
@@ -63,26 +51,22 @@ export class BonusGame {
   newRound(index) {
     const { size, kind } = roundFor(index);
     const n = size * size;
-    const labels = kind === 'shapes'
-      ? Array.from({ length: n }, (_, i) => String(i))
-      : shuffled(ALNUM).slice(0, n);
     const faces = kind === 'shapes'
       ? pairedSymbols(SHAPES, n / 2)
       : pairedSymbols(ALNUM, n / 2);
-    this.cards = labels.map((label, pos) => {
-      const faceSymbol = faces[pos];
+    this.cards = faces.map((faceSymbol, pos) => {
       let decoy = null;
       if (kind === 'alnum') {
         do { decoy = ALNUM[Math.floor(Math.random() * ALNUM.length)]; }
-        while (decoy === faceSymbol || decoy === label);
+        while (decoy === faceSymbol);
       }
-      return { pos, label, faceSymbol, decoy, revealed: false, matched: false };
+      return { pos, faceSymbol, decoy, revealed: false, matched: false };
     });
     this.size = size;
     this.kind = kind;
     this.revealedPositions = [];
     this.locked = false;
-    this.pendingKey = null;
+    this.pendingRow = null;
   }
 
   start() {
@@ -102,7 +86,7 @@ export class BonusGame {
     this.cards = [];
     this.revealedPositions = [];
     this.locked = false;
-    this.pendingKey = null;
+    this.pendingRow = null;
   }
 
   abort() {
@@ -128,24 +112,21 @@ export class BonusGame {
     this.peekTimer = null;
   }
 
+  /** Every round is dialed the same way: a row digit, then a column digit --
+   *  see the grid headers UI.renderBonusBoard draws around the board. */
   handleKey(digit) {
     if (!this.active || this.locked || this.peeking) return;
 
-    let card;
-    if (this.kind === 'shapes') {
-      card = this.cards.find((c) => c.label === digit);
-    } else {
-      if (this.pendingKey === null) {
-        this.pendingKey = digit;
-        return;
-      }
-      const first = this.pendingKey;
-      this.pendingKey = null;
-      card = this.cards.find((c) => {
-        const keys = keysFor(c.label);
-        return keys && keys[0] === first && keys[1] === digit;
-      });
+    if (this.pendingRow === null) {
+      this.pendingRow = digit;
+      return;
     }
+    const row = Number(this.pendingRow);
+    const col = Number(digit);
+    this.pendingRow = null;
+    if (row >= this.size || col >= this.size) return; // not a real row/column for this round
+
+    const card = this.cards[row * this.size + col];
     if (!card || card.matched || card.revealed) return;
 
     card.revealed = true;

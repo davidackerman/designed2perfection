@@ -49,12 +49,11 @@ for (let i = 0; i <= 9; i++) {
 function handleDigit(digit) {
   // 911 rides on top of whatever else digits mean on the current screen --
   // mid-run, that's the bonus board (below), so the '9' and the first '1'
-  // of a mid-game 911 dial also land there as ordinary presses (only the
-  // completing keystroke is caught in time to skip it, just below). Worst
-  // case that leaves one bonus card flipped early or a two-key entry half
-  // buffered -- harmless, and this is an operator-only cheat code to begin
-  // with, so it's not worth adding input latency to real play to fully
-  // avoid.
+  // of a mid-game 911 dial also land there as ordinary row/column presses
+  // (only the completing keystroke is caught in time to skip it, just
+  // below). In practice row 9 is never valid for a 2x2 or 4x4 board, so
+  // this is a harmless no-op today -- flagged here in case a future round
+  // ever grows to 10+ rows, at which point it's worth a closer look.
   answerKeyBuffer = (answerKeyBuffer + digit).slice(-ANSWER_KEY_CODE.length);
   if (answerKeyBuffer === ANSWER_KEY_CODE) {
     answerKeyBuffer = '';
