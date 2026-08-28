@@ -71,7 +71,7 @@ export const CONFIG = {
     entryWindowMs: 5000,          // must enter a digit within this window, or the run's multiplier resets to min
     historyLen: 20,                 // how many recent guesses the on-screen log shows -- display cap only; accuracy/multiplier are cumulative since the last reset, not windowed to this
     plotLen: 40,                  // how many past multiplier values the running plot keeps
-    accuracyForMaxMultiplier: 0.5,  // computer at or below this accuracy -> x2 (pure coin flip, you're winning)
+    accuracyForMaxMultiplier: 0.4,  // computer at or below this accuracy -> x2 (wrong 60%+ of the time -- actually beating it, not just a coin flip)
     accuracyForMinMultiplier: 0.75, // computer at or above this accuracy -> x1 (it's reading you)
     multiplierMax: 2,
     multiplierMin: 1,

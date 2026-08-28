@@ -46,31 +46,33 @@ precedence here — it sits on top and larger, labeled in big letters, with the
 bonus panel underneath as a compact strip rather than an equal half of the
 screen.
 
-Every few seconds you dial an even or odd digit on the number pad; the
-computer has already locked in a guess of which, using an
-["Aaronson Oracle"](src/evenodd.js) — an ensemble of finite-context
-predictors (it looks for patterns over your last 1 to 5 entries), each
-judged on its own accuracy so far, with whichever one's currently most
-accurate put in charge of the next guess. That guess stays hidden until you
-enter the digit — showing it up front would make "press the opposite" an
-unbeatable strategy — then it briefly reveals both together (`Computer: ...
-· You: ...`) and logs the pair into a two-row "Computer"/"You" strip, one
-column per guess so it's unambiguous which entry answers which (every
-guess since the last reset, not just the last one), plus a running plot of
-the resulting score multiplier with its ×1–×2 range labeled on the y axis
-and the running guess count as the x axis. Accuracy and the multiplier are
-both cumulative since the last reset — a long run's numbers reflect the
-whole run, not just its most recent guesses (only the on-screen log itself
-is capped, for space, at the most recent 20).
+Every few seconds you press 0 or 1 on the number pad — restricted to just
+those two, not any digit, since a two-way choice is harder to disguise than
+picking freely among ten. The computer has already locked in a guess of
+which, using an ["Aaronson Oracle"](src/evenodd.js) — an ensemble of
+finite-context predictors (it looks for patterns over your last 1 to 5
+entries), each judged on its own accuracy so far, with whichever one's
+currently most accurate put in charge of the next guess. That guess stays
+hidden until you press — showing it up front would make "press the
+opposite" an unbeatable strategy — and there's no separate reveal once you
+do, either: a two-row "Computer"/"You" log immediately shows both for every
+guess (not just the last one), one column per guess so it's unambiguous
+which entry answers which, plus a running plot of the resulting score
+multiplier with its ×1–×2 range labeled on the y axis. Computer accuracy
+and the multiplier are both cumulative since the last reset — a long run's
+numbers reflect the whole run, not just its most recent guesses (only the
+on-screen log itself is capped, for space, at the most recent 20).
 
-That multiplier defaults to ×1 (neutral), climbs toward ×2 while the
-computer's stuck at a coin flip, and falls back toward ×1 once it's reading
-you 75%+ of the time — applied to your Simon score, not added to it.
-Missing the entry window resets it back to ×1, silently; there's no sound
-on a timeout, since one was easy to mistake for one of the per-guess
-right/wrong tones.
+That multiplier defaults to ×1 (neutral), climbs toward ×2 once the
+computer's wrong 60%+ of the time (actually beaten, not just at a coin
+flip), and falls back toward ×1 once it's reading you 75%+ of the time —
+applied to your **Best** score, not your current round's live one (a more
+stable, aspirational number than one that's near-zero for most of a
+round). Missing the entry window resets the multiplier back to ×1,
+silently; there's no sound on a timeout, since one was easy to mistake for
+one of the per-guess right/wrong tones.
 
-It doesn't actually count toward your score, though, until you've sustained
+It doesn't actually count toward your total, though, until you've sustained
 20 guesses since the last reset — short of that the applied multiplier
 stays pinned at ×1 no matter how well you're doing (a note under the plot
 spells out the countdown, e.g. `Bonus locks in at 20 guesses (14/20)`), and
@@ -78,9 +80,12 @@ a timeout before then costs nothing because nothing was locked in yet.
 Cross 20 and the live number starts applying from that guess on, continuously,
 same as it does after.
 
-Everything else (Simon — relabeled "Repeat After Me" on this page, classic
-mode, the title password, high scores) is identical to the real page —
-including the title screen itself: the heading reads the same
+Simon takes clear visual precedence on this page — relabeled "Repeat After
+Me" in large type, sitting above the bonus panel (a compact strip, not an
+equal half of the screen) and sized larger than on the real page. Everything
+else (Simon itself, classic mode, the title password, high scores) is
+identical to the real page — including the title screen itself: the
+heading reads the same
 `1nc0nVeni3nt`, deliberately without a trailing "2", so it doesn't read as
 one more digit of the number-pad code (both title screens now also spell
 out **Passcode:** above the dots). See [`src/evenodd.js`](src/evenodd.js)

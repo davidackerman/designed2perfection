@@ -1,17 +1,20 @@
 // Alternate bonus minigame (test endpoint, see inconvenient2.html/main2.js):
 // beat the computer's even/odd guesser instead of matching cards.
 //
-// Every CONFIG.evenOdd.entryWindowMs you have to enter a digit on the number
-// pad. Before you do, the computer has already locked in a guess of whether
-// that digit will be even or odd -- see AaronsonOracle below for how.
+// Every CONFIG.evenOdd.entryWindowMs you have to press 0 or 1 on the number
+// pad -- restricted to just those two, not any digit, since a two-way choice
+// is harder to disguise than picking freely among ten. Before you press,
+// the computer has already locked in a guess of which -- see AaronsonOracle
+// below for how.
 //
 // The multiplier applies to your Simon score instead of a flat bonus added
 // to it: it starts (and resets, on a missed window) at the neutral x1
-// baseline, climbs toward x2 while the computer's stuck at a coin flip, and
-// falls back toward x1 once it's reading you 75%+ of the time -- clamped at
-// both ends, so it never goes below x1 or above x2. Same "wrong pad only
-// freezes Simon" story as the memory board: this game has no losing state,
-// only a multiplier that resets and starts climbing back.
+// baseline, climbs toward x2 once the computer is wrong 60%+ of the time
+// (actually beating it, not just a coin flip), and falls back toward x1
+// once it's reading you 75%+ of the time -- clamped at both ends, so it
+// never goes below x1 or above x2. Same "wrong pad only freezes Simon"
+// story as the memory board: this game has no losing state, only a
+// multiplier that resets and starts climbing back.
 //
 // It doesn't actually apply, though, until you've sustained
 // qualifyGuesses guesses since the last reset -- short of that the
@@ -168,6 +171,11 @@ export class EvenOddGame {
 
   handleKey(digit) {
     if (!this.active) return;
+    // Restricted to 0/1 (not any digit) on purpose -- a two-way choice is
+    // harder to disguise than picking freely among ten, so it's a stiffer
+    // test of how random you actually are. Anything else is just dropped,
+    // same as an unmatched combo on the memory board.
+    if (digit !== '0' && digit !== '1') return;
     const actual = Number(digit) % 2 === 0 ? 'even' : 'odd';
     const guess = this.guess;
     const correct = guess === actual;
@@ -197,11 +205,13 @@ export class EvenOddGame {
     this.emit_(true);
   }
 
-  /** x2 at accuracyForMaxMultiplier (0.5) down to x1 at accuracyForMinMultiplier
-   *  (0.75), linear in between; accuracy is clamped to that range first, so
-   *  a computer doing *worse* than a coin flip still caps at x2 (there's no
-   *  "extra credit" beyond the max), and one reading you well past 75% still
-   *  only costs you down to x1, never further. With no guesses yet, this is
+  /** x2 at accuracyForMaxMultiplier (0.4 -- the computer wrong 60%+ of the
+   *  time, actually beaten, not just at a coin flip) down to x1 at
+   *  accuracyForMinMultiplier (0.75), linear in between; accuracy is
+   *  clamped to that range first, so a computer doing even better than 60%
+   *  wrong still caps at x2 (there's no "extra credit" beyond the max), and
+   *  one reading you well past 75% still only costs you down to x1, never
+   *  further. With no guesses yet, this is
    *  the neutral x1 baseline -- there's nothing yet to judge it against.
    *  Uses correctCount/totalCount (cumulative since the last reset), not
    *  the display-capped history array -- so a long run's multiplier keeps

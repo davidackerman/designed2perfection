@@ -154,7 +154,10 @@ html, body {
    its markup for grid auto-placement to land it in the first (top) row. */
 #stage.simon-mode.eo-stacked {
   grid-template-columns: 1fr;
-  grid-template-rows: 1.7fr 1.5fr;
+  /* Simon is the real game and gets the bulk of the height -- the bonus
+     panel's own content is a short, compact strip (no separate guess
+     reveal any more, see .eo-timer-col), so it doesn't need much. */
+  grid-template-rows: 2fr 1.25fr;
 }
 
 /* Which half is which: the live Score comes from Simon on the right, the
@@ -230,10 +233,10 @@ html, body {
    two -- needs more reserved headroom than the real page's heading, or it
    overlaps the pads/the confined game-over card underneath it. */
 #stage.simon-mode.eo-stacked .panel-simon {
-  padding-top: 118px;
+  padding-top: 100px;
 }
 #stage.simon-mode.eo-stacked .simon-over {
-  padding-top: 118px;
+  padding-top: 100px;
 }
 
 .simon-grid {
@@ -253,6 +256,15 @@ html, body {
   /* Deliberately no overflow: hidden -- .simon-pad's min-width/min-height: 0
      below is what keeps the tracks from overflowing, and clipping here would
      cut the glow and the scaled-up lit pad off at the edges. */
+}
+
+/* inconvenient2.html: Simon's panel now gets most of the stage's height
+   (see #stage.simon-mode.eo-stacked above), and the 560px cap was leaving
+   a lot of that unused -- loosen it here, scoped to this page only, so the
+   grid actually grows into the room it's been given instead of floating in
+   empty space. */
+#stage.simon-mode.eo-stacked .simon-grid {
+  --w: min(95cqw, 88cqh, 820px);
 }
 
 /* Placement is explicit rather than source-order, so re-ordering the markup
@@ -581,7 +593,7 @@ html, body {
   align-items: center;
   gap: 4px;
 }
-.eo-guess-col { min-width: 150px; }
+.eo-timer-col { min-width: 130px; justify-content: center; }
 .eo-history-col { min-width: 180px; max-width: 320px; }
 .eo-plot-col { min-width: 170px; }
 
@@ -593,26 +605,13 @@ html, body {
   color: var(--dim);
 }
 
-.eo-guess-value {
-  font-family: var(--mono);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: var(--text);
-  transition: color 120ms ease;
-}
-/* Momentary reveal after a digit resolves -- computer right is bad for you,
-   wrong is good, same convention as the history log and audio cues; goes
-   back to plain (unhidden "?") color once it reverts. See main2.js's
-   renderEvenOdd/GUESS_REVEAL_MS. */
-.eo-guess-value.eo-computer-right { color: var(--bad); }
-.eo-guess-value.eo-computer-wrong { color: var(--good); }
-
 /* Counts down over entryWindowMs; a stalled entry lets this hit empty,
    which is exactly what resets the multiplier to its baseline -- see
-   EvenOddGame.armDeadline_. */
+   EvenOddGame.armDeadline_. No separate "computer's guess" reveal next to
+   it -- the guess-vs-you log already shows the computer's call for every
+   guess the moment it resolves. */
 .eo-timerbar {
-  width: 150px;
+  width: 130px;
   height: 7px;
   border-radius: 3px;
   background: var(--line);

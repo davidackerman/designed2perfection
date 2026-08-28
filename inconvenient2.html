@@ -49,11 +49,18 @@
           <!-- Round isn't shown here -- not meaningful enough to earn a
                place in this heading -- but the span itself has to stay:
                SimonGame/UI.setHud write to it every round regardless of
-               whether this page displays it. -->
+               whether this page displays it. Same story for totalScore:
+               UI.setHud's shared additive bonus math writes to it on every
+               score change even though this page uses totalBest instead
+               (see main2.js) -- without it, that write throws on null. -->
           <span id="roundHeading" class="hidden"></span>
+          <span id="totalScore" class="hidden"></span>
         </div>
+        <!-- Best, not the live Score -- a stable, aspirational number
+             instead of one that's near-zero for most of a round. See
+             main2.js's tickEvenOddBar. -->
         <div class="panel-heading-total">
-          Score <span id="totalScore" class="panel-heading-value">0</span>
+          Best <span id="totalBest" class="panel-heading-value">0</span>
           <span id="totalBonus" class="panel-heading-value">&times;1.00</span> =
           Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
         </div>
@@ -90,24 +97,22 @@
       </div>
       <div class="eo-board">
         <p class="eo-instructions">
-          Optional: dial even or odd numbers. The computer will try to
-          guess. Outdo the computer to get more bonus points.
+          Press 0 or 1 before the bar runs out -- stay unpredictable. A
+          streak of 20+ without a reset locks in the bonus.
         </p>
         <div class="eo-row">
-          <div class="eo-col eo-guess-col">
-            <span class="eo-guess-label">Computer's guess</span>
-            <span class="eo-guess-value" id="eoGuess">?</span>
+          <div class="eo-col eo-timer-col">
             <div class="eo-timerbar"><div class="eo-timerbar-fill" id="eoBar"></div></div>
             <p class="eo-status" id="eoStatus"></p>
           </div>
           <div class="eo-col eo-history-col">
-            <span class="eo-guess-label">Guess vs. you</span>
+            <span class="eo-guess-label">Computer vs. you</span>
             <div class="eo-history" id="eoHistory"></div>
           </div>
           <div class="eo-col eo-plot-col">
-            <span class="eo-guess-label">Multiplier (y: &times;1&ndash;&times;2) vs. guess # (x)</span>
+            <span class="eo-guess-label">Multiplier over time</span>
             <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
-            <p class="eo-accuracy">Accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses (cumulative)</p>
+            <p class="eo-accuracy">Computer accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses (cumulative)</p>
             <p class="eo-qualify" id="eoQualify"></p>
           </div>
         </div>
