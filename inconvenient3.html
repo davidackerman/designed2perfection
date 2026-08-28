@@ -52,7 +52,7 @@
     <section class="panel panel-typing">
       <div class="panel-heading">
         <div class="panel-heading-tag" id="game1Tag">GAME 1: AI INVASION</div>
-        <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it.</div>
+        <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it: type each falling icon's letters on the number pad (2=ABC · 3=DEF · ... · 9=WXYZ) before it reaches your ship.</div>
         Destroyed <span id="typingHeading" class="panel-heading-value">0</span>
       </div>
       <div id="typingField" class="typing-field">
@@ -66,6 +66,7 @@
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
         <div class="panel-heading-tag">GAME 2: REPEAT AFTER ME</div>
+        <div class="panel-heading-desc">Watch the pattern light up, then repeat it back on the four pads: PUSH, PULL, SOAP, SWIPE.</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
@@ -129,7 +130,11 @@
            read as one more digit of the number-pad code (see TITLE_CODE in
            main3.js). The title text is identical to the real page; only the
            <title> tag and the hint line below say this is the test build. -->
-      <h1 id="titleHeading">1nc0nVeni3nt</h1>
+      <!-- Same code-digit/filler span split as index.html's title -- the
+           four code characters (1, 0, V=5, 3) start a bit bigger and grow
+           further/gray the rest out over time if the title sits untouched;
+           see the --hint-progress rules in main.css and UI.startTitleHint. -->
+      <h1 id="titleHeading"><span class="code-digit">1</span><span class="filler">n</span><span class="filler">c</span><span class="code-digit">0</span><span class="filler">n</span><span class="code-digit">V</span><span class="filler">e</span><span class="filler">n</span><span class="filler">i</span><span class="code-digit">3</span><span class="filler">n</span><span class="filler">t</span></h1>
       <div class="password-label">Passcode:</div>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>

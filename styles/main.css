@@ -229,6 +229,17 @@ html, body {
   padding-top: 96px;
 }
 
+/* inconvenient3.html only: this heading also carries a panel-heading-desc
+   instruction line (see inconvenient3.html) that inconvenient2.html's
+   doesn't -- needs more headroom still, scoped with :has() rather than a
+   new page-wide class so inconvenient2.html's shorter heading is untouched. */
+#stage.simon-mode.test-build .panel-simon:has(.panel-heading-desc) {
+  padding-top: 128px;
+}
+#stage.simon-mode.test-build .panel-simon:has(.panel-heading-desc) .simon-over {
+  padding-top: 128px;
+}
+
 .simon-grid {
   /* 3:4 portrait overall, because that's what a 2x2 of 3:4 pad photos wants --
      the cells then match the images and nothing letterboxes. --w is the widest
@@ -896,6 +907,27 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 }
 
 h1 { margin: 0; font-size: clamp(34px, 8vw, 60px); letter-spacing: 0.02em; }
+
+/* The title's own characters: a faint always-on split between the four
+   code-bearing ones (code-digit: 1, 0, V, 3) and the rest (filler) -- code
+   digits start a little bigger, filler a little smaller, even before
+   --hint-progress does anything. If the title then sits untouched, the
+   same --hint-progress that pulses the password dots (see
+   .password-dot::before/UI.startTitleHint) pushes both further apart:
+   code-digit keeps growing, filler keeps shrinking and fading toward
+   --dim. None of this touches color based on what's actually being
+   dialed, right or wrong -- that stays on the password field alone. */
+#titleHeading .code-digit,
+#titleHeading .filler {
+  display: inline-block;
+}
+#titleHeading .code-digit {
+  transform: scale(calc(1.15 + 0.35 * var(--hint-progress, 0)));
+}
+#titleHeading .filler {
+  transform: scale(calc(0.85 - 0.35 * var(--hint-progress, 0)));
+  color: color-mix(in srgb, var(--dim) calc(30% + var(--hint-progress, 0) * 70%), var(--text));
+}
 
 /* Title-screen number-pad code: progress shows on a separate, computery
    password field below the title instead of on the title text itself --

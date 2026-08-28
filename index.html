@@ -116,12 +116,15 @@
   <div id="titleOverlay" class="overlay">
     <div class="card">
       <!-- The four characters that spell out the number-pad code (1, 0, V=5,
-           3) are individually markable so each can turn green/red on its own
-           as it's entered, instead of the whole title flashing at once. The
-           rest of the word is grouped into "filler" spans so the two can grow
-           and shrink against each other -- see the --hint-progress rules in
-           main.css and UI.startTitleHint. -->
-      <h1 id="titleHeading">1nc0nVeni3nt</h1>
+           3) get their own "code-digit" spans, already a bit bigger than the
+           rest of the word's "filler" spans -- a faint always-on nudge, not
+           a reveal. If the title sits untouched for a while, --hint-progress
+           (UI.startTitleHint) ramps both effects further: code-digit spans
+           keep growing, filler spans keep shrinking and fading toward gray.
+           The title's *color* still never reacts to what's actually dialed,
+           right or wrong -- that feedback lives in the separate password
+           field below instead; see main.css's #titleHeading rules. -->
+      <h1 id="titleHeading"><span class="code-digit">1</span><span class="filler">n</span><span class="filler">c</span><span class="code-digit">0</span><span class="filler">n</span><span class="code-digit">V</span><span class="filler">e</span><span class="filler">n</span><span class="filler">i</span><span class="code-digit">3</span><span class="filler">n</span><span class="filler">t</span></h1>
       <!-- The number-pad code is validated one digit at a time, but it's no
            longer the title text itself that shows progress -- a separate,
            computery password field does, so the title stays plain no matter

@@ -178,12 +178,12 @@ ui.setDebug(debug, slots);
 applyModeUI();
 ui.showOverlay('title');
 
+// No background music on this build -- see toTitle(), which would otherwise
+// restart it every time you back out to the title screen.
 audio.unlock();
-audio.playMusic('song');
 
 function unlockOnFirstGesture() {
   audio.unlock();
-  if (screen === 'title') audio.playMusic('song');
 }
 window.addEventListener('pointerdown', unlockOnFirstGesture, { once: true });
 window.addEventListener('keydown', unlockOnFirstGesture, { once: true });
@@ -216,7 +216,6 @@ function toTitle() {
   activeGame().abort();
   typingGame.abort();
   ui.showOverlay('title');
-  audio.playMusic('song');
 }
 
 function handleAction(evt) {
@@ -237,7 +236,12 @@ function startGame(opts) {
   screen = 'playing';
   activeGame().start(opts);
   if (!classicMode) {
-    typingGame.start();
+    // Simon failing calls this again to auto-restart itself (see
+    // handleGameOver/simonAutoRestartTimer), but the shooter is meant to
+    // keep running straight through that -- only (re)start it if it isn't
+    // already live, i.e. actually coming in from the title/remap/scores
+    // screens, which do call typingGame.abort().
+    if (!typingGame.active) typingGame.start();
     refreshTotal();
   }
 }

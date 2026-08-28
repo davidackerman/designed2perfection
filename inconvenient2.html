@@ -128,7 +128,11 @@
            title screen's separate password field was built to avoid in the
            first place. The title text is identical to the real page; only
            the <title> tag and the hint line below say this is the test build. -->
-      <h1 id="titleHeading">1nc0nVeni3nt</h1>
+      <!-- Same code-digit/filler span split as index.html's title -- the
+           four code characters (1, 0, V=5, 3) start a bit bigger and grow
+           further/gray the rest out over time if the title sits untouched;
+           see the --hint-progress rules in main.css and UI.startTitleHint. -->
+      <h1 id="titleHeading"><span class="code-digit">1</span><span class="filler">n</span><span class="filler">c</span><span class="code-digit">0</span><span class="filler">n</span><span class="code-digit">V</span><span class="filler">e</span><span class="filler">n</span><span class="filler">i</span><span class="code-digit">3</span><span class="filler">n</span><span class="filler">t</span></h1>
       <div class="password-label">Passcode:</div>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>
