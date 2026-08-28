@@ -164,9 +164,10 @@ html, body {
 #stage:not(.simon-mode) .panel-simon,
 #stage:not(.simon-mode) .panel-bonus { display: none; }
 
-/* Which half is which: bonus points come from the cards on the left, the
-   Score/Round/Best up in the HUD come from Simon on the right -- Total is
-   the two of them added together. Purely a label; doesn't affect layout. */
+/* Which half is which: the live Score comes from Simon on the right, the
+   live Bonus count from the cards on the left -- each shown right in its
+   own heading instead of the top HUD. Total, still up in the HUD, is just
+   the two of them added together (see UI.setHud). */
 #stage.simon-mode .panel-bonus,
 #stage.simon-mode .panel-simon {
   position: relative;
@@ -181,6 +182,13 @@ html, body {
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--dim);
+  white-space: nowrap;
+}
+.panel-heading-value {
+  color: var(--text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
 /* Room for a lit pad's ring and glow to spill past the block's edge: all four

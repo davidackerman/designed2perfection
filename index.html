@@ -15,11 +15,13 @@
   <div id="placard" class="hidden">PUSH</div>
 
   <header id="hud">
-    <div class="stat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
+    <div class="stat" id="scoreStat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
     <div class="stat"><span class="stat-label">Round</span><span id="round">0</span></div>
     <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <!-- Simon mode only: Score/Bonus live over their own half of the stage
+         instead (see .panel-heading below) -- Total is the two added
+         together, so it's the one number worth keeping up here. -->
     <div id="totalStat" class="stat hidden"><span class="stat-label">Total</span><span id="total">0</span></div>
-    <div id="bonusStat" class="stat hidden"><span class="stat-label">Bonus</span><span id="bonus">0/10</span></div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
       <label class="music-vol" title="Background music volume">
@@ -43,7 +45,7 @@
          soap/swipe drive Simon on the right half. Rebuilt from scratch on
          every render -- see UI.renderBonusBoard. -->
     <section class="panel panel-bonus">
-      <div class="panel-heading">Bonus</div>
+      <div class="panel-heading">Bonus <span id="bonusHeading" class="panel-heading-value">0/10</span></div>
       <div id="bonusBoard" class="bonus-board"></div>
     </section>
 
@@ -53,7 +55,7 @@
          Source order is reading order, but placement is set explicitly in
          CSS, so the two can't drift apart. -->
     <section class="panel panel-simon">
-      <div class="panel-heading">Score</div>
+      <div class="panel-heading">Score <span id="scoreHeading" class="panel-heading-value">0</span></div>
       <div class="simon-grid">
         <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
         <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />

@@ -33,14 +33,15 @@ export class UI {
       image: $('#stageImage'),
       word: $('#stageWord'),
       timerFill: $('#timerFill'),
+      scoreStat: $('#scoreStat'),
       scoreLabel: $('#scoreLabel'),
       score: $('#score'),
+      scoreHeading: $('#scoreHeading'),
       round: $('#round'),
       best: $('#best'),
-      bonusStat: $('#bonusStat'),
-      bonus: $('#bonus'),
       totalStat: $('#totalStat'),
       total: $('#total'),
+      bonusHeading: $('#bonusHeading'),
       bonusBoard: $('#bonusBoard'),
       modeBadge: $('#modeBadge'),
       muteBadge: $('#muteBadge'),
@@ -132,8 +133,16 @@ export class UI {
     this.el.stage.classList.remove('idle');
   }
 
+  /** Score and Bonus each live over their own half of the Simon screen (see
+   *  the .panel-heading spans) instead of the top HUD -- Total, up top, is
+   *  just the two of them added together, recomputed here from whichever
+   *  one just changed so callers never have to compute it themselves. */
   setHud({ score, round, best, bonus, bonusMax, total }) {
-    if (score !== undefined) this.el.score.textContent = score;
+    if (score !== undefined) {
+      this.el.score.textContent = score;
+      this.el.scoreHeading.textContent = score;
+      this._score = score;
+    }
     if (round !== undefined) this.el.round.textContent = round;
     if (best !== undefined) this.el.best.textContent = best;
     if (bonus !== undefined || bonusMax !== undefined) {
@@ -141,9 +150,12 @@ export class UI {
       const bMax = bonusMax !== undefined ? bonusMax : this._bonusMax || 0;
       this._bonus = b;
       this._bonusMax = bMax;
-      this.el.bonus.textContent = `${b}/${bMax}`;
+      this.el.bonusHeading.textContent = `${b}/${bMax}`;
     }
     if (total !== undefined) this.el.total.textContent = total;
+    else if (score !== undefined || bonus !== undefined) {
+      this.el.total.textContent = (this._score || 0) + (this._bonus || 0);
+    }
   }
 
   setScoreLabel(text) {
@@ -155,7 +167,7 @@ export class UI {
    *  that only make sense in one mode or the other. */
   setSimonMode(on) {
     this.el.stage.classList.toggle('simon-mode', on);
-    this.el.bonusStat.classList.toggle('hidden', !on);
+    this.el.scoreStat.classList.toggle('hidden', on); // moves to the Score panel heading instead
     this.el.totalStat.classList.toggle('hidden', !on);
     this.el.modeBadge.classList.toggle('hidden', on);
   }

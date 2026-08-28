@@ -98,14 +98,10 @@ function handleBonusMatch() {
   refreshBonusHud();
 }
 
-/** Bonus/total are Simon-only; recompute both from the live bonus count and
- *  the mode's all-time best whenever either could have changed. */
+/** Bonus is Simon-only; Total (score + bonus) is recomputed inside
+ *  ui.setHud itself whenever either half changes. */
 function refreshBonusHud() {
-  ui.setHud({
-    bonus: simonGame.bonus,
-    bonusMax: simonGame.bonusMax,
-    total: scores.best(simonGame.mode) + simonGame.bonus,
-  });
+  ui.setHud({ bonus: simonGame.bonus, bonusMax: simonGame.bonusMax });
 }
 
 const slots = allBindingSlots();
@@ -228,7 +224,6 @@ function handleGameOver(result) {
   screen = 'over';
   pending = result.qualifies ? result : null;
   ui.setHud({ best: scores.best(result.mode) });
-  if (result.mode === simonGame.mode) refreshBonusHud(); // best may have just changed
   ui.showGameOver({
     ...result,
     best: scores.best(result.mode),
@@ -244,7 +239,6 @@ function saveScore(initials) {
   const rank = scores.add(mode, initials, score);
   pending = null;
   ui.setHud({ best: scores.best(mode) });
-  if (mode === simonGame.mode) refreshBonusHud();
   ui.confirmEntry({ mode, board: scores.board(mode), rank, best: scores.best(mode) });
 }
 
