@@ -508,14 +508,22 @@ html, body {
 
 .eo-guess-value {
   font-family: var(--mono);
-  font-size: clamp(24px, 8cqw, 40px);
+  font-size: clamp(18px, 6cqw, 28px);
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text);
+  transition: color 120ms ease;
 }
+/* Momentary reveal after a digit resolves -- computer right is bad for you,
+   wrong is good, same convention as the history log and audio cues; goes
+   back to plain (unhidden "?") color once it reverts. See main2.js's
+   renderEvenOdd/GUESS_REVEAL_MS. */
+.eo-guess-value.eo-computer-right { color: var(--bad); }
+.eo-guess-value.eo-computer-wrong { color: var(--good); }
 
 /* Counts down over entryWindowMs; a stalled entry lets this hit empty,
-   which is exactly what resets the bonus to 0 -- see EvenOddGame.armDeadline_. */
+   which is exactly what resets the multiplier to its max -- see
+   EvenOddGame.armDeadline_. */
 .eo-timerbar {
   width: 100%;
   height: 8px;
@@ -530,17 +538,69 @@ html, body {
   transition: width 90ms linear;
 }
 
-.eo-result {
+/* Only ever holds the "too slow, reset" message -- a per-guess result is
+   shown in the history log below instead of a single overwritten line. */
+.eo-status {
   margin: 0;
-  min-height: 1.4em;
-  font-size: 13px;
+  min-height: 1.2em;
+  font-size: 12.5px;
   font-weight: 600;
+  color: var(--deny);
 }
-/* Computer right = bad for you; computer wrong = good for you -- same
-   "high tone/low tone" convention as EvenOddGame's audio cues. */
-.eo-result.eo-computer-right { color: var(--bad); }
-.eo-result.eo-computer-wrong { color: var(--good); }
-.eo-result.eo-timeout { color: var(--deny); }
+
+.eo-history-wrap,
+.eo-plot-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Every resolved guess this run, oldest to newest -- computer's guess on
+   top, what you actually entered underneath, same "high/low tone" verdict
+   as EvenOddGame's audio cues: computer right is bad for you, wrong is
+   good. Rebuilt from scratch each render, same convention as
+   UI.renderBonusBoard -- at most historyLen (20) entries, so no scrolling
+   needed. */
+.eo-history {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--mono);
+}
+.eo-hist-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+.eo-hist-comp { color: var(--dim); }
+.eo-hist-you { color: var(--text); }
+.eo-hist-item.eo-hist-right { background: rgba(255, 77, 77, 0.18); }  /* computer right = bad for you */
+.eo-hist-item.eo-hist-wrong { background: rgba(63, 214, 122, 0.18); } /* computer wrong = good for you */
+
+/* A running line plot of the multiplier over the run so far -- see
+   EvenOddGame.multiplierLog/main2.js's renderMultiplierPlot. Fixed y-axis
+   (multiplierMin-multiplierMax), not autoscaled, so the line's height means
+   the same thing at every point in the run. */
+.eo-plot {
+  width: 100%;
+  height: 50px;
+  display: block;
+}
+.eo-plot-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
 
 .eo-accuracy {
   margin: 0;

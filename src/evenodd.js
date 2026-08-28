@@ -10,12 +10,14 @@
 // player keeps it near 50/50 while any pattern (e.g. alternating, or leaning
 // odd) lets it climb well past that.
 //
-// Your bonus is judged on the computer's accuracy over the trailing
-// historyLen guesses: 10 at 50% (it's not reading you at all) down to 0 at
-// 80%+ (it's reading you easily), linear in between. Missing the entry
-// window resets the run's history and bonus to 0 -- same as the memory
-// board's "wrong pad only freezes Simon" story, this game has no losing
-// state, only a bonus that resets and starts climbing back.
+// Instead of a flat bonus, this run's whole score gets a multiplier, judged
+// on the computer's accuracy over the trailing historyLen guesses: x2 at
+// 50% (it's not reading you at all) down to x1 at 75%+ (it's reading you
+// easily), linear in between -- clamped at both ends, so it never goes
+// above x2 or below x1. Missing the entry window resets the run's history
+// and multiplier back to the x2 default -- same as the memory board's
+// "wrong pad only freezes Simon" story, this game has no losing state, only
+// a multiplier that resets and starts climbing back.
 
 import { CONFIG } from './config.js';
 
@@ -33,10 +35,10 @@ export class EvenOddGame {
   resetRun_() {
     // Order-1 Markov counts: transitions[prevParity][nextParity] -> count.
     this.transitions = { even: { even: 0, odd: 0 }, odd: { even: 0, odd: 0 } };
-    this.history = []; // trailing { actual, guess, correct }, capped at historyLen
+    this.history = []; // trailing { actual, guess, correct }, capped at historyLen -- this is what both the multiplier and the on-screen log are computed from
     this.lastParity = null;
-    this.bonus = CONFIG.evenOdd.bonusMax;
-    this.last = null;
+    this.multiplier = CONFIG.evenOdd.multiplierMax;
+    this.multiplierLog = []; // one point per resolved guess, capped at plotLen, for the running plot
   }
 
   start() {
@@ -106,9 +108,8 @@ export class EvenOddGame {
     this.lastParity = actual;
     this.history.push({ actual, guess, correct });
     if (this.history.length > CONFIG.evenOdd.historyLen) this.history.shift();
-    this.last = { actual, guess, correct };
 
-    this.updateBonus_();
+    this.updateMultiplier_();
     // Computer right is bad news for you (low tone); computer wrong is good
     // news (high tone) -- same "high = good" convention as the card match.
     this.audio?.playTone(correct ? 160 : 660, correct ? 220 : 160);
@@ -126,15 +127,24 @@ export class EvenOddGame {
     this.emit_(true);
   }
 
-  updateBonus_() {
-    const { accuracyForMaxBonus: lo, accuracyForZeroBonus: hi, bonusMax } = CONFIG.evenOdd;
+  /** x2 at accuracyForMaxMultiplier (0.5) down to x1 at accuracyForMinMultiplier
+   *  (0.75), linear in between; accuracy is clamped to that range first, so
+   *  a computer doing *worse* than a coin flip still caps at x2 (there's no
+   *  "extra credit" beyond the max), and one reading you well past 75% still
+   *  only costs you down to x1, never further. With no history yet, default
+   *  to the best case (x2) -- there's nothing to judge it against. */
+  updateMultiplier_() {
+    const { accuracyForMaxMultiplier: lo, accuracyForMinMultiplier: hi, multiplierMax: max, multiplierMin: min } = CONFIG.evenOdd;
     if (!this.history.length) {
-      this.bonus = bonusMax;
-      return;
+      this.multiplier = max;
+    } else {
+      const accuracy = this.history.filter((h) => h.correct).length / this.history.length;
+      const clamped = Math.min(Math.max(accuracy, lo), hi);
+      const t = (clamped - lo) / (hi - lo); // 0 at lo (best for you) -> 1 at hi (worst for you)
+      this.multiplier = max - t * (max - min);
     }
-    const accuracy = this.history.filter((h) => h.correct).length / this.history.length;
-    const clamped = Math.min(Math.max(accuracy, lo), hi);
-    this.bonus = Math.round(bonusMax * (hi - clamped) / (hi - lo));
+    this.multiplierLog.push(this.multiplier);
+    if (this.multiplierLog.length > CONFIG.evenOdd.plotLen) this.multiplierLog.shift();
   }
 
   emit_(timedOut = false) {
@@ -144,11 +154,13 @@ export class EvenOddGame {
       : null;
     this.onUpdate({
       guess: this.guess,
-      bonus: this.bonus,
-      bonusMax: CONFIG.evenOdd.bonusMax,
+      multiplier: this.multiplier,
+      multiplierMax: CONFIG.evenOdd.multiplierMax,
+      multiplierMin: CONFIG.evenOdd.multiplierMin,
+      multiplierLog: this.multiplierLog.slice(),
+      history: this.history.slice(),
       accuracy,
       totalGuesses: this.history.length,
-      last: this.last,
       timedOut,
     });
   }

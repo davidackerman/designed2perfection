@@ -39,20 +39,31 @@
     <section class="panel panel-bonus">
       <div class="panel-heading">
         <div class="panel-heading-tag">BEAT THE COMPUTER</div>
-        Bonus <span id="bonusHeading" class="panel-heading-value">0/10</span>
+        Multiplier <span id="bonusHeading" class="panel-heading-value">&times;2.00</span>
       </div>
       <div class="eo-board">
         <p class="eo-instructions">
           Enter any digit, 0-9, before the bar runs out. The computer has
-          already locked in a guess of whether your next digit will be
-          EVEN or ODD -- the less predictable you are, the worse it does.
+          already locked in a guess of whether it'll be EVEN or ODD --
+          hidden until you enter it, so guessing the opposite of what's
+          shown isn't a strategy. The less predictable you are, the worse
+          it does. Score multiplier: &times;2 while it's stuck at a coin
+          flip, down to &times;1 once it's reading you 75%+ of the time.
         </p>
         <div class="eo-guess">
-          <span class="eo-guess-label">Computer guesses</span>
-          <span class="eo-guess-value" id="eoGuess">EVEN</span>
+          <span class="eo-guess-label">Computer's guess</span>
+          <span class="eo-guess-value" id="eoGuess">?</span>
         </div>
         <div class="eo-timerbar"><div class="eo-timerbar-fill" id="eoBar"></div></div>
-        <p class="eo-result" id="eoResult"></p>
+        <p class="eo-status" id="eoStatus"></p>
+        <div class="eo-history-wrap">
+          <span class="eo-guess-label">Computer guess (top) vs. what you entered (bottom)</span>
+          <div class="eo-history" id="eoHistory"></div>
+        </div>
+        <div class="eo-plot-wrap">
+          <span class="eo-guess-label">Multiplier over time</span>
+          <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
+        </div>
         <p class="eo-accuracy">Computer accuracy: <span id="eoAccuracy">—</span> over <span id="eoCount">0</span> guess(es)</p>
       </div>
     </section>
@@ -69,8 +80,8 @@
           Best <span id="bestHeading" class="panel-heading-value">0</span>
         </div>
         <div class="panel-heading-total">
-          Bonus <span id="totalBonus" class="panel-heading-value">0</span> +
-          Score <span id="totalScore" class="panel-heading-value">0</span> =
+          Score <span id="totalScore" class="panel-heading-value">0</span> &times;
+          <span id="totalBonus" class="panel-heading-value">&times;2.00</span> =
           Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
         </div>
       </div>
@@ -111,7 +122,13 @@
   <!-- Overlays -->
   <div id="titleOverlay" class="overlay">
     <div class="card">
-      <h1 id="titleHeading">1nc0nVeni3nt2</h1>
+      <!-- No trailing "2" here on purpose -- this test build's own name would
+           otherwise read as one more digit of the number-pad code (see
+           TITLE_CODE in main2.js), which is exactly the confusion the real
+           title screen's separate password field was built to avoid in the
+           first place. The title text is identical to the real page; only
+           the <title> tag and the hint line below say this is the test build. -->
+      <h1 id="titleHeading">1nc0nVeni3nt</h1>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>
         <span class="password-dot"></span>

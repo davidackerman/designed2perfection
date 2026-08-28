@@ -24,42 +24,127 @@ const evenOddGame = new EvenOddGame({ audio, onUpdate: renderEvenOdd });
 
 // Direct DOM refs for the even/odd panel -- kept local to this file rather
 // than added to the shared UI class, since this whole panel only exists on
-// this test page.
+// this test page. The Score/Multiplier/Total line reuses index.html's
+// totalScore/totalBonus/total ids (see UI.el), but this page writes them
+// directly instead of going through ui.setHud's additive bonus math -- that
+// math assumes a flat bonus added to score, not a multiplier applied to it.
 const eo = {
   guess: document.querySelector('#eoGuess'),
   bar: document.querySelector('#eoBar'),
-  result: document.querySelector('#eoResult'),
+  status: document.querySelector('#eoStatus'),
+  history: document.querySelector('#eoHistory'),
+  plot: document.querySelector('#eoPlot'),
   accuracy: document.querySelector('#eoAccuracy'),
   count: document.querySelector('#eoCount'),
+  multiplierHeading: document.querySelector('#bonusHeading'),
+  totalScore: document.querySelector('#totalScore'),
+  totalMultiplier: document.querySelector('#totalBonus'),
+  total: document.querySelector('#total'),
 };
 
+let currentMultiplier = CONFIG.evenOdd.multiplierMax;
+let guessRevealTimer = null;
+const GUESS_REVEAL_MS = 1300; // how long a resolved guess stays shown before going back to "?"
+
+function formatMultiplier(m) {
+  return `×${m.toFixed(2)}`;
+}
+
+// The computer's guess for the digit you're about to enter is never shown
+// ahead of time -- see evenOddGame.guess, which is only ever read directly
+// by the 911 operator cheat below, never rendered here. Otherwise pressing
+// the opposite of whatever's on screen would be a trivial, unbeatable
+// strategy, defeating the entire point of the minigame. Instead #eoGuess
+// sits on a plain "?" until a digit resolves it, then briefly reveals what
+// the computer guessed against what you actually entered before resetting
+// to "?" for the next one -- the history log below keeps every past reveal
+// around after that.
 function renderEvenOdd(state) {
-  ui.setHud({ bonus: state.bonus, bonusMax: state.bonusMax });
-  eo.guess.textContent = state.guess.toUpperCase();
+  currentMultiplier = state.multiplier;
   eo.accuracy.textContent = state.accuracy === null ? '—' : `${Math.round(state.accuracy * 100)}%`;
   eo.count.textContent = state.totalGuesses;
-  if (state.timedOut) {
-    eo.result.textContent = 'Too slow — bonus reset to 0.';
-    eo.result.className = 'eo-result eo-timeout';
-  } else if (state.last) {
-    const { actual, guess, correct } = state.last;
-    eo.result.textContent = correct
-      ? `Computer guessed ${guess.toUpperCase()} — right. You entered ${actual}.`
-      : `Computer guessed ${guess.toUpperCase()} — wrong. You entered ${actual}.`;
-    eo.result.className = correct ? 'eo-result eo-computer-right' : 'eo-result eo-computer-wrong';
+  eo.multiplierHeading.textContent = formatMultiplier(state.multiplier);
+  renderHistory(state.history);
+  renderMultiplierPlot(state.multiplierLog, state.multiplierMin, state.multiplierMax);
+
+  const resolved = !state.timedOut && state.history[state.history.length - 1];
+  clearTimeout(guessRevealTimer);
+  if (resolved) {
+    eo.guess.textContent = `${resolved.guess.toUpperCase()} — you: ${resolved.actual.toUpperCase()}`;
+    eo.guess.className = resolved.correct ? 'eo-guess-value eo-computer-right' : 'eo-guess-value eo-computer-wrong';
+    guessRevealTimer = setTimeout(() => {
+      eo.guess.textContent = '?';
+      eo.guess.className = 'eo-guess-value';
+    }, GUESS_REVEAL_MS);
   } else {
-    eo.result.textContent = '';
-    eo.result.className = 'eo-result';
+    eo.guess.textContent = '?';
+    eo.guess.className = 'eo-guess-value';
+  }
+
+  if (state.timedOut) {
+    eo.status.textContent = `Too slow — multiplier reset to ${formatMultiplier(CONFIG.evenOdd.multiplierMax)}.`;
+    eo.status.className = 'eo-status eo-timeout';
+  } else {
+    eo.status.textContent = '';
+    eo.status.className = 'eo-status';
   }
 }
 
-// Redraws the countdown bar every frame while a guess is pending, rather
-// than having evenOddGame push a render on a timer of its own.
+/** Every resolved guess, oldest to newest (left to right, matching the plot
+ *  below) -- computer's guess on top, what you actually entered underneath,
+ *  colored by whether the computer got it right (bad for you) or wrong
+ *  (good for you). Rebuilt from scratch each call, same "no diffing"
+ *  convention as UI.renderBonusBoard -- at most historyLen (20) entries. */
+function renderHistory(history) {
+  const letter = (parity) => (parity === 'even' ? 'E' : 'O');
+  eo.history.innerHTML = history
+    .map((h) => {
+      const cls = h.correct ? 'eo-hist-right' : 'eo-hist-wrong';
+      return (
+        `<div class="eo-hist-item ${cls}" title="Computer guessed ${h.guess}, you entered ${h.actual}">` +
+        `<span class="eo-hist-comp">${letter(h.guess)}</span>` +
+        `<span class="eo-hist-you">${letter(h.actual)}</span>` +
+        '</div>'
+      );
+    })
+    .join('');
+}
+
+/** A running line plot of the multiplier over the run so far, oldest to
+ *  newest -- see EvenOddGame.multiplierLog. Y axis is fixed to
+ *  [multiplierMin, multiplierMax] (1x-2x), not autoscaled, so the line's
+ *  height is directly comparable across the whole run. */
+function renderMultiplierPlot(log, min, max) {
+  if (log.length < 2) {
+    eo.plot.innerHTML = '';
+    return;
+  }
+  const w = 200;
+  const h = 50;
+  const points = log
+    .map((v, i) => {
+      const x = (i / (log.length - 1)) * w;
+      const norm = (v - min) / (max - min);
+      const y = h - norm * h;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  eo.plot.innerHTML = `<polyline class="eo-plot-line" points="${points}" />`;
+}
+
+// Redraws the countdown bar and the Score x Multiplier = Total line every
+// frame, rather than having evenOddGame (which has no idea what Simon's
+// score is) or SimonGame (which has no idea about the multiplier) push a
+// render whenever the other one's value changes.
 function tickEvenOddBar() {
   if (evenOddGame.active) {
     const frac = evenOddGame.msRemaining() / CONFIG.evenOdd.entryWindowMs;
     eo.bar.style.width = `${Math.max(0, Math.min(1, frac)) * 100}%`;
   }
+  const score = Number(ui.el.scoreHeading.textContent) || 0;
+  eo.totalScore.textContent = score;
+  eo.totalMultiplier.textContent = formatMultiplier(currentMultiplier);
+  eo.total.textContent = (score * currentMultiplier).toFixed(1);
   requestAnimationFrame(tickEvenOddBar);
 }
 requestAnimationFrame(tickEvenOddBar);
@@ -177,7 +262,15 @@ function applyModeUI() {
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
-  ui.setHud({ bonus: 0, bonusMax: CONFIG.evenOdd.bonusMax });
+  currentMultiplier = CONFIG.evenOdd.multiplierMax;
+  eo.multiplierHeading.textContent = formatMultiplier(currentMultiplier);
+  eo.history.innerHTML = '';
+  eo.plot.innerHTML = '';
+  eo.accuracy.textContent = '—';
+  eo.count.textContent = '0';
+  clearTimeout(guessRevealTimer);
+  eo.guess.textContent = '?';
+  eo.guess.className = 'eo-guess-value';
 }
 
 function toggleClassic() {

@@ -39,12 +39,19 @@ screen's hint line) is a test endpoint for trying out a different bonus
 minigame in place of the memory-match board: beat the computer's even/odd
 guesser. Every few seconds you enter a digit on the number pad; the computer
 has already locked in a guess of whether it'll be even or odd, based on a
-simple pattern model over what you've entered so far, so staying
-unpredictable is the actual game. Bonus is 10 at a coin-flip-or-better 50%
-computer accuracy, down to 0 at 80%+, and missing the entry window resets
-it to 0. Everything else (Simon, classic mode, the title password, high
-scores) is identical to the real page — see [`src/evenodd.js`](src/evenodd.js)
-and [`src/main2.js`](src/main2.js).
+simple pattern model over what you've entered so far. That guess stays
+hidden until you enter the digit — showing it up front would make "press
+the opposite" an unbeatable strategy — then it reveals both together and
+logs them side by side, so you can see every guess-vs-actual pair from the
+run, plus a running plot of the score multiplier underneath. That
+multiplier is ×2 at a coin-flip-or-better 50% computer accuracy, down to ×1
+once the computer's reading you 75%+ of the time (applied to your Simon
+score, not added to it), and missing the entry window resets it back to
+×2. Everything else (Simon, classic mode, the title password, high scores)
+is identical to the real page — including the title screen itself: the
+heading reads the same `1nc0nVeni3nt`, deliberately without a trailing "2",
+so it doesn't read as one more digit of the number-pad code. See
+[`src/evenodd.js`](src/evenodd.js) and [`src/main2.js`](src/main2.js).
 
 ## The five commands (Classic mode)
 
