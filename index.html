@@ -43,6 +43,7 @@
          soap/swipe drive Simon on the right half. Rebuilt from scratch on
          every render -- see UI.renderBonusBoard. -->
     <section class="panel panel-bonus">
+      <div class="panel-heading">Bonus</div>
       <div id="bonusBoard" class="bonus-board"></div>
     </section>
 
@@ -52,6 +53,7 @@
          Source order is reading order, but placement is set explicitly in
          CSS, so the two can't drift apart. -->
     <section class="panel panel-simon">
+      <div class="panel-heading">Score</div>
       <div class="simon-grid">
         <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
         <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />
@@ -185,8 +187,9 @@
       <p class="tagline">The title screen's number-pad code.</p>
       <p class="bigscore" id="answerKeyCode"></p>
       <p class="tagline">
-        Bonus board: round 1 dials as the digit above each card. Round 2+
-        cards don't show their own address -- dial the phone key its row's
+        Bonus board: round 1's four cards dial as 0/1/2/3, top-left to
+        bottom-right, reading order -- not shown on screen. Round 2+ cards
+        don't show their own address either -- dial the phone key its row's
         letter/digit is on (left), then its column's (top).
       </p>
       <div class="row">

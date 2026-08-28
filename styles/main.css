@@ -164,6 +164,25 @@ html, body {
 #stage:not(.simon-mode) .panel-simon,
 #stage:not(.simon-mode) .panel-bonus { display: none; }
 
+/* Which half is which: bonus points come from the cards on the left, the
+   Score/Round/Best up in the HUD come from Simon on the right -- Total is
+   the two of them added together. Purely a label; doesn't affect layout. */
+#stage.simon-mode .panel-bonus,
+#stage.simon-mode .panel-simon {
+  position: relative;
+}
+.panel-heading {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
 /* Room for a lit pad's ring and glow to spill past the block's edge: all four
    pads sit flush against it, and anything clipping here slices the ring (and
    the photo under it) off. */
@@ -268,34 +287,11 @@ html, body {
   letter-spacing: 0.06em;
 }
 
-/* Round 1: no shared row/column headers, just a flat "0123" -- one caption
-   per card, sitting above it, plain and sequential. */
+/* Round 1: no headers, no captions -- just the 2x2 of cards. You dial 0-3
+   and work out which is which by watching what flips. */
 .bonus-board.bonus-board-flat {
   grid-template-columns: repeat(var(--bonus-size), 1fr);
   grid-template-rows: repeat(var(--bonus-size), 1fr);
-}
-
-.bonus-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 0;
-  min-width: 0;
-}
-
-.bonus-cell .bonus-caption {
-  font-family: var(--mono);
-  font-size: clamp(11px, 3.5cqw, 17px);
-  color: var(--dim);
-  letter-spacing: 0.06em;
-}
-
-.bonus-cell .bonus-card {
-  flex: 1;
-  min-height: 0;
-  height: auto;
 }
 
 .bonus-card {

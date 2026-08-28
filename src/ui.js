@@ -423,10 +423,12 @@ export class UI {
    *  no printed hint on it. `peeking` (the 911 cheat) shows every unmatched
    *  card's face without touching its real revealed/matched state.
    *
-   *  'shapes' rounds get one flat caption per card, sitting above it, in the
-   *  same 2x2 layout. 'alnum' rounds instead get shared row/column headers
-   *  around the grid -- see BonusGame.handleKey/pickHeaderSet. */
-  renderBonusBoard({ size, kind, cards, headers, rowHeaders, colHeaders, peeking }) {
+   *  'shapes' rounds are just the 2x2 of cards, nothing else -- no captions,
+   *  no headers, you dial 0-3 and work out which is which by watching what
+   *  flips. 'alnum' rounds get shared row/column headers around the grid,
+   *  since a blind 4x4 would be unreasonable -- see BonusGame.handleKey/
+   *  pickHeaderSet. */
+  renderBonusBoard({ size, kind, cards, rowHeaders, colHeaders, peeking }) {
     const el = this.el.bonusBoard;
     el.style.setProperty('--bonus-size', size);
     el.classList.toggle('bonus-board-flat', kind === 'shapes');
@@ -445,9 +447,7 @@ export class UI {
     };
     let html;
     if (kind === 'shapes') {
-      html = cards
-        .map((card, i) => `<div class="bonus-cell"><span class="bonus-caption">${headers[i]}</span>${cardHtml(card)}</div>`)
-        .join('');
+      html = cards.map(cardHtml).join('');
     } else {
       const header = (h) => `<div class="bonus-header">${h.char}</div>`;
       html = '<div class="bonus-corner"></div>' + colHeaders.map(header).join('');
