@@ -226,12 +226,18 @@ musicVolumeInput.value = audio.musicVolume;
 musicVolumeInput.addEventListener('input', (e) => {
   audio.setMusicVolume(parseFloat(e.target.value));
 });
-// Debug cheat: while debug mode is on and a round is live, D always resolves
-// as correct and every other key as wrong -- drive the win/lose paths without
-// hunting for the real binding. Capture phase + stopImmediatePropagation so
-// this fully replaces normal input handling for the event instead of also
-// letting Input's own listener process it. Works in both modes.
+// Debug cheat: while debug mode is on and a round is live, Space resolves as
+// whatever this round actually wants -- drive a run forward without hunting
+// for the real binding. Space and only Space; every other key falls through
+// to normal input, so the keys the debug bar tells you to press keep working,
+// and a genuinely wrong one still ends the run the ordinary way.
+//
+// Space is free during a round (outside one it starts a game, below), and
+// isn't bound to any pad. Capture phase + stopImmediatePropagation keeps that
+// start-game handler -- and the page's own scroll -- out of it. Both modes.
+const CHEAT_KEY = 'Space';
 window.addEventListener('keydown', (e) => {
+  if (e.code !== CHEAT_KEY) return;
   if (!debug || activeGame().state !== STATE.PLAYING) return;
   if (isTyping(e) || e.repeat) return;
 
@@ -239,11 +245,7 @@ window.addEventListener('keydown', (e) => {
     if (!reflexGame.challenge) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    if (e.code === 'KeyD') {
-      reflexGame.handleInput({ actionId: reflexGame.challenge.action.id, variantId: reflexGame.challenge.variantId });
-    } else {
-      reflexGame.fail('wrong');
-    }
+    reflexGame.handleInput({ actionId: reflexGame.challenge.action.id, variantId: reflexGame.challenge.variantId });
     return;
   }
 
@@ -252,11 +254,7 @@ window.addEventListener('keydown', (e) => {
   if (!simonGame.lastDebugStep) return;
   e.preventDefault();
   e.stopImmediatePropagation();
-  if (e.code === 'KeyD') {
-    simonGame.handleInput({ actionId: simonGame.lastDebugStep.actionId });
-  } else {
-    simonGame.fail('wrong');
-  }
+  simonGame.handleInput({ actionId: simonGame.lastDebugStep.actionId });
 }, true);
 
 // Global keys. Action keys are consumed by Input before we get here, so these

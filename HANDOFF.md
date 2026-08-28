@@ -78,9 +78,18 @@ the title screen carries zero instructions. To get in:
 Once on, the debug bar at the bottom shows every control's bound key, and a
 badge on the stage shows what's expected right now — in Simon that's the
 next pad in the sequence plus your progress (`S pull 1/1`); in Classic it's
-the current challenge. The `D`-always-right cheat (any other key = instant
-wrong) works in **both** modes now — press `D` to drive straight to a win/
-loss without hunting for the real binding.
+the current challenge. `Space` is a cheat in **both** modes: it resolves as
+whatever the round actually wants, so you can drive a run forward without
+hunting for the real binding.
+
+`Space` and only `Space`. Every other key falls through to normal input, so
+the keys the debug bar just told you to press keep working, and a genuinely
+wrong one ends the run the ordinary way — debug mode is fully playable. This
+used to be `D`, which was a bad pick twice over: it's soap's real binding, and
+back then *every* non-`D` key was forced to count as wrong, so the real
+bindings lost you the run instantly. `Space` collides with nothing (outside a
+round it starts a game; `CHEAT_KEY` is at the top of the handler in
+`main.js`).
 
 ## Known incomplete piece: the bonus meter
 
@@ -158,11 +167,6 @@ Same as [README.md](README.md) says — no build step:
 python3 -m http.server 8000
 # then open http://localhost:8000/?debug=1 to skip hunting for how to enable debug
 ```
-
-Careful with `?debug=1` if you actually want to *play*: the debug cheat in
-`main.js` swallows every keydown while a round is live, so `D` wins and every
-other key — including the real pad bindings — loses instantly. It's for driving
-the win/lose paths, not for playing with a hint on.
 
 There's no test suite. This session's verification was all manual/scripted
 browser checks (Playwright driving a headless Chromium) — screenshotting
