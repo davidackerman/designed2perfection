@@ -550,6 +550,19 @@ h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 
 .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
+/* Outside debug mode, the title screen gives no indication of how to
+   proceed at all -- no buttons, no key hints, no classic-mode legend. The
+   number-pad code is meant to be worked out, not read off a button. Body
+   gets .debug-mode alongside ui.setDebug(), toggled from main.js. */
+#titleOverlay .row,
+#titleOverlay > .card > .hint,
+#titleOverlay .legend {
+  display: none;
+}
+body.debug-mode #titleOverlay .row { display: flex; }
+body.debug-mode #titleOverlay > .card > .hint { display: block; }
+body.debug-mode #titleOverlay .legend { display: block; }
+
 button {
   font-family: var(--mono);
   font-size: 12px;

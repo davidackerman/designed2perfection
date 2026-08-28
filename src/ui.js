@@ -173,6 +173,8 @@ export class UI {
   setDebug(on, slots) {
     this.debug = on;
     this.el.debugBar.classList.toggle('hidden', !on);
+    // Also gates the title screen's buttons/hints -- see main.css.
+    document.body.classList.toggle('debug-mode', on);
     if (on) this.renderDebugKeys(slots);
   }
 
