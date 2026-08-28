@@ -24,6 +24,7 @@ about 800 ms.
 | `nothing.mp3` | Soap dispenser did nothing (a wave that didn't take) |
 | `denied.mp3` | Badge read at the wrong orientation |
 | `lose.mp3` | A run ends: wrong button or ran out of time |
+| `wrong.mp3` | A control pressed at the title screen instead of dialing the number-pad code |
 | `gameover.mp3` | Plays alongside `lose` at the end of a run |
 | `start.mp3` | A run begins |
 | `song.mp3` | Loops in the background for the whole run, quieter than the SFX above. Stops on game over or quitting to menu. |

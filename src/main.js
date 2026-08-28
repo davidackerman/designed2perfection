@@ -130,7 +130,7 @@ function toTitle() {
 // instead of being silently ignored.
 function handleAction(evt) {
   if (screen === 'title') {
-    audio.play('denied');
+    audio.play('wrong');
     ui.flashTitleWrong(); // same shake+red cue as a wrong digit, but progress is untouched
     return;
   }

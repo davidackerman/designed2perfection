@@ -24,6 +24,7 @@ export const MANIFEST = {
   nothing: 'assets/audio/nothing.mp3',   // the soap dispenser doing nothing
   denied: 'assets/audio/denied.mp3',     // card read at the wrong orientation
   lose: 'assets/audio/lose.mp3',         // any way a run can end: wrong button or ran out of time
+  wrong: 'assets/audio/wrong.mp3',       // a control pressed at the title instead of dialing the code
   gameover: 'assets/audio/gameover.mp3',
   start: 'assets/audio/start.mp3',
   song: 'assets/audio/song.mp3', // looping background music for a run

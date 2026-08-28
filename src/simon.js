@@ -44,10 +44,15 @@ export class SimonGame {
     this.lastDebugStep = null; // for main.js to catch the debug hint up when toggled mid-round
   }
 
-  /** A different team steps up: the bonus meter is per-team. Everyday
-   *  retries ("go again") don't touch it. */
+  /** A different team steps up: the bonus meter is per-team, and so is the
+   *  round you'd otherwise pick back up at -- a fresh team starts at round 1,
+   *  not wherever the last team left off. Everyday retries ("go again", or
+   *  walking back to the title and starting over without this) keep both. */
   newTeam() {
     this.bonus = 0;
+    this.sequence = [];
+    this.round = 0;
+    this.score = 0;
   }
 
   get mode() {
@@ -63,15 +68,21 @@ export class SimonGame {
     this.stopTimers();
     this.state = STATE.PLAYING;
     this.paused = false;
-    this.sequence = [];
-    this.round = 0;
-    this.score = 0;
+    // A run already in progress (failed and not yet cleared by newTeam())
+    // picks back up at the round it ended on, replaying the same sequence,
+    // rather than starting over at round 1.
+    const resuming = this.sequence.length > 0;
+    if (!resuming) {
+      this.sequence = [];
+      this.round = 0;
+      this.score = 0;
+    }
     this.ui.hideOverlays();
     this.ui.setSimonMode(true);
     this.ui.clearSimonStep();
     this.ui.setHud({
-      score: 0,
-      round: 0,
+      score: this.score,
+      round: this.round,
       best: this.scores.best(this.mode),
       bonus: this.bonus,
       bonusMax: this.bonusMax,
@@ -79,7 +90,13 @@ export class SimonGame {
     this.audio.play('start');
     // No background music once a round is live -- title screen only.
     this.audio.stopMusic();
-    this.nextRound();
+    if (resuming) {
+      this.inputIndex = 0;
+      this.pressed = [];
+      this.playSequence();
+    } else {
+      this.nextRound();
+    }
   }
 
   nextRound() {
