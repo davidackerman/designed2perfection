@@ -40,7 +40,7 @@ export class AudioManager {
     this.buffers = new Map();
     this.ctx = null;
     this.muted = localStorage.getItem(CONFIG.storage.muted) === '1';
-    this.musicVolume = clamp01(parseFloat(localStorage.getItem(CONFIG.storage.musicVolume)) || 0.5);
+    this.musicVolume = clamp01(parseFloat(localStorage.getItem(CONFIG.storage.musicVolume)) || 1);
     this.loaded = false;
     this.preloadPromise = null;
     this.music = null;

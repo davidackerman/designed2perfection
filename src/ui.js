@@ -78,6 +78,9 @@ export class UI {
     // code, in reading order -- see index.html. Index lines up with the code
     // string in main.js.
     this.titleCodeDigits = Array.from(document.querySelectorAll('#titleHeading .code-digit'));
+    // The rest of the title ("nc", "n", "eni", "nt"), grouped between the
+    // code digits -- greened out too once the whole code is right.
+    this.titleFillerEls = Array.from(document.querySelectorAll('#titleHeading .code-filler'));
     this.simonPads = {
       push: $('#simonPadPush'),
       pull: $('#simonPadPull'),
@@ -371,6 +374,26 @@ export class UI {
 
   resetTitleDigits() {
     for (const el of this.titleCodeDigits) el.classList.remove('code-good', 'code-bad');
+    for (const el of this.titleFillerEls) el.classList.remove('code-good');
+  }
+
+  /** The whole code is right: green the rest of the title too, so the entire
+   *  word reads as done rather than just the four marked digits. */
+  markTitleAllGood() {
+    for (const el of this.titleFillerEls) el.classList.add('code-good');
+  }
+
+  /** A pair of doors sweeping open over whatever's about to appear
+   *  underneath -- call this right as the real transition (start()) happens,
+   *  so what's revealed as they part is the game already set up behind them.
+   *  Purely a temporary full-screen element; doesn't touch overlay state. */
+  playDoorOpen() {
+    const wrap = document.createElement('div');
+    wrap.className = 'door-open';
+    wrap.innerHTML = '<div class="door-panel door-panel-left"></div><div class="door-panel door-panel-right"></div>';
+    document.body.appendChild(wrap);
+    requestAnimationFrame(() => wrap.classList.add('opening'));
+    setTimeout(() => wrap.remove(), 700);
   }
 
   /** The 911 easter egg: reveal the code for whoever's running the cabinet. */

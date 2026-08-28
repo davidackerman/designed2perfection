@@ -42,6 +42,7 @@ export class SimonGame {
     this.bonus = 0;
     this.bonusMax = CONFIG.simon.bonusMax;
     this.lastDebugStep = null; // for main.js to catch the debug hint up when toggled mid-round
+    this.holdFirstStep = false; // set by start(): double the very next step's duration
   }
 
   /** A different team steps up: the bonus meter is per-team, and so is the
@@ -64,7 +65,7 @@ export class SimonGame {
     return Math.max(s.minStepMs, s.startStepMs * Math.pow(s.decay, Math.max(0, round - 1)));
   }
 
-  start() {
+  start({ fromPasswordSuccess = false } = {}) {
     this.stopTimers();
     this.state = STATE.PLAYING;
     this.paused = false;
@@ -77,6 +78,10 @@ export class SimonGame {
       this.round = 0;
       this.score = 0;
     }
+    // Whatever round this is, its first step is the first thing you see
+    // right after dialing the code -- hold it twice as long (tone and
+    // highlight both) so the transition obviously landed somewhere.
+    this.holdFirstStep = fromPasswordSuccess;
     this.ui.hideOverlays();
     this.ui.setSimonMode(true);
     this.ui.clearSimonStep();
@@ -121,11 +126,12 @@ export class SimonGame {
         return;
       }
       const actionId = this.sequence[i];
-      // Round 1's one step is most players' first look at the flash+tone
-      // mechanic, right after the jarring title-code transition -- hold it
-      // twice as long so it can't be missed the way a normal-speed single
-      // flash could be.
-      const thisStepMs = this.round === 1 ? stepMs * 2 : stepMs;
+      // The first step right after dialing the code in is the most jarring
+      // transition players see -- hold it twice as long (tone + highlight
+      // both) so it can't be missed the way a normal-speed flash could be.
+      // Only that one step: clear the flag the instant it's used.
+      const thisStepMs = (i === 0 && this.holdFirstStep) ? stepMs * 2 : stepMs;
+      if (i === 0) this.holdFirstStep = false;
       i += 1;
       this.lightPad(actionId, thisStepMs);
       this.playbackTimer = setTimeout(() => {

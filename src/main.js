@@ -57,11 +57,14 @@ function handleDigit(digit) {
     titleCodeProgress++;
     if (titleCodeProgress === TITLE_CODE.length) {
       titleCodeProgress = 0;
-      // Hold on the all-green moment for a beat before the success tone and
-      // the game itself begin, rather than firing both immediately.
+      ui.markTitleAllGood(); // the rest of the word goes green too, not just the four digits
+      // Hold on the all-green moment for a beat -- time to orient yourself --
+      // before the success tone and the game itself begin, rather than
+      // firing both immediately.
       setTimeout(() => {
         audio.play('success');
-        startGame();
+        ui.playDoorOpen();
+        startGame({ fromPasswordSuccess: true });
       }, 1000);
     }
   } else {
@@ -144,10 +147,10 @@ function handleAction(evt) {
   activeGame().handleInput(evt);
 }
 
-function startGame() {
+function startGame(opts) {
   audio.unlock();
   screen = 'playing';
-  activeGame().start();
+  activeGame().start(opts);
 }
 
 function newTeam() {
