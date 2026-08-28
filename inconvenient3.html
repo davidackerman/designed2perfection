@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>LUDDITE PROTOCOL (test)</title>
+<title>1nc0nVeni3nt (test)</title>
 <meta name="description" content="Test endpoint: same Simon game on the right, but the left half is now a ZType-style shooter -- AI logos fall toward a cursor ship and you shoot them down on the number pad, one letter at a time." />
 <link rel="stylesheet" href="styles/main.css?v=__BUILD__" />
 <link rel="icon" href="assets/img/favicon.svg" />
@@ -52,10 +52,11 @@
     <section class="panel panel-typing">
       <div class="panel-heading">
         <div class="panel-heading-tag" id="game1Tag">GAME 1: AI INVASION</div>
+        <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it.</div>
         Destroyed <span id="typingHeading" class="panel-heading-value">0</span>
       </div>
       <div id="typingField" class="typing-field">
-        <div id="typingCursor" class="typing-cursor"></div>
+        <img id="typingCursor" class="typing-cursor" src="assets/img/ai/cursor.png" alt="" />
       </div>
     </section>
 
@@ -123,8 +124,12 @@
   <!-- Overlays -->
   <div id="titleOverlay" class="overlay">
     <div class="card">
-      <h1 id="titleHeading">LUDDITE PROTOCOL</h1>
-      <p class="subtitle">AI is coming for your jobs. Use old-school technology to defeat it.</p>
+      <!-- No trailing "3" here on purpose -- same reasoning as
+           inconvenient2.html: this test build's own name would otherwise
+           read as one more digit of the number-pad code (see TITLE_CODE in
+           main3.js). The title text is identical to the real page; only the
+           <title> tag and the hint line below say this is the test build. -->
+      <h1 id="titleHeading">1nc0nVeni3nt</h1>
       <div class="password-label">Passcode:</div>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>
@@ -147,7 +152,7 @@
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>M</b> mute · <b>Esc</b> quit a run · test build: ZType-style AI shooter, laid out as two side-by-side games — <a href="index.html">back to the real thing</a>
+        <b>M</b> mute · <b>Esc</b> quit a run · test build: AI invasion, laid out as two side-by-side games — <a href="index.html">back to the real thing</a>
       </p>
       <p class="hint hidden" id="classicHint">
         <b>H</b> hard mode<br />

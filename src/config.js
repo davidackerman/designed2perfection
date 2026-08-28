@@ -140,10 +140,11 @@ export const CONFIG = {
       'YAK', 'ELK', 'JAY', 'KOI', 'EEL', 'HEN', 'SOW', 'DOE', 'EWE', 'BOT',
       'APE', 'COD', 'ORC', 'ODD', 'EGO', 'ICE', 'JOB',
     ],
+    // The enemies -- cursor.png is the player's own ship (see #typingCursor
+    // in inconvenient3.html/CSS's .typing-cursor), not one of these.
     icons: [
       'assets/img/ai/chatgpt.png',
       'assets/img/ai/claude.png',
-      'assets/img/ai/cursor.png',
       'assets/img/ai/gemini.png',
       'assets/img/ai/grok.png',
     ],
