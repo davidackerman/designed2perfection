@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>1nc0nVeni3nt</title>
-<meta name="description" content="A memory game about the everyday obstacles of Janelia Research Campus: doors, soap dispensers, and badge readers. Watch the sequence, repeat it back." />
+<title>LUDDITE PROTOCOL (test)</title>
+<meta name="description" content="Test endpoint: same Simon game on the right, but the left half is now a ZType-style shooter -- AI logos fall toward a cursor ship and you shoot them down on the number pad, one letter at a time." />
 <link rel="stylesheet" href="styles/main.css?v=__BUILD__" />
 <link rel="icon" href="assets/img/favicon.svg" />
 </head>
@@ -14,21 +14,31 @@
   <!-- The placard is deliberately small and at the very top: you have to look up. -->
   <div id="placard" class="hidden">PUSH</div>
 
-  <!-- Simon mode moves Score/Round/Best/Total onto the Simon panel's own
-       heading (see .panel-heading-simon below) -- everything Simon-related
-       lives with Simon. These stay for classic mode, which has no such
-       heading of its own. -->
   <header id="hud">
     <div class="stat" id="scoreStat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
     <div class="stat" id="roundStat"><span class="stat-label">Round</span><span id="round">0</span></div>
     <div class="stat" id="bestStat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <!-- Simon-mode only, this page only: the two games' totals spelled out
+         across the top instead of tucked into one panel's corner -- see
+         main3.js's refreshTotal. Game 1 here is best + current, not just
+         current -- see handleShipEscaped. -->
+    <div class="total-stat hidden" id="totalStat">
+      Game 1 <span id="totalGame1" class="panel-heading-value">0</span> +
+      Game 2 <span id="totalGame2" class="panel-heading-value">0</span> =
+      Total <span id="totalValue" class="panel-heading-value panel-heading-total-value">0</span>
+    </div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
       <button id="muteBadge" class="badge" type="button">SOUND</button>
     </div>
   </header>
 
-  <main id="stage" class="blank idle">
+  <!-- test-build: page-scoped tweaks for the extra "GAME 1"/"GAME 2" tag
+       line each heading carries here, on top of the real page's usual
+       stats line -- see the #stage.simon-mode.test-build rules in
+       main.css. Otherwise this is the same side-by-side layout as
+       inconvenient2.html: two equal halves, shooter left, Simon right. -->
+  <main id="stage" class="blank idle test-build">
     <section class="panel panel-image">
       <img id="stageImage" alt="" src="assets/img/door.svg" />
     </section>
@@ -36,36 +46,34 @@
       <video id="stageWord" playsinline></video>
     </section>
 
-    <!-- Simon mode, left half: a memory-match bonus board, live the whole
-         time a run is going, worked with the number pad while push/pull/
-         soap/swipe drive Simon on the right half. Rebuilt from scratch on
-         every render -- see UI.renderBonusBoard. -->
-    <section class="panel panel-bonus">
-      <div class="panel-heading">Bonus <span id="bonusHeading" class="panel-heading-value">0/10</span></div>
-      <div id="bonusBoard" class="bonus-board"></div>
+    <!-- Left half: a ZType-style shooter -- see typing.js. Ships fall
+         toward #typingCursor; dial the phone-keypad key for each letter of
+         the word printed on a ship, in order, to shoot it down. -->
+    <section class="panel panel-typing">
+      <div class="panel-heading">
+        <div class="panel-heading-tag" id="game1Tag">GAME 1: AI INVASION</div>
+        Destroyed <span id="typingHeading" class="panel-heading-value">0</span>
+      </div>
+      <div id="typingField" class="typing-field">
+        <div id="typingCursor" class="typing-cursor"></div>
+      </div>
     </section>
 
-    <!-- Simon mode: all four pads shown at once in a 2x2 block, full
-         brightness at rest. A pad brightens either when the game plays it
-         back, or when you press its control -- same visual either way.
-         Source order is reading order, but placement is set explicitly in
-         CSS, so the two can't drift apart. -->
+    <!-- Right half: Simon, same as inconvenient2.html -- just relabeled with
+         its own big tag line so it reads as "the other game" alongside the
+         shooter. -->
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
+        <div class="panel-heading-tag">GAME 2: REPEAT AFTER ME</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
-          Round <span id="roundHeading" class="panel-heading-value">0</span>
-          <span class="panel-heading-sep">·</span>
           Best <span id="bestHeading" class="panel-heading-value">0</span>
-        </div>
-        <!-- Total spelled out as the actual sum, not just the result --
-             Bonus comes from the cards on the left, Score from Simon here
-             on the right, so this is the one line that needs both. -->
-        <div class="panel-heading-total">
-          Bonus <span id="totalBonus" class="panel-heading-value">0</span> +
-          Score <span id="totalScore" class="panel-heading-value">0</span> =
-          Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
+          <!-- Round isn't shown here -- not meaningful enough to earn a
+               place in this heading -- but the span itself has to stay:
+               SimonGame/UI.setHud write to it every round regardless of
+               whether this page displays it. -->
+          <span id="roundHeading" class="hidden"></span>
         </div>
       </div>
       <div class="simon-grid">
@@ -75,24 +83,26 @@
         <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-br" src="assets/img/swipeit.jpeg" alt="" />
       </div>
 
-      <!-- A pad pressed during playback or the gap between rounds costs
-           nothing, but shows this instead of silently eating the press --
-           see SimonGame.handleInput/UI.showSimonWaitHint. -->
       <div id="simonWaitHint" class="simon-wait-hint hidden">WAIT</div>
 
-      <!-- A wrong pad only freezes the Simon side -- the bonus board on the
-           left keeps running the whole time (main.js keeps feeding it digits
-           even while this is up), so this covers just the Simon panel
-           instead of the whole stage. Any control/key press goes again;
-           see main.js's handleAction/handleDigit. -->
       <div id="simonOver" class="simon-over hidden">
         <p class="bigscore"><span id="simonOverScore">0</span></p>
         <p class="tagline">Best: <span id="simonOverBest">0</span></p>
       </div>
+
+      <!-- UI.setHud's shared additive-bonus branch writes to these on every
+           score change even though this page's own Total (up in #hud) is
+           computed differently -- see main3.js's refreshTotal. Kept as
+           hidden dummies purely so that write doesn't throw on null.
+           #bonusHeading in particular: SimonGame.start() always passes
+           bonus/bonusMax into setHud, even here where there's no bonus
+           board at all any more -- see typingHeading instead. -->
+      <span id="bonusHeading" class="hidden"></span>
+      <span id="totalScore" class="hidden"></span>
+      <span id="totalBonus" class="hidden"></span>
+      <span id="total" class="hidden"></span>
     </section>
 
-    <!-- Debug mode only: the key this round wants, on the stage where you're
-         already looking. -->
     <div id="keyHint" class="hidden">
       <b id="keyHintKey">A</b>
       <span id="keyHintSlot"></span>
@@ -101,8 +111,6 @@
 
   <div id="timer"><div id="timerFill"></div></div>
 
-  <!-- Debug mode: what each control listens for, what this round wants, and
-       what the keyboard/cabinet actually sent. -->
   <div id="debugBar" class="hidden">
     <div id="debugKeys" class="chips"></div>
     <div class="debug-readout">
@@ -115,17 +123,8 @@
   <!-- Overlays -->
   <div id="titleOverlay" class="overlay">
     <div class="card">
-      <!-- The four characters that spell out the number-pad code (1, 0, V=5,
-           3) are individually markable so each can turn green/red on its own
-           as it's entered, instead of the whole title flashing at once. The
-           rest of the word is grouped into "filler" spans so the two can grow
-           and shrink against each other -- see the --hint-progress rules in
-           main.css and UI.startTitleHint. -->
-      <h1 id="titleHeading">1nc0nVeni3nt</h1>
-      <!-- The number-pad code is validated one digit at a time, but it's no
-           longer the title text itself that shows progress -- a separate,
-           computery password field does, so the title stays plain no matter
-           what you dial. One dot per digit of TITLE_CODE in main.js. -->
+      <h1 id="titleHeading">LUDDITE PROTOCOL</h1>
+      <p class="subtitle">AI is coming for your jobs. Use old-school technology to defeat it.</p>
       <div class="password-label">Passcode:</div>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>
@@ -148,7 +147,7 @@
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>M</b> mute · <b>Esc</b> quit a run · <a href="inconvenient2.html">test build: picture memory board</a> · <a href="inconvenient3.html">test build: AI invasion</a>
+        <b>M</b> mute · <b>Esc</b> quit a run · test build: ZType-style AI shooter, laid out as two side-by-side games — <a href="index.html">back to the real thing</a>
       </p>
       <p class="hint hidden" id="classicHint">
         <b>H</b> hard mode<br />
@@ -157,10 +156,6 @@
     </div>
   </div>
 
-  <!-- Classic mode only -- Simon's own game-over view is confined to
-       .panel-simon (see #simonOver above) so the bonus board can keep
-       running underneath; classic has no bonus board, so freezing the
-       whole stage here is fine. -->
   <div id="overOverlay" class="overlay hidden">
     <div class="card">
       <h2>YOU DID NOT GET IN</h2>
@@ -207,32 +202,15 @@
     </div>
   </div>
 
-  <!-- Dial 911 on the number pad at any point: a brief, self-dismissing
-       popup with the title code -- for whoever's running the cabinet, not
-       meant to be found by players. Not a modal: no Done button, doesn't
-       block anything underneath, just fades on its own -- see
-       UI.showAnswerToast. The bonus board gets its own answer at the same
-       time: dialing 911 also flips every card face-up for a second (see
-       BonusGame.peekAll), so there's nothing to show here for that part. -->
   <div id="answerToast" class="answer-toast hidden"></div>
 
 </div>
-<!-- Cache-busting. GitHub Pages serves every file with max-age=600, and a
-     reload only revalidates the document itself -- so without this you can end
-     up running a fresh index.html against ten-minute-old JS, which reads as the
-     game randomly misbehaving rather than as a stale cache. The deploy workflow
-     rewrites __BUILD__ with the commit SHA; locally it stays literal, which is
-     a perfectly good constant.
-
-     Import maps don't apply to a module script's own src, so the entry point
-     carries its version directly and the map covers everything it pulls in.
-     Adding a module to src/ means adding a line here too -- one that's missed
-     just doesn't get busted, it doesn't break. -->
 <script type="importmap">
 {
   "imports": {
     "./src/actions.js": "./src/actions.js?v=__BUILD__",
     "./src/audio.js": "./src/audio.js?v=__BUILD__",
+    "./src/typing.js": "./src/typing.js?v=__BUILD__",
     "./src/config.js": "./src/config.js?v=__BUILD__",
     "./src/game.js": "./src/game.js?v=__BUILD__",
     "./src/input.js": "./src/input.js?v=__BUILD__",
@@ -243,6 +221,6 @@
   }
 }
 </script>
-<script type="module" src="src/main.js?v=__BUILD__"></script>
+<script type="module" src="src/main3.js?v=__BUILD__"></script>
 </body>
 </html>

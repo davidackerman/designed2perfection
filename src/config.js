@@ -117,6 +117,38 @@ export const CONFIG = {
     qualifyGuesses: 20,
   },
 
+  // Third test build (inconvenient3.html/main3.js/typing.js): Simon stays on
+  // the right, unchanged; the left half swaps the memory board for a
+  // ZType-style typing minigame -- AI logos fall toward a cursor "ship" at
+  // the bottom and you shoot them down by dialing the phone-keypad key for
+  // each letter of the word printed on them (same key-for-letter idea as
+  // JANELIA in bonus.js, just duplicated here rather than shared, per this
+  // codebase's usual one-off-test-build approach).
+  typing: {
+    maxAlive: 5,                 // ships on screen at once, ceiling
+    spawnMsStart: 2400,          // ms between spawns at the very start
+    spawnMsMin: 950,             // floor, once spawnRampKills is reached
+    spawnRampKills: 25,
+    fallMsStart: 15000,          // ms to cross from top to the cursor at the start
+    fallMsMin: 6200,             // floor, once fallRampKills is reached
+    fallRampKills: 25,
+    escapeY: 92,                 // % down the field a ship counts as having reached the cursor
+    wordLengthThreshold: 10,     // kills before 3-letter words start appearing instead of single letters
+    letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+    words3: [
+      'DOG', 'CAT', 'FOX', 'OWL', 'BEE', 'ANT', 'BAT', 'COW', 'PIG', 'RAM',
+      'YAK', 'ELK', 'JAY', 'KOI', 'EEL', 'HEN', 'SOW', 'DOE', 'EWE', 'BOT',
+      'APE', 'COD', 'ORC', 'ODD', 'EGO', 'ICE', 'JOB',
+    ],
+    icons: [
+      'assets/img/ai/chatgpt.png',
+      'assets/img/ai/claude.png',
+      'assets/img/ai/cursor.png',
+      'assets/img/ai/gemini.png',
+      'assets/img/ai/grok.png',
+    ],
+  },
+
   scores: {
     maxEntries: 10,          // per board
     initialsLength: 3,
@@ -127,6 +159,7 @@ export const CONFIG = {
     best: 'janelia-it:best', // legacy single value, migrated into the board
     hardMode: 'janelia-it:hard',
     classicMode: 'janelia-it:classic',
+    typingBest: 'janelia-it:typing-best', // inconvenient3.html's own persisted best -- see main3.js
     muted: 'janelia-it:muted',
     musicVolume: 'janelia-it:music-volume',
     // Bumped when the default keymap changes: Input.load() prefers whatever is
