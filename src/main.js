@@ -331,11 +331,6 @@ clearBtn.addEventListener('click', () => {
   }, 3000);
 });
 document.querySelector('#muteBadge').addEventListener('click', toggleMute);
-const musicVolumeInput = document.querySelector('#musicVolume');
-musicVolumeInput.value = audio.musicVolume;
-musicVolumeInput.addEventListener('input', (e) => {
-  audio.setMusicVolume(parseFloat(e.target.value));
-});
 // Debug cheat: while debug mode is on and a round is live, Space resolves as
 // whatever this round actually wants -- drive a run forward without hunting
 // for the real binding. Space and only Space; every other key falls through

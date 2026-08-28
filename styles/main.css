@@ -68,19 +68,6 @@ html, body {
 .stat-label { font-size: 10px; letter-spacing: 0.18em; color: var(--dim); }
 .stat span:last-child { font-size: 24px; font-variant-numeric: tabular-nums; }
 
-/* Total spelled out as the actual sum, not just the result -- and bigger
-   than the other stats, since it's the one number that matters across
-   both halves of the screen. */
-.stat-total .total-equation {
-  font-size: 30px;
-  font-variant-numeric: tabular-nums;
-  color: var(--dim);
-}
-.stat-total .total-equation #total {
-  color: var(--accent);
-  font-weight: 700;
-}
-
 .badges { margin-left: auto; display: flex; gap: 8px; }
 .badge {
   font-family: var(--mono);
@@ -95,26 +82,6 @@ html, body {
 }
 .badge.hard { color: var(--accent); border-color: var(--accent); }
 .badge.off { opacity: 0.45; }
-
-.music-vol {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-}
-.music-vol-label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--dim);
-}
-.music-vol input[type="range"] {
-  width: 64px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
 
 /* ---- stage ---- */
 #stage {
@@ -204,11 +171,39 @@ html, body {
   letter-spacing: 0.04em;
 }
 
+/* The Simon panel's heading carries everything Simon-related -- Score,
+   Round, Best, and (since Total needs both halves) Total too -- stacked
+   as two lines instead of the single-line "Bonus" heading opposite it. */
+.panel-heading-simon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  white-space: normal;
+}
+.panel-heading-sep { margin: 0 8px; opacity: 0.5; }
+
+/* Total spelled out as the actual sum, not just the result -- and bigger
+   than the Score/Round/Best line above it, since it's the one number that
+   matters across both halves of the screen. */
+.panel-heading-total {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+.panel-heading-total-value {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 18px;
+}
+
 /* Room for a lit pad's ring and glow to spill past the block's edge: all four
    pads sit flush against it, and anything clipping here slices the ring (and
    the photo under it) off. */
 #stage.simon-mode .panel-simon {
   padding: 46px;
+  /* Extra headroom up top: the heading here carries two lines (Score/
+     Round/Best, then the Total equation), not just one. */
+  padding-top: 76px;
   /* So the grid below can size itself off this panel's own box (cqw/cqh). */
   container-type: size;
 }
@@ -670,6 +665,10 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
   width: 2px;
   background: var(--line);
   transform: translateX(-50%);
+  /* Purely decorative -- being position:absolute would otherwise paint it
+     above the (static) .card, right down its horizontal center, silently
+     eating clicks meant for whatever button happens to sit there. */
+  pointer-events: none;
 }
 
 .card {
@@ -856,7 +855,7 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   #timer { margin: 10px 14px 14px; }
   /* No size cap here -- --w already fits the grid to the narrower panel. */
   .simon-grid { gap: 8px; }
-  #stage.simon-mode .panel-simon { padding: 26px; }
+  #stage.simon-mode .panel-simon { padding: 26px; padding-top: 62px; }
   #stage.simon-mode { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   #stage.simon-mode .panel-bonus { padding: 14px; }
 }

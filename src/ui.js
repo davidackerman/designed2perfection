@@ -37,9 +37,12 @@ export class UI {
       scoreLabel: $('#scoreLabel'),
       score: $('#score'),
       scoreHeading: $('#scoreHeading'),
+      roundStat: $('#roundStat'),
       round: $('#round'),
+      roundHeading: $('#roundHeading'),
+      bestStat: $('#bestStat'),
       best: $('#best'),
-      totalStat: $('#totalStat'),
+      bestHeading: $('#bestHeading'),
       total: $('#total'),
       totalScore: $('#totalScore'),
       totalBonus: $('#totalBonus'),
@@ -144,8 +147,14 @@ export class UI {
       this.el.scoreHeading.textContent = score;
       this._score = score;
     }
-    if (round !== undefined) this.el.round.textContent = round;
-    if (best !== undefined) this.el.best.textContent = best;
+    if (round !== undefined) {
+      this.el.round.textContent = round;
+      this.el.roundHeading.textContent = round;
+    }
+    if (best !== undefined) {
+      this.el.best.textContent = best;
+      this.el.bestHeading.textContent = best;
+    }
     if (bonus !== undefined || bonusMax !== undefined) {
       const b = bonus !== undefined ? bonus : this._bonus || 0;
       const bMax = bonusMax !== undefined ? bonusMax : this._bonusMax || 0;
@@ -173,8 +182,11 @@ export class UI {
    *  that only make sense in one mode or the other. */
   setSimonMode(on) {
     this.el.stage.classList.toggle('simon-mode', on);
-    this.el.scoreStat.classList.toggle('hidden', on); // moves to the Score panel heading instead
-    this.el.totalStat.classList.toggle('hidden', !on);
+    // Everything Simon-related moves onto the Simon panel's own heading
+    // instead of the top HUD -- see .panel-heading-simon.
+    this.el.scoreStat.classList.toggle('hidden', on);
+    this.el.roundStat.classList.toggle('hidden', on);
+    this.el.bestStat.classList.toggle('hidden', on);
     this.el.modeBadge.classList.toggle('hidden', on);
   }
 

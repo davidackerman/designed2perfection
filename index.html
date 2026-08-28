@@ -14,26 +14,16 @@
   <!-- The placard is deliberately small and at the very top: you have to look up. -->
   <div id="placard" class="hidden">PUSH</div>
 
+  <!-- Simon mode moves Score/Round/Best/Total onto the Simon panel's own
+       heading (see .panel-heading-simon below) -- everything Simon-related
+       lives with Simon. These stay for classic mode, which has no such
+       heading of its own. -->
   <header id="hud">
     <div class="stat" id="scoreStat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
-    <div class="stat"><span class="stat-label">Round</span><span id="round">0</span></div>
-    <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
-    <!-- Simon mode only: Score/Bonus live over their own half of the stage
-         instead (see .panel-heading below) -- Total is the two added
-         together, so it's the one number worth keeping up here, spelled
-         out as the actual sum rather than just the result. -->
-    <div id="totalStat" class="stat stat-total hidden">
-      <span class="stat-label">Total</span>
-      <span class="total-equation">
-        <span id="totalScore">0</span> + <span id="totalBonus">0</span> = <span id="total">0</span>
-      </span>
-    </div>
+    <div class="stat" id="roundStat"><span class="stat-label">Round</span><span id="round">0</span></div>
+    <div class="stat" id="bestStat"><span class="stat-label">Best</span><span id="best">0</span></div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
-      <label class="music-vol" title="Background music volume">
-        <span class="music-vol-label">MUSIC</span>
-        <input id="musicVolume" type="range" min="0" max="1" step="0.05" />
-      </label>
       <button id="muteBadge" class="badge" type="button">SOUND</button>
     </div>
   </header>
@@ -61,7 +51,23 @@
          Source order is reading order, but placement is set explicitly in
          CSS, so the two can't drift apart. -->
     <section class="panel panel-simon">
-      <div class="panel-heading">Score <span id="scoreHeading" class="panel-heading-value">0</span></div>
+      <div class="panel-heading panel-heading-simon">
+        <div class="panel-heading-stats">
+          Score <span id="scoreHeading" class="panel-heading-value">0</span>
+          <span class="panel-heading-sep">·</span>
+          Round <span id="roundHeading" class="panel-heading-value">0</span>
+          <span class="panel-heading-sep">·</span>
+          Best <span id="bestHeading" class="panel-heading-value">0</span>
+        </div>
+        <!-- Total spelled out as the actual sum, not just the result --
+             Bonus comes from the cards on the left, Score from Simon here
+             on the right, so this is the one line that needs both. -->
+        <div class="panel-heading-total">
+          Bonus <span id="totalBonus" class="panel-heading-value">0</span> +
+          Score <span id="totalScore" class="panel-heading-value">0</span> =
+          Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
+        </div>
+      </div>
       <div class="simon-grid">
         <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
         <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />
