@@ -16,7 +16,7 @@ let classicMode = localStorage.getItem(CONFIG.storage.classicMode) === '1';
 const activeGame = () => (classicMode ? reflexGame : simonGame);
 
 const input = new Input(
-  (evt) => activeGame().handleInput(evt),
+  (evt) => handleAction(evt),
   (raw) => ui.markKey(raw)
 );
 ui.keyFor = (slot) => input.keyFor(slot);
@@ -52,15 +52,15 @@ function handleDigit(digit) {
   if (screen !== 'title') return; // the code only means anything at the title
 
   if (digit === TITLE_CODE[titleCodeProgress]) {
+    ui.markTitleDigitGood(titleCodeProgress);
     titleCodeProgress++;
     if (titleCodeProgress === TITLE_CODE.length) {
       titleCodeProgress = 0;
-      ui.flashTitleCode(true);
-      setTimeout(startGame, 500); // let the green land before the stage swaps in
+      setTimeout(startGame, 500); // let all four land green before the stage swaps in
     }
   } else {
+    ui.flashTitleDigitBad(titleCodeProgress); // the digit that was expected, not the one typed
     titleCodeProgress = 0;
-    ui.flashTitleCode(false);
   }
 }
 
@@ -117,9 +117,22 @@ function toggleClassic() {
 function toTitle() {
   screen = 'title';
   titleCodeProgress = 0; // don't carry a half-typed code across screens
+  ui.resetTitleDigits();
   activeGame().abort(); // stops any run music
   ui.showOverlay('title');
   audio.playMusic('song');
+}
+
+// Push/pull/soap/swipe (and tap, in classic) only mean something once a run
+// is live. At the title, the number-pad code is the only thing listening --
+// pressing a control there is "doing something else", so it gets a buzzer
+// instead of being silently ignored.
+function handleAction(evt) {
+  if (screen === 'title') {
+    audio.play('denied');
+    return;
+  }
+  activeGame().handleInput(evt);
 }
 
 function startGame() {

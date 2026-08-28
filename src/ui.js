@@ -45,7 +45,6 @@ export class UI {
       over: $('#overOverlay'),
       remap: $('#remapOverlay'),
       scores: $('#scoresOverlay'),
-      titleHeading: $('#titleHeading'),
       answerKey: $('#answerKeyOverlay'),
       answerKeyCode: $('#answerKeyCode'),
       overScore: $('#overScore'),
@@ -74,6 +73,10 @@ export class UI {
       keyHintSlot: $('#keyHintSlot'),
       debugLast: $('#debugLast'),
     };
+    // The four marked characters in the title that spell out the number-pad
+    // code, in reading order -- see index.html. Index lines up with the code
+    // string in main.js.
+    this.titleCodeDigits = Array.from(document.querySelectorAll('#titleHeading .code-digit'));
     this.simonPads = {
       push: $('#simonPadPush'),
       pull: $('#simonPadPull'),
@@ -318,17 +321,32 @@ export class UI {
     }, 260);
   }
 
-  /** Title screen's number-pad code, entered instead of pressing Start:
-   *  green once it's complete and right, a red nudge on a wrong digit. */
-  flashTitleCode(good) {
-    const el = this.el.titleHeading;
-    el.classList.remove('title-good', 'title-bad');
-    void el.offsetWidth; // reflow, so back-to-back wrong digits each nudge
-    el.classList.add(good ? 'title-good' : 'title-bad');
+  /** Title screen's number-pad code, entered instead of pressing Start: each
+   *  correct digit turns its character in the title green and stays that way.
+   *  A wrong digit nudges its character red for a second, then the whole
+   *  code resets back to plain text -- one mistake costs the full sequence,
+   *  not just that digit. */
+  markTitleDigitGood(index) {
+    clearTimeout(this.titleFlashTimer); // a fresh correct run cancels any pending reset
+    const el = this.titleCodeDigits[index];
+    if (!el) return;
+    el.classList.remove('code-bad');
+    el.classList.add('code-good');
+  }
+
+  flashTitleDigitBad(index) {
+    const el = this.titleCodeDigits[index];
+    if (el) {
+      el.classList.remove('code-good');
+      void el.offsetWidth; // reflow, so back-to-back mistakes each nudge
+      el.classList.add('code-bad');
+    }
     clearTimeout(this.titleFlashTimer);
-    this.titleFlashTimer = setTimeout(() => {
-      el.classList.remove('title-good', 'title-bad');
-    }, good ? 900 : 420);
+    this.titleFlashTimer = setTimeout(() => this.resetTitleDigits(), 1000);
+  }
+
+  resetTitleDigits() {
+    for (const el of this.titleCodeDigits) el.classList.remove('code-good', 'code-bad');
   }
 
   /** The 911 easter egg: reveal the code for whoever's running the cabinet. */
