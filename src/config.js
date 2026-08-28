@@ -134,7 +134,9 @@ export const CONFIG = {
     fallRampKills: 25,
     escapeY: 92,                 // % down the field a ship counts as having reached the cursor
     wordLengthThreshold: 10,     // kills before 3-letter words start appearing instead of single letters
-    letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+    // No Q or Z -- a rotary dial never had letters for either (see
+    // typing.js's PHONE_KEYS), so neither could ever be shot down.
+    letters: 'ABCDEFGHIJKLMNOPRSTUVWXY'.split(''),
     words3: [
       'DOG', 'CAT', 'FOX', 'OWL', 'BEE', 'ANT', 'BAT', 'COW', 'PIG', 'RAM',
       'YAK', 'ELK', 'JAY', 'KOI', 'EEL', 'HEN', 'SOW', 'DOE', 'EWE', 'BOT',

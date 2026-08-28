@@ -32,7 +32,6 @@ const simonGame = new SimonGame({ ui, audio, scores, onGameOver: handleGameOver 
 const typingGame = new TypingInvasion({
   fieldEl: document.querySelector('#typingField'),
   cursorEl: document.querySelector('#typingCursor'),
-  audio,
   config: CONFIG.typing,
   onDestroy: handleShipDestroyed,
   onMiss: handleShipEscaped,

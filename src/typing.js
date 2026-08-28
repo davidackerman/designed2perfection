@@ -9,9 +9,12 @@
 // main3.js, not here -- this class only reports onDestroy()/onMiss() events,
 // same shape as BonusGame's onMatch callback.
 
+// The old rotary-dial letter mapping, not the modern touch-tone one -- a
+// rotary dial never had letters for Q or Z at all, so neither is typeable
+// here (see CONFIG.typing.letters, which leaves both out of the pool).
 const PHONE_KEYS = {
   2: 'ABC', 3: 'DEF', 4: 'GHI', 5: 'JKL',
-  6: 'MNO', 7: 'PQRS', 8: 'TUV', 9: 'WXYZ',
+  6: 'MNO', 7: 'PRS', 8: 'TUV', 9: 'WXY',
 };
 
 function keyForLetter(letter) {
@@ -33,10 +36,9 @@ function rampedMs(kills, start, min, rampKills) {
 }
 
 export class TypingInvasion {
-  constructor({ fieldEl, cursorEl, audio, config, onDestroy, onMiss }) {
+  constructor({ fieldEl, cursorEl, config, onDestroy, onMiss }) {
     this.fieldEl = fieldEl;
     this.cursorEl = cursorEl;
-    this.audio = audio;
     this.config = config;
     this.onDestroy = onDestroy;
     this.onMiss = onMiss;
@@ -172,7 +174,6 @@ export class TypingInvasion {
     this.fireBlast(ship);
     ship.letterEls[ship.hitCount].classList.add('hit');
     ship.hitCount += 1;
-    this.audio.playTone(660, 70);
     if (ship.hitCount === ship.letters.length) this.destroy(ship);
   }
 
@@ -180,22 +181,21 @@ export class TypingInvasion {
     this.lockedId = null;
     this.ships = this.ships.filter((s) => s !== ship);
     this.kills += 1;
-    this.audio.playTone(880, 160);
     ship.el.classList.add('exploding');
     setTimeout(() => ship.el.remove(), 360);
     this.onDestroy?.();
   }
 
   /** Reaching the cursor without being finished off: same shape as a card
-   *  mismatch in bonus.js -- a beat of "wrong" audio and visual, then gone.
-   *  Doesn't stop the game, but it does send the whole run back to square
-   *  one -- see resetProgress(). main3.js's onMiss handles the *score* side
-   *  of a miss (current run's count vs. the persisted best); this is the
-   *  gameplay side. */
+   *  mismatch in bonus.js -- a beat of "wrong" visual, then gone. Doesn't
+   *  stop the game, but it does send the whole run back to square one --
+   *  see resetProgress(). main3.js's onMiss handles the *score* side of a
+   *  miss (current run's count vs. the persisted best); this is the
+   *  gameplay side. This whole minigame is silent by design -- no tones on
+   *  hit/destroy/miss, unlike bonus.js's card flips. */
   escape(ship) {
     if (this.lockedId === ship.id) this.lockedId = null;
     this.ships = this.ships.filter((s) => s !== ship);
-    this.audio.playTone(140, 220);
     ship.el.classList.add('escaping');
     setTimeout(() => ship.el.remove(), 340);
     this.onMiss?.();
