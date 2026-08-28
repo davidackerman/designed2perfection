@@ -32,6 +32,20 @@ game-over card, but nothing prompts for initials or gets added to the board.
 The original reflex game below is still there as **Classic mode**, a toggle
 on the title screen (off by default).
 
+### Alternate bonus test build
+
+[`inconvenient2.html`](inconvenient2.html) (linked from the real title
+screen's hint line) is a test endpoint for trying out a different bonus
+minigame in place of the memory-match board: beat the computer's even/odd
+guesser. Every few seconds you enter a digit on the number pad; the computer
+has already locked in a guess of whether it'll be even or odd, based on a
+simple pattern model over what you've entered so far, so staying
+unpredictable is the actual game. Bonus is 10 at a coin-flip-or-better 50%
+computer accuracy, down to 0 at 80%+, and missing the entry window resets
+it to 0. Everything else (Simon, classic mode, the title password, high
+scores) is identical to the real page — see [`src/evenodd.js`](src/evenodd.js)
+and [`src/main2.js`](src/main2.js).
+
 ## The five commands (Classic mode)
 
 | Command | Cabinet control | Default key | The flaw it re-creates |
@@ -172,6 +186,8 @@ python3 -m http.server 8000
 | [`src/scores.js`](src/scores.js) | High score boards, stats, and the storage backend |
 | [`src/audio.js`](src/audio.js) | Sound manifest, playback, and Simon's synthesized tones |
 | [`src/ui.js`](src/ui.js) | All DOM writes |
+| [`src/evenodd.js`](src/evenodd.js) | Test build's alternate bonus minigame: beat the computer's even/odd guesser |
+| [`src/main2.js`](src/main2.js) / [`inconvenient2.html`](inconvenient2.html) | Entry point for the even/odd test build |
 | [`assets/img/`](assets/img/) | Placeholder SVG art (Classic) and photos of the actual hardware (Simon pads) |
 | [`assets/audio/`](assets/audio/) | Empty; see its README for the expected filenames |
 | [`HARDWARE.md`](HARDWARE.md) | Wiring the physical cabinet as a USB keyboard |

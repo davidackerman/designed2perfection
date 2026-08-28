@@ -64,6 +64,17 @@ export const CONFIG = {
     ],
   },
 
+  // Alternate bonus minigame, tried out at inconvenient2.html/main2.js
+  // instead of the memory-match board: beat the computer's even/odd guesser.
+  // See src/evenodd.js.
+  evenOdd: {
+    entryWindowMs: 5000,        // must enter a digit within this window, or the run's bonus resets to 0
+    historyLen: 20,             // rolling window of past guesses the computer (and the bonus score) is judged over
+    accuracyForMaxBonus: 0.5,   // computer at or below this accuracy -> bonus 10 (pure coin flip, you're winning)
+    accuracyForZeroBonus: 0.8,  // computer at or above this accuracy -> bonus 0 (it's reading you)
+    bonusMax: 10,
+  },
+
   scores: {
     maxEntries: 10,          // per board
     initialsLength: 3,
