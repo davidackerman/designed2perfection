@@ -45,8 +45,9 @@ active via `classicMode` and routes almost everything through
   Classic mode's placeholder SVGs (`door.svg`, `soap.svg`, `swipe-*.svg`,
   `tap-*.svg`) are untouched and still used there.
 - **`index.html` / `styles/main.css`** — the stage now has a third panel
-  (`.panel-simon`) holding `.simon-diamond`: all four pad photos shown at
-  once, arranged top/left/right/bottom, full brightness at rest. A pad's
+  (`.panel-simon`) holding `.simon-grid`: all four pad photos shown at
+  once in a 2x2 block — push top-left, soap top-right, pull bottom-left,
+  swipe bottom-right — full brightness at rest. A pad's
   edge lights up with its own color (green/red/yellow/blue) when it's
   active — same visual whether the game is playing it back or you just
   pressed its control (right *or* wrong). The two-panel classic layout
@@ -145,18 +146,20 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
   into `#overHeading` by `showGameOver`). Classic keeps "YOU DID NOT GET IN" —
   you were trying to get through a door. Simon says "OUT OF SEQUENCE", because
   you weren't.
-- **Nothing clips the lit pad.** `.simon-diamond` deliberately has no
-  `overflow: hidden`: a lit pad scales to 1.05 and throws a ~36px glow, and the
-  four pads sit flush against the diamond's edges, so clipping there sliced the
-  ring — and the top of the photo — right off. `.simon-pad`'s
+- **Nothing clips the lit pad.** `.simon-grid` deliberately has no
+  `overflow: hidden`: a lit pad scales to 1.05 and throws a ~36px glow, and all
+  four pads sit flush against the block's edges, so clipping there sliced the
+  ring — and the photo under it — right off. `.simon-pad`'s
   `min-width/min-height: 0` is what actually keeps the grid tracks from
   overflowing. `.panel-simon` carries 46px of padding purely as glow room.
-- **The diamond is always square**, sized off `100cqmin` of `.panel-simon`
-  (which is `container-type: size` for exactly this). The cells are `1fr`, so a
-  square diamond means square cells, and the portrait pad photos letterbox by a
-  hair either side. Let the diamond go tall — which is what happens if you size
-  it off width alone — and the photos letterbox top and bottom instead, leaving
-  a lit ring around mostly empty space.
+- **The block is 3:4 portrait**, because that's the shape a 2x2 of 3:4 pad
+  photos wants — the cells then match the images and nothing letterboxes. It's
+  sized off a single `--w: min(100cqw, 75cqh, 560px)` against `.panel-simon`
+  (which is `container-type: size` for exactly this): widest that still fits
+  the panel horizontally, and via the `75cqh` term vertically too once the
+  height is derived as `--w * 4/3`.
+- **Pad placement is explicit** (`.simon-pos-tl` … `-br`), not source order, so
+  re-ordering the markup can't silently move a pad to another quadrant.
 
 ## The default keymap changed
 
@@ -205,7 +208,7 @@ python3 -m http.server 8000
 
 There's no test suite. This session's verification was all manual/scripted
 browser checks (Playwright driving a headless Chromium) — screenshotting
-the diamond layout, scripting full playthroughs by reading the debug hint
+the pad layout, scripting full playthroughs by reading the debug hint
 and pressing the right keys, checking `AudioContext` calls to confirm music
 timing. None of that is committed anywhere; if you want repeatable checks,
 that'd be a good thing to add.

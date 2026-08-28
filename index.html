@@ -37,15 +37,17 @@
       <video id="stageWord" playsinline></video>
     </section>
 
-    <!-- Simon mode: all four pads shown at once in a diamond, dim by
-         default. A pad brightens either when the game plays it back, or
-         when you press its control -- same visual either way. -->
+    <!-- Simon mode: all four pads shown at once in a 2x2 block, full
+         brightness at rest. A pad brightens either when the game plays it
+         back, or when you press its control -- same visual either way.
+         Source order is reading order, but placement is set explicitly in
+         CSS, so the two can't drift apart. -->
     <section class="panel panel-simon">
-      <div class="simon-diamond">
-        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-top" src="assets/img/pushit.jpeg" alt="" />
-        <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-left" src="assets/img/soapit.jpeg" alt="" />
-        <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-right" src="assets/img/swipeit.jpeg" alt="" />
-        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bottom" src="assets/img/pullit.jpeg" alt="" />
+      <div class="simon-grid">
+        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
+        <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />
+        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pullit.jpeg" alt="" />
+        <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-br" src="assets/img/swipeit.jpeg" alt="" />
       </div>
     </section>
 

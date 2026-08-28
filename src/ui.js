@@ -235,7 +235,7 @@ export class UI {
     this.setDebugExpected(null);
   }
 
-  /** Brighten one pad in the diamond -- whether the game is playing it back
+  /** Brighten one pad -- whether the game is playing it back
    *  or you just pressed its control, it lights up the same way.
    *
    *  `press` additionally restarts the hit animation. Playback always has a

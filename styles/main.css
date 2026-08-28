@@ -152,43 +152,46 @@ html, body {
 #stage.flash-deny { box-shadow: inset 0 0 0 3px var(--deny); }
 #stage.flash-nothing { animation: nudge 220ms ease; }
 
-/* ---- simon mode: all four pads shown at once, diamond formation ---- */
+/* ---- simon mode: all four pads shown at once, 2x2 ---- */
 #stage.simon-mode { grid-template-columns: 1fr; }
 #stage.simon-mode .panel-image,
 #stage.simon-mode .panel-word { display: none; }
 #stage:not(.simon-mode) .panel-simon { display: none; }
 
-/* Room for a lit pad's ring and glow to spill past the diamond's edge: the
-   outer pads sit flush against it, and anything clipping here slices the top
-   off the lit ring (and the photo under it). */
+/* Room for a lit pad's ring and glow to spill past the block's edge: all four
+   pads sit flush against it, and anything clipping here slices the ring (and
+   the photo under it) off. */
 #stage.simon-mode .panel-simon {
   padding: 46px;
-  /* So the diamond below can size itself off whichever of this panel's two
-     dimensions is smaller (cqmin), and stay square in any window. */
+  /* So the grid below can size itself off this panel's own box (cqw/cqh). */
   container-type: size;
 }
 
-.simon-diamond {
-  /* Square, always: the cells are 1fr each, so a square diamond keeps square
-     cells, and the portrait pad photos letterbox by a hair either side. Let
-     it go tall and they letterbox top and bottom instead, which reads as a
-     lit ring around mostly empty space. */
-  width: min(100cqmin, 720px);
-  height: min(100cqmin, 720px);
+.simon-grid {
+  /* 3:4 portrait overall, because that's what a 2x2 of 3:4 pad photos wants --
+     the cells then match the images and nothing letterboxes. --w is the widest
+     this can be while still fitting the panel both ways: capped by the panel's
+     width, by 3/4 of its height (so the derived height still fits), and by an
+     absolute ceiling so it doesn't get silly on a big screen. */
+  --w: min(100cqw, 75cqh, 560px);
+  width: var(--w);
+  height: calc(var(--w) * 4 / 3);
   margin: auto;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 12px;
   /* Deliberately no overflow: hidden -- .simon-pad's min-width/min-height: 0
      below is what keeps the tracks from overflowing, and clipping here would
      cut the glow and the scaled-up lit pad off at the edges. */
 }
 
-.simon-pos-top { grid-column: 2; grid-row: 1; }
-.simon-pos-left { grid-column: 1; grid-row: 2; }
-.simon-pos-right { grid-column: 3; grid-row: 2; }
-.simon-pos-bottom { grid-column: 2; grid-row: 3; }
+/* Placement is explicit rather than source-order, so re-ordering the markup
+   can't silently move a pad. */
+.simon-pos-tl { grid-column: 1; grid-row: 1; }
+.simon-pos-tr { grid-column: 2; grid-row: 1; }
+.simon-pos-bl { grid-column: 1; grid-row: 2; }
+.simon-pos-br { grid-column: 2; grid-row: 2; }
 
 .simon-pad {
   /* Grid items default to a min size based on their content -- for an <img>
@@ -482,7 +485,7 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   #debugBar { margin: 0 14px 12px; font-size: 10px; }
   #stage { margin: 0 14px; }
   #timer { margin: 10px 14px 14px; }
-  /* No size cap here -- cqmin already fits the diamond to the narrower panel. */
-  .simon-diamond { gap: 8px; }
+  /* No size cap here -- --w already fits the grid to the narrower panel. */
+  .simon-grid { gap: 8px; }
   #stage.simon-mode .panel-simon { padding: 26px; }
 }
