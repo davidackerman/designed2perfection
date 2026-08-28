@@ -268,6 +268,36 @@ html, body {
   letter-spacing: 0.06em;
 }
 
+/* Round 1: no shared row/column headers, just a flat "0123" -- one caption
+   per card, sitting above it, plain and sequential. */
+.bonus-board.bonus-board-flat {
+  grid-template-columns: repeat(var(--bonus-size), 1fr);
+  grid-template-rows: repeat(var(--bonus-size), 1fr);
+}
+
+.bonus-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.bonus-cell .bonus-caption {
+  font-family: var(--mono);
+  font-size: clamp(11px, 3.5cqw, 17px);
+  color: var(--dim);
+  letter-spacing: 0.06em;
+}
+
+.bonus-cell .bonus-card {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
 .bonus-card {
   perspective: 700px;
   /* A real card's proportions, centered in its (roughly square) grid cell --

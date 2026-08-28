@@ -2,16 +2,26 @@
 // by side with Simon, on the number pad. It never ends on its own -- it just
 // keeps producing bonus points (see onMatch) until the run itself does.
 //
-// Cards never carry their own address -- that would give away that a card
-// is "special" before it's even flipped, which doesn't read as a real
-// face-down card. Instead the grid's row/column headers (see UI.
-// renderBonusBoard) are what you dial: a row digit, then a column digit,
-// the same two-key shape for every round regardless of size.
+// Round 1 (2x2, shapes) is dialed with one flat digit per card, 0-3, plain
+// and sequential -- it's the trivial onboarding round. Round 2 on (4x4,
+// alnum) is dialed with a row key then a column key, read off headers
+// around the grid rather than printed on any card. Those headers are a
+// random, non-repeating draw of phone-keypad keys, one random character
+// (the bare digit, or one of its letters) per key -- see pickHeaderSet --
+// so within either axis, no two headers ever share a key: a single
+// keystroke per axis is always enough, no second "which letter on this
+// key" digit needed, unlike a phone's own multi-tap entry.
 
 import { CONFIG } from './config.js';
 
 const SHAPES = ['●', '■', '▲', '◆'];
 const ALNUM = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+// Standard phone-keypad letter groups; 0 and 1 have none, so a header drawn
+// from those keys can only ever be the bare digit.
+const PHONE_KEYS = {
+  0: '', 1: '', 2: 'ABC', 3: 'DEF', 4: 'GHI', 5: 'JKL',
+  6: 'MNO', 7: 'PQRS', 8: 'TUV', 9: 'WXYZ',
+};
 
 function shuffled(arr) {
   const a = arr.slice();
@@ -32,6 +42,19 @@ function roundFor(index) {
   return rounds[Math.min(index, rounds.length - 1)];
 }
 
+/** `size` headers, each on its own phone key (sampled without replacement,
+ *  so a single keystroke always resolves unambiguously within this axis).
+ *  Each header's displayed character is a random pick from that key's own
+ *  digit plus whatever letters it has. */
+function pickHeaderSet(size) {
+  const keys = shuffled(Object.keys(PHONE_KEYS)).slice(0, size);
+  return keys.map((key) => {
+    const options = [key, ...PHONE_KEYS[key].split('')];
+    const char = options[Math.floor(Math.random() * options.length)];
+    return { key, char };
+  });
+}
+
 export class BonusGame {
   constructor({ ui, audio, onMatch }) {
     this.ui = ui;
@@ -40,9 +63,12 @@ export class BonusGame {
     this.active = false;
     this.peeking = false;
     this.locked = false;
-    this.pendingRow = null;
+    this.pendingRowKey = null;
     this.roundIndex = 0;
     this.cards = [];
+    this.headers = [];     // shapes rounds: one flat digit label per card
+    this.rowHeaders = [];  // alnum rounds: see pickHeaderSet
+    this.colHeaders = [];
     this.revealedPositions = [];
     this.resolveTimer = null;
     this.peekTimer = null;
@@ -64,9 +90,18 @@ export class BonusGame {
     });
     this.size = size;
     this.kind = kind;
+    if (kind === 'shapes') {
+      this.headers = Array.from({ length: n }, (_, i) => String(i));
+      this.rowHeaders = [];
+      this.colHeaders = [];
+    } else {
+      this.headers = [];
+      this.rowHeaders = pickHeaderSet(size);
+      this.colHeaders = pickHeaderSet(size);
+    }
     this.revealedPositions = [];
     this.locked = false;
-    this.pendingRow = null;
+    this.pendingRowKey = null;
   }
 
   start() {
@@ -86,7 +121,7 @@ export class BonusGame {
     this.cards = [];
     this.revealedPositions = [];
     this.locked = false;
-    this.pendingRow = null;
+    this.pendingRowKey = null;
   }
 
   abort() {
@@ -112,21 +147,31 @@ export class BonusGame {
     this.peekTimer = null;
   }
 
-  /** Every round is dialed the same way: a row digit, then a column digit --
-   *  see the grid headers UI.renderBonusBoard draws around the board. */
   handleKey(digit) {
     if (!this.active || this.locked || this.peeking) return;
 
-    if (this.pendingRow === null) {
-      this.pendingRow = digit;
+    if (this.kind === 'shapes') {
+      const pos = this.headers.indexOf(digit);
+      if (pos === -1) return;
+      this.reveal(pos);
       return;
     }
-    const row = Number(this.pendingRow);
-    const col = Number(digit);
-    this.pendingRow = null;
-    if (row >= this.size || col >= this.size) return; // not a real row/column for this round
 
-    const card = this.cards[row * this.size + col];
+    if (this.pendingRowKey === null) {
+      this.pendingRowKey = digit;
+      return;
+    }
+    const rowKey = this.pendingRowKey;
+    const colKey = digit;
+    this.pendingRowKey = null;
+    const row = this.rowHeaders.findIndex((h) => h.key === rowKey);
+    const col = this.colHeaders.findIndex((h) => h.key === colKey);
+    if (row === -1 || col === -1) return;
+    this.reveal(row * this.size + col);
+  }
+
+  reveal(pos) {
+    const card = this.cards[pos];
     if (!card || card.matched || card.revealed) return;
 
     card.revealed = true;
@@ -179,6 +224,14 @@ export class BonusGame {
 
   render() {
     if (!this.active) return;
-    this.ui.renderBonusBoard({ size: this.size, cards: this.cards, peeking: this.peeking });
+    this.ui.renderBonusBoard({
+      size: this.size,
+      kind: this.kind,
+      cards: this.cards,
+      headers: this.headers,
+      rowHeaders: this.rowHeaders,
+      colHeaders: this.colHeaders,
+      peeking: this.peeking,
+    });
   }
 }

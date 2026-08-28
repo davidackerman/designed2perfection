@@ -156,6 +156,7 @@ export class UI {
   setSimonMode(on) {
     this.el.stage.classList.toggle('simon-mode', on);
     this.el.bonusStat.classList.toggle('hidden', !on);
+    this.el.totalStat.classList.toggle('hidden', !on);
     this.el.modeBadge.classList.toggle('hidden', on);
   }
 
@@ -418,14 +419,17 @@ export class UI {
 
   /** The bonus board: rebuilt from scratch every call, same as renderBoard/
    *  renderBindings below -- there are at most 16 cards, so there's no need
-   *  to diff. Cards never show their own address -- row/column headers
-   *  around the grid are what you dial instead (see BonusGame.handleKey) --
-   *  so a face-down card is just a card, no printed hint on it. `peeking`
-   *  (the 911 cheat) shows every unmatched card's face without touching its
-   *  real revealed/matched state. */
-  renderBonusBoard({ size, cards, peeking }) {
+   *  to diff. Cards never show their own address -- a card is just a card,
+   *  no printed hint on it. `peeking` (the 911 cheat) shows every unmatched
+   *  card's face without touching its real revealed/matched state.
+   *
+   *  'shapes' rounds get one flat caption per card, sitting above it, in the
+   *  same 2x2 layout. 'alnum' rounds instead get shared row/column headers
+   *  around the grid -- see BonusGame.handleKey/pickHeaderSet. */
+  renderBonusBoard({ size, kind, cards, headers, rowHeaders, colHeaders, peeking }) {
     const el = this.el.bonusBoard;
     el.style.setProperty('--bonus-size', size);
+    el.classList.toggle('bonus-board-flat', kind === 'shapes');
     const cardHtml = (card) => {
       const flipped = peeking || card.revealed || card.matched;
       const cls = ['bonus-card', flipped && 'flipped', card.matched && 'matched']
@@ -439,11 +443,18 @@ export class UI {
         '</div></div>'
       );
     };
-    const header = (i) => `<div class="bonus-header">${i}</div>`;
-    let html = '<div class="bonus-corner"></div>' + Array.from({ length: size }, (_, c) => header(c)).join('');
-    for (let r = 0; r < size; r++) {
-      html += header(r);
-      for (let c = 0; c < size; c++) html += cardHtml(cards[r * size + c]);
+    let html;
+    if (kind === 'shapes') {
+      html = cards
+        .map((card, i) => `<div class="bonus-cell"><span class="bonus-caption">${headers[i]}</span>${cardHtml(card)}</div>`)
+        .join('');
+    } else {
+      const header = (h) => `<div class="bonus-header">${h.char}</div>`;
+      html = '<div class="bonus-corner"></div>' + colHeaders.map(header).join('');
+      for (let r = 0; r < size; r++) {
+        html += header(rowHeaders[r]);
+        for (let c = 0; c < size; c++) html += cardHtml(cards[r * size + c]);
+      }
     }
     el.innerHTML = html;
   }
