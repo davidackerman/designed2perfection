@@ -39,7 +39,7 @@ export const CONFIG = {
     interRoundMs: 900,       // pause after a correct sequence before it grows
     orientPauseMs: 1500,     // pause after the title transition before the first round plays, so it isn't sprung on you
     firstStepHoldMultiplier: 4, // the very first step after dialing in stays lit this many times as long, so the transition is unmistakable
-    bonusMax: 10,            // bonus meter ceiling; scoring TBD
+    bonusMax: 11,            // 2 (round 1) + 8 (round 2) + 1 flat point for solving round 3's JANELIA
     tones: {
       // One tone per pad, in a rough Simon-style spread across an octave-ish
       // range so they're easy to tell apart by ear.
@@ -50,17 +50,17 @@ export const CONFIG = {
     },
   },
 
-  // The bonus board: a memory-match minigame that runs live, side by side
-  // with Simon, on the number pad. Cards never show what picks them -- the
-  // grid's row/column headers do that instead -- so every round is dialed
-  // the same way: a row digit, then a column digit.
+  // The bonus board: runs live, side by side with Simon, on the number pad.
+  // Rounds 1-2 are memory-match card grids; round 3 is a hidden-word
+  // challenge (JANELIA) and the end of the progression -- see bonus.js.
   bonus: {
     resultHoldMs: 1200,  // a resolved pair (match or mismatch) stays face-up this long before it clears/flips back
     matchClearMs: 400,   // fade-out duration once a match is confirmed
     peekMs: 2000,        // the 911 cheat: how long every card flips face-up
     rounds: [
-      { size: 2, kind: 'shapes' }, // 2x2, 2 pairs of simple shapes
-      { size: 4, kind: 'alnum' },  // 4x4, 8 pairs from 0-9/A-Z, plus a faint decoy character per card back
+      { size: 2, kind: 'shapes' },  // 2x2, 2 pairs of simple shapes
+      { size: 4, kind: 'alnum' },   // 4x4, 8 pairs from 0-9/A-Z, plus a faint decoy character per card back
+      { kind: 'janelia' },         // 7 blank squares spelling JANELIA; the last round -- nothing after it
     ],
   },
 

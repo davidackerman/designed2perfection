@@ -447,6 +447,7 @@ export class UI {
    *  pickHeaderSet. */
   renderBonusBoard({ size, kind, cards, rowHeaders, colHeaders, peeking }) {
     const el = this.el.bonusBoard;
+    el.classList.remove('bonus-board-janelia');
     el.style.setProperty('--bonus-size', size);
     el.classList.toggle('bonus-board-flat', kind === 'shapes');
     const cardHtml = (card) => {
@@ -474,6 +475,39 @@ export class UI {
       }
     }
     el.innerHTML = html;
+  }
+
+  /** Round 3: seven blank squares, same idea as the title password -- dial
+   *  the right key and a square goes green and stays that way; a wrong one
+   *  resets progress to zero and flashes the whole row red (see
+   *  flashJaneliaWrong). The word itself only ever shows once every square
+   *  is green (`solved`), or transiently during the 911 peek (`peeking`). */
+  renderJanelia({ word, progress, solved, peeking }) {
+    const el = this.el.bonusBoard;
+    el.classList.remove('bonus-board-flat');
+    el.classList.add('bonus-board-janelia');
+    el.innerHTML = word
+      .split('')
+      .map((letter, i) => {
+        const good = solved || i < progress;
+        const showLetter = solved || peeking;
+        const cls = ['janelia-square', good && 'good'].filter(Boolean).join(' ');
+        return `<div class="${cls}">${showLetter ? letter : ''}</div>`;
+      })
+      .join('');
+  }
+
+  /** The "wrong" cue for round 3: same shake-and-flash-red treatment as
+   *  flashTitleWrong, applied to the whole row instead of the title card --
+   *  see BonusGame.handleJaneliaKey, which has already reset progress to 0
+   *  by the time this fires. */
+  flashJaneliaWrong() {
+    const el = this.el.bonusBoard;
+    el.classList.remove('janelia-wrong-shake');
+    void el.offsetWidth;
+    el.classList.add('janelia-wrong-shake');
+    clearTimeout(this.janeliaShakeTimer);
+    this.janeliaShakeTimer = setTimeout(() => el.classList.remove('janelia-wrong-shake'), 500);
   }
 
   /** Render one board as a table; `highlight` marks the run just played. */

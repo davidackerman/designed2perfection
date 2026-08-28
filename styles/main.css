@@ -390,6 +390,47 @@ html, body {
   opacity: 0.4;
 }
 
+/* Round 3: seven blank squares spelling a word that never shows until
+   they're all green -- see UI.renderJanelia. Same visual family as a
+   playing card (rounded, flat color) but square, not a flip-card. */
+.bonus-board.bonus-board-janelia {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 64px));
+  gap: 10px;
+  justify-content: center;
+  align-content: center;
+  height: 100%;
+}
+.janelia-square {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  box-shadow: inset 0 0 0 2px var(--line);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: clamp(14px, 4cqw, 26px);
+  color: var(--text);
+  transition: background 150ms ease, box-shadow 150ms ease;
+}
+.janelia-square.good {
+  background: var(--good);
+  box-shadow: none;
+  color: #08150c;
+}
+
+/* One mistake resets all the progress above and flashes the whole row red,
+   same shake as the title screen's wrong-digit cue -- see
+   BonusGame.handleJaneliaKey/UI.flashJaneliaWrong. */
+.bonus-board.janelia-wrong-shake {
+  animation: titleWrongShake 500ms ease;
+}
+.bonus-board.janelia-wrong-shake .janelia-square {
+  background: var(--bad) !important;
+  box-shadow: none !important;
+}
+
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }
@@ -611,6 +652,25 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
   padding: 20px;
 }
 .overlay.hidden { display: none; }
+
+/* The title screen is a shut door, not a curtain -- fully opaque, no blur
+   letting the Simon layout show through underneath. Nothing behind it is
+   visible until the code is actually dialed in, at which point
+   UI.playDoorOpen() sweeps a literal pair of doors open over it. The
+   vertical seam here just previews that same idea while it's still shut. */
+#titleOverlay {
+  background: var(--bg);
+  backdrop-filter: none;
+}
+#titleOverlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--line);
+  transform: translateX(-50%);
+}
 
 .card {
   width: min(560px, 100%);
