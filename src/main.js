@@ -106,8 +106,8 @@ function handleDigit(digit) {
   if (screen === 'playing' && !classicMode) bonusGame.handleKey(digit);
 }
 
-function handleBonusMatch() {
-  simonGame.bonus = Math.min(simonGame.bonus + 1, simonGame.bonusMax);
+function handleBonusMatch(count = 1) {
+  simonGame.bonus = Math.min(simonGame.bonus + count, simonGame.bonusMax);
   refreshBonusHud();
 }
 
@@ -169,6 +169,7 @@ function toggleClassic() {
 }
 
 function toTitle() {
+  clearTimeout(simonAutoRestartTimer);
   screen = 'title';
   titleCodeProgress = 0; // don't carry a half-typed code across screens
   ui.resetTitleDigits();
@@ -200,6 +201,7 @@ function handleAction(evt) {
 }
 
 function startGame(opts) {
+  clearTimeout(simonAutoRestartTimer);
   audio.unlock();
   screen = 'playing';
   activeGame().start(opts);
@@ -234,6 +236,8 @@ function toggleMute() {
 
 // --- scores ---------------------------------------------------------------
 
+let simonAutoRestartTimer = null;
+
 function handleGameOver(result) {
   screen = 'over';
   ui.setHud({ best: scores.best(result.mode) });
@@ -243,12 +247,20 @@ function handleGameOver(result) {
   // board to protect, so it keeps the full-screen card.
   if (result.mode === 'simon') {
     ui.showSimonOver({ ...result, best });
+    // No "press anything" any more -- the score/best flash on their own for
+    // a beat, then the next sequence just starts. A manual press (handled
+    // elsewhere, same as always) gets there sooner and clears this first.
+    clearTimeout(simonAutoRestartTimer);
+    simonAutoRestartTimer = setTimeout(() => {
+      if (screen === 'over') startGame();
+    }, CONFIG.simon.failShowMs);
   } else {
     ui.showGameOver({ ...result, best, board: scores.board(result.mode) });
   }
 }
 
 function showScores(mode = scoresTab) {
+  clearTimeout(simonAutoRestartTimer);
   scoresTab = mode;
   screen = 'scores';
   activeGame().abort();
@@ -276,6 +288,7 @@ function beginRebind(slotId) {
 }
 
 function toRemap() {
+  clearTimeout(simonAutoRestartTimer);
   screen = 'remap';
   activeGame().abort();
   bonusGame.abort();

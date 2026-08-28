@@ -6,9 +6,6 @@ const $ = (sel) => document.querySelector(sel);
 
 const OVERLAYS = ['title', 'over', 'remap', 'scores'];
 
-// What each Simon pad is called in the game-over recap.
-const PAD_LABEL = { push: 'PUSH', pull: 'PULL', soap: 'SOAP', swipe: 'SWIPE' };
-
 function formatDate(t) {
   if (!t) return '';
   return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
@@ -51,11 +48,8 @@ export class UI {
       overReason: $('#overReason'),
       overBoard: $('#overBoard'),
       simonOver: $('#simonOver'),
-      simonOverHeading: $('#simonOverHeading'),
-      simonOverReason: $('#simonOverReason'),
       simonOverScore: $('#simonOverScore'),
       simonOverBest: $('#simonOverBest'),
-      simonOverSequence: $('#simonOverSequence'),
       simonWaitHint: $('#simonWaitHint'),
       scoresBoard: $('#scoresBoard'),
       scoresStats: $('#scoresStats'),
@@ -462,37 +456,51 @@ export class UI {
    *  no printed hint on it. `peeking` (the 911 cheat) shows every unmatched
    *  card's face without touching its real revealed/matched state.
    *
-   *  'shapes' rounds are just the 2x2 of cards, nothing else -- no captions,
-   *  no headers, you dial 0-3 and work out which is which by watching what
-   *  flips. 'alnum' rounds get shared row/column headers around the grid,
-   *  since a blind 4x4 would be unreasonable -- see BonusGame.handleKey/
-   *  pickHeaderSet. */
-  renderBonusBoard({ size, kind, cards, rowHeaders, colHeaders, peeking }) {
+   *  A flat (headerless) round is just the 2x2 of cards, nothing else -- no
+   *  captions, you dial 0-3 and work out which is which by watching what
+   *  flips; that's whenever rowHeaders/colHeaders come back empty (see
+   *  BonusGame.newRound). Anything bigger gets shared row/column headers
+   *  around the grid instead, since a blind 4x4 would be unreasonable -- see
+   *  BonusGame.handleKey/pickHeaderSet. `pendingRowKey` (mid-entry, waiting
+   *  on the column half) lights up the matching row header so dialing the
+   *  second key doesn't feel like it's going nowhere; it goes out the
+   *  instant the pair actually flips, since BonusGame clears it before that
+   *  render. `kind === 'pictures'` cards show a photo instead of a glyph, and
+   *  never get a decoy character on the back -- there's no printed alnum
+   *  content to hide one among. */
+  renderBonusBoard({ size, kind, cards, rowHeaders, colHeaders, peeking, pendingRowKey }) {
     const el = this.el.bonusBoard;
     el.classList.remove('bonus-board-janelia');
     el.style.setProperty('--bonus-size', size);
-    el.classList.toggle('bonus-board-flat', kind === 'shapes');
+    const flat = !rowHeaders.length && !colHeaders.length;
+    el.classList.toggle('bonus-board-flat', flat);
     const cardHtml = (card) => {
       const flipped = peeking || card.revealed || card.matched;
       const cls = ['bonus-card', flipped && 'flipped', card.matched && 'matched']
         .filter(Boolean)
         .join(' ');
       const decoy = card.decoy ? `<span class="decoy">${card.decoy}</span>` : '';
+      const face = kind === 'pictures'
+        ? `<img src="${card.faceSymbol}" alt="" />`
+        : card.faceSymbol;
       return (
         `<div class="${cls}"><div class="bonus-card-inner">` +
         `<div class="bonus-card-back">${decoy}</div>` +
-        `<div class="bonus-card-face">${card.faceSymbol}</div>` +
+        `<div class="bonus-card-face">${face}</div>` +
         '</div></div>'
       );
     };
     let html;
-    if (kind === 'shapes') {
+    if (flat) {
       html = cards.map(cardHtml).join('');
     } else {
-      const header = (h) => `<div class="bonus-header">${h.char}</div>`;
-      html = '<div class="bonus-corner"></div>' + colHeaders.map(header).join('');
+      const header = (h, active) => {
+        const cls = ['bonus-header', active && 'bonus-header-active'].filter(Boolean).join(' ');
+        return `<div class="${cls}">${h.char}</div>`;
+      };
+      html = '<div class="bonus-corner"></div>' + colHeaders.map((h) => header(h, false)).join('');
       for (let r = 0; r < size; r++) {
-        html += header(rowHeaders[r]);
+        html += header(rowHeaders[r], rowHeaders[r].key === pendingRowKey);
         for (let c = 0; c < size; c++) html += cardHtml(cards[r * size + c]);
       }
     }
@@ -569,43 +577,17 @@ export class UI {
   /** Simon's game-over view, confined to .panel-simon instead of a
    *  full-screen overlay -- the bonus board on the left keeps running the
    *  whole time (main.js keeps routing digits to it), so nothing here
-   *  should cover it or dim the stage. Any control/key press goes again;
-   *  see main.js's handleAction/handleDigit. */
-  showSimonOver({ score, best, reason, sequence, pressed }) {
+   *  should cover it or dim the stage. Just the round's score and the best,
+   *  briefly -- main.js auto-restarts the next sequence on its own after a
+   *  couple of seconds (see CONFIG.simon.failShowMs), so there's nothing to
+   *  read here and no "press anything" to wait on any more. Any press still
+   *  short-circuits straight to the next sequence, though -- see main.js's
+   *  handleAction/handleDigit. */
+  showSimonOver({ score, best }) {
     this.setDebugExpected(null);
     this.el.simonOverScore.textContent = score;
     this.el.simonOverBest.textContent = best;
-    this.el.simonOverReason.textContent = reason;
-    this.renderSequenceRecap(sequence, pressed);
     this.el.simonOver.classList.remove('hidden');
-  }
-
-  /** The round you died on laid out against what you actually pressed, one
-   *  column per step so the two rows line up and the divergence is visible
-   *  instead of remembered. */
-  renderSequenceRecap(sequence, pressed = []) {
-    const el = this.el.simonOverSequence;
-    if (!sequence || !sequence.length) {
-      el.classList.add('hidden');
-      el.innerHTML = '';
-      return;
-    }
-    // One shared column track per step, so "You" sits under "Sequence".
-    el.style.setProperty('--steps', sequence.length);
-    const wrongAt = sequence.findIndex((id, i) => i < pressed.length && pressed[i] !== id);
-    const cell = (id, i) => {
-      // &nbsp; so a step you never reached still has a text line's height and
-      // the two rows stay level.
-      if (!id) return '<span class="seq-cell seq-none">&nbsp;</span>';
-      const bad = i === wrongAt ? ' bad' : '';
-      return `<span class="seq-cell seq-${id}${bad}">${PAD_LABEL[id] || id}</span>`;
-    };
-    el.innerHTML =
-      '<span class="seq-label">Wanted</span>' +
-      sequence.map(cell).join('') +
-      '<span class="seq-label">You</span>' +
-      sequence.map((_, i) => cell(pressed[i], i)).join('');
-    el.classList.remove('hidden');
   }
 
   showScores({ mode, board, stats, nemesis }) {

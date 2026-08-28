@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>1nc0nVeni3nt2 (test)</title>
-<meta name="description" content="Test endpoint: same Simon game, with an alternate bonus minigame -- beat the computer's even/odd guesser instead of matching cards." />
+<title>1nc0nVeni3nt (test)</title>
+<meta name="description" content="Test endpoint: same Simon game, laid out as two side-by-side games -- a picture memory board and Repeat After Me -- instead of the real page's single bonus board." />
 <link rel="stylesheet" href="styles/main.css?v=__BUILD__" />
 <link rel="icon" href="assets/img/favicon.svg" />
 </head>
@@ -18,19 +18,26 @@
     <div class="stat" id="scoreStat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
     <div class="stat" id="roundStat"><span class="stat-label">Round</span><span id="round">0</span></div>
     <div class="stat" id="bestStat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <!-- Simon-mode only, this page only: the two games' totals spelled out
+         across the top instead of tucked into one panel's corner -- see
+         main2.js's refreshTotal. -->
+    <div class="total-stat hidden" id="totalStat">
+      Game 1 <span id="totalGame1" class="panel-heading-value">0</span> +
+      Game 2 <span id="totalGame2" class="panel-heading-value">0</span> =
+      Total <span id="totalValue" class="panel-heading-value panel-heading-total-value">0</span>
+    </div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
       <button id="muteBadge" class="badge" type="button">SOUND</button>
     </div>
   </header>
 
-  <!-- eo-stacked: Simon on top (bigger) and the bonus panel underneath
-       (smaller) instead of the real page's side-by-side split -- Simon is
-       still the actual game here, the even/odd panel is just along for the
-       ride. See the #stage.simon-mode.eo-stacked rule in main.css; grid
-       auto-placement puts these in row order, so Simon has to come first
-       in the markup for that to land in the top row. -->
-  <main id="stage" class="blank idle eo-stacked">
+  <!-- test-build: page-scoped tweaks for the extra "GAME 1"/"GAME 2" tag
+       line each heading carries here, on top of the real page's usual
+       stats line -- see the #stage.simon-mode.test-build rules in
+       main.css. Otherwise this is the same side-by-side layout as the real
+       page: two equal halves, bonus board left, Simon right. -->
+  <main id="stage" class="blank idle test-build">
     <section class="panel panel-image">
       <img id="stageImage" alt="" src="assets/img/door.svg" />
     </section>
@@ -38,31 +45,31 @@
       <video id="stageWord" playsinline></video>
     </section>
 
-    <!-- Simon mode: all four pads shown at once in a 2x2 block. -->
+    <!-- Left half: a picture memory board -- the same engine as the real
+         page's bonus board (see bonus.js), just reconfigured via
+         CONFIG.memory instead of CONFIG.bonus: photos instead of shapes/
+         letters, and no decoy character on the back (nothing printed to
+         hide one among). Round 3 (JANELIA) stays in, worth more here. -->
+    <section class="panel panel-bonus">
+      <div class="panel-heading">
+        <div class="panel-heading-tag">GAME 1: MEMORY</div>
+        Matches <span id="bonusHeading" class="panel-heading-value">0/12</span>
+      </div>
+      <div id="bonusBoard" class="bonus-board"></div>
+    </section>
+
+    <!-- Right half: Simon, same as the real page -- just relabeled with its
+         own big tag line so it reads as "the other game" alongside the
+         memory board. -->
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
-        <div class="panel-heading-tag panel-heading-tag-simon">REPEAT AFTER ME</div>
+        <div class="panel-heading-tag panel-heading-tag-simon">GAME 2: REPEAT AFTER ME</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
+          Round <span id="roundHeading" class="panel-heading-value">0</span>
+          <span class="panel-heading-sep">·</span>
           Best <span id="bestHeading" class="panel-heading-value">0</span>
-          <!-- Round isn't shown here -- not meaningful enough to earn a
-               place in this heading -- but the span itself has to stay:
-               SimonGame/UI.setHud write to it every round regardless of
-               whether this page displays it. Same story for totalScore:
-               UI.setHud's shared additive bonus math writes to it on every
-               score change even though this page uses totalBest instead
-               (see main2.js) -- without it, that write throws on null. -->
-          <span id="roundHeading" class="hidden"></span>
-          <span id="totalScore" class="hidden"></span>
-        </div>
-        <!-- Best, not the live Score -- a stable, aspirational number
-             instead of one that's near-zero for most of a round. See
-             main2.js's tickEvenOddBar. -->
-        <div class="panel-heading-total">
-          Best <span id="totalBest" class="panel-heading-value">0</span>
-          <span id="totalBonus" class="panel-heading-value">&times;1.00</span> =
-          Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
         </div>
       </div>
       <div class="simon-grid">
@@ -75,48 +82,17 @@
       <div id="simonWaitHint" class="simon-wait-hint hidden">WAIT</div>
 
       <div id="simonOver" class="simon-over hidden">
-        <h2 id="simonOverHeading">OUT OF SEQUENCE</h2>
-        <p id="simonOverReason" class="reason"></p>
         <p class="bigscore"><span id="simonOverScore">0</span></p>
         <p class="tagline">Best: <span id="simonOverBest">0</span></p>
-        <div id="simonOverSequence" class="seq hidden"></div>
-        <p class="hint">Press anything to go again.</p>
       </div>
-    </section>
 
-    <!-- Test variant of the bonus panel: instead of the memory-match board
-         (see index.html/bonus.js), beat the computer's even/odd guesser --
-         see evenodd.js/main2.js. Same live-the-whole-time story: this keeps
-         running even while Simon's own panel is frozen after a wrong pad.
-         Deliberately a compact strip, not a full side panel -- Simon is the
-         actual game here. -->
-    <section class="panel panel-bonus">
-      <div class="panel-heading">
-        <div class="panel-heading-tag">OPTIONAL: BONUS SCORE MULTIPLIER</div>
-        <span id="bonusHeading" class="panel-heading-value">&times;1.00</span>
-      </div>
-      <div class="eo-board">
-        <p class="eo-instructions">
-          Press 0 or 1 before the bar runs out -- stay unpredictable. A
-          streak of 20+ without a reset locks in the bonus.
-        </p>
-        <div class="eo-row">
-          <div class="eo-col eo-timer-col">
-            <div class="eo-timerbar"><div class="eo-timerbar-fill" id="eoBar"></div></div>
-            <p class="eo-status" id="eoStatus"></p>
-          </div>
-          <div class="eo-col eo-history-col">
-            <span class="eo-guess-label">Computer vs. you</span>
-            <div class="eo-history" id="eoHistory"></div>
-          </div>
-          <div class="eo-col eo-plot-col">
-            <span class="eo-guess-label">Multiplier over time</span>
-            <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
-            <p class="eo-accuracy">Computer accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses (cumulative)</p>
-            <p class="eo-qualify" id="eoQualify"></p>
-          </div>
-        </div>
-      </div>
+      <!-- UI.setHud's shared additive-bonus branch writes to these on every
+           score change even though this page's own Total (up in #hud) is
+           computed differently -- see main2.js's refreshTotal. Kept as
+           hidden dummies purely so that write doesn't throw on null. -->
+      <span id="totalScore" class="hidden"></span>
+      <span id="totalBonus" class="hidden"></span>
+      <span id="total" class="hidden"></span>
     </section>
 
     <div id="keyHint" class="hidden">
@@ -168,7 +144,7 @@
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>M</b> mute · <b>Esc</b> quit a run · test build: even/odd bonus, not the memory board — <a href="index.html">back to the real thing</a>
+        <b>M</b> mute · <b>Esc</b> quit a run · test build: picture memory board, laid out as two side-by-side games — <a href="index.html">back to the real thing</a>
       </p>
       <p class="hint hidden" id="classicHint">
         <b>H</b> hard mode<br />
@@ -231,8 +207,8 @@
   "imports": {
     "./src/actions.js": "./src/actions.js?v=__BUILD__",
     "./src/audio.js": "./src/audio.js?v=__BUILD__",
+    "./src/bonus.js": "./src/bonus.js?v=__BUILD__",
     "./src/config.js": "./src/config.js?v=__BUILD__",
-    "./src/evenodd.js": "./src/evenodd.js?v=__BUILD__",
     "./src/game.js": "./src/game.js?v=__BUILD__",
     "./src/input.js": "./src/input.js?v=__BUILD__",
     "./src/scores.js": "./src/scores.js?v=__BUILD__",

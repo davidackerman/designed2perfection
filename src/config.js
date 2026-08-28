@@ -39,6 +39,7 @@ export const CONFIG = {
     interRoundMs: 900,       // pause after a correct sequence before it grows
     orientPauseMs: 1500,     // pause after the title transition before the first round plays, so it isn't sprung on you
     firstStepHoldMultiplier: 4, // the very first step after dialing in stays lit this many times as long, so the transition is unmistakable
+    failShowMs: 2000,        // a fail shows the round's score/best for this long, then the next sequence starts on its own -- no "press anything" needed
     bonusMax: 11,            // 2 (round 1) + 8 (round 2) + 1 flat point for solving round 3's JANELIA
     tones: {
       // One tone per pad, in a rough Simon-style spread across an octave-ish
@@ -57,6 +58,7 @@ export const CONFIG = {
     resultHoldMs: 1200,  // a resolved pair (match or mismatch) stays face-up this long before it clears/flips back
     matchClearMs: 400,   // fade-out duration once a match is confirmed
     peekMs: 2000,        // the 911 cheat: how long every card flips face-up
+    janeliaPoints: 1,    // flat bonus for solving round 3's JANELIA
     rounds: [
       { size: 2, kind: 'shapes' },  // 2x2, 2 pairs of simple shapes
       { size: 4, kind: 'alnum' },   // 4x4, 8 pairs from 0-9/A-Z, plus a faint decoy character per card back
@@ -64,9 +66,40 @@ export const CONFIG = {
     ],
   },
 
+  // Test build's own bonus board (inconvenient2.html/main2.js): the same
+  // memory-match engine (bonus.js), reconfigured -- pictures instead of
+  // shapes/letters on the cards (and no decoy character on the back, since
+  // there's no printed alnum content to hide among), and JANELIA worth more
+  // (a deliberate top-off, not just parity with the other two rounds).
+  memory: {
+    resultHoldMs: 1200,
+    matchClearMs: 400,
+    peekMs: 2000,
+    janeliaPoints: 2,
+    picturePool: [
+      'assets/img/labs/lab1.png',
+      'assets/img/labs/lab2.png',
+      'assets/img/labs/lab3.png',
+      'assets/img/labs/lab4.png',
+      'assets/img/labs/lab5.png',
+      'assets/img/labs/lab6.png',
+      'assets/img/labs/lab7.png',
+      'assets/img/labs/lab8.png',
+      'assets/img/labs/lab9.png',
+      'assets/img/labs/lab10.png',
+    ],
+    rounds: [
+      { size: 2, kind: 'pictures' },
+      { size: 4, kind: 'pictures' },
+      { kind: 'janelia' },
+    ],
+  },
+
   // Alternate bonus minigame, tried out at inconvenient2.html/main2.js
   // instead of the memory-match board: beat the computer's even/odd guesser.
-  // Score multiplier, not a flat bonus -- see src/evenodd.js.
+  // Score multiplier, not a flat bonus -- see src/evenodd.js. Not currently
+  // wired up to any page (superseded by the memory board above), but left
+  // in place in case it's worth revisiting.
   evenOdd: {
     entryWindowMs: 5000,          // must enter a digit within this window, or the run's multiplier resets to min
     historyLen: 20,                 // how many recent guesses the on-screen log shows -- display cap only; accuracy/multiplier are cumulative since the last reset, not windowed to this

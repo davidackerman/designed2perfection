@@ -1,22 +1,27 @@
 // The bonus board: runs live, side by side with Simon, on the number pad.
+// Reused as-is by two different pages with two different configs (see the
+// `config` constructor option, defaulting to CONFIG.bonus for the real
+// page) -- inconvenient2.html/main2.js passes CONFIG.memory instead, for a
+// picture-card variant. Everything below is generic over that config.
 //
-// Round 1 (2x2, shapes) is dialed with one flat digit per card, 0-3, plain
-// and sequential -- it's the trivial onboarding round. Round 2 on (4x4,
-// alnum) is dialed with a row key then a column key, read off headers
-// around the grid rather than printed on any card. Those headers are a
-// random, non-repeating draw of phone-keypad keys, one random character
-// (the bare digit, or one of its letters) per key -- see pickHeaderSet --
-// so within either axis, no two headers ever share a key: a single
-// keystroke per axis is always enough, no second "which letter on this
-// key" digit needed, unlike a phone's own multi-tap entry.
+// A 2x2 round (any kind) is dialed with one flat digit per card, 0-3, plain
+// and sequential -- it's the trivial onboarding round. Anything bigger is
+// dialed with a row key then a column key, read off headers around the grid
+// rather than printed on any card. Those headers are a random, non-repeating
+// draw of phone-keypad keys, one random character (the bare digit, or one of
+// its letters) per key -- see pickHeaderSet -- so within either axis, no two
+// headers ever share a key: a single keystroke per axis is always enough, no
+// second "which letter on this key" digit needed, unlike a phone's own
+// multi-tap entry. The row key stays highlighted the moment it's entered, so
+// dialing the column key doesn't feel like it's going nowhere -- it clears
+// itself the instant the pair actually flips (see handleKey/render).
 //
-// Round 3 is the last stage: seven gray squares, never labeled, that spell
-// a hidden word (JANELIA) once solved. Dial the phone key for each letter
-// in order -- same shape as the title-screen password (per-square green,
-// one mistake resets and flashes the whole thing red), except the word
-// itself is never shown until you've actually gotten there. Solving it is
-// worth a single flat bonus point and ends the progression; nothing comes
-// after round 3.
+// A 'janelia' round is the odd one out: seven gray squares, never labeled,
+// that spell a hidden word (JANELIA) once solved. Dial the phone key for each
+// letter in order -- same shape as the title-screen password (per-square
+// green, one mistake resets and flashes the whole thing red), except the
+// word itself is never shown until you've actually gotten there. Solving it
+// is worth config.janeliaPoints (a flat bonus, not per letter).
 
 import { CONFIG } from './config.js';
 
@@ -49,8 +54,8 @@ function pairedSymbols(pool, pairCount) {
   return shuffled([...picked, ...picked]);
 }
 
-function roundFor(index) {
-  const rounds = CONFIG.bonus.rounds;
+function roundFor(config, index) {
+  const rounds = config.rounds;
   return rounds[Math.min(index, rounds.length - 1)];
 }
 
@@ -68,10 +73,11 @@ function pickHeaderSet(size) {
 }
 
 export class BonusGame {
-  constructor({ ui, audio, onMatch }) {
+  constructor({ ui, audio, onMatch, config = CONFIG.bonus }) {
     this.ui = ui;
     this.audio = audio;
     this.onMatch = onMatch;
+    this.config = config;
     this.active = false;
     this.peeking = false;
     this.locked = false;
@@ -89,7 +95,7 @@ export class BonusGame {
   }
 
   newRound(index) {
-    const { size, kind } = roundFor(index);
+    const { size, kind } = roundFor(this.config, index);
     this.size = size;
     this.kind = kind;
     this.revealedPositions = [];
@@ -105,9 +111,10 @@ export class BonusGame {
     }
 
     const n = size * size;
-    const faces = kind === 'shapes'
-      ? pairedSymbols(SHAPES, n / 2)
-      : pairedSymbols(ALNUM, n / 2);
+    const pool = kind === 'shapes' ? SHAPES
+      : kind === 'pictures' ? this.config.picturePool
+      : ALNUM;
+    const faces = pairedSymbols(pool, n / 2);
     this.cards = faces.map((faceSymbol, pos) => {
       let decoy = null;
       if (kind === 'alnum') {
@@ -116,7 +123,9 @@ export class BonusGame {
       }
       return { pos, faceSymbol, decoy, revealed: false, matched: false };
     });
-    if (kind === 'alnum') {
+    // A flat 2x2 is dialed with one digit per card, no headers needed --
+    // anything bigger needs a row key then a column key (see handleKey).
+    if (size > 2) {
       this.rowHeaders = pickHeaderSet(size);
       this.colHeaders = pickHeaderSet(size);
     } else {
@@ -165,7 +174,7 @@ export class BonusGame {
     }
     if (this.locked) return;
 
-    if (this.kind === 'shapes') {
+    if (this.size === 2) {
       const pos = Number(digit);
       if (!Number.isInteger(pos) || pos < 0 || pos >= this.cards.length) return;
       this.reveal(pos);
@@ -174,6 +183,7 @@ export class BonusGame {
 
     if (this.pendingRowKey === null) {
       this.pendingRowKey = digit;
+      this.render(); // highlight the row header while its column is still pending
       return;
     }
     const rowKey = this.pendingRowKey;
@@ -181,7 +191,10 @@ export class BonusGame {
     this.pendingRowKey = null;
     const row = this.rowHeaders.findIndex((h) => h.key === rowKey);
     const col = this.colHeaders.findIndex((h) => h.key === colKey);
-    if (row === -1 || col === -1) return;
+    if (row === -1 || col === -1) {
+      this.render(); // clear the now-stale row highlight even on a bad combo
+      return;
+    }
     this.reveal(row * this.size + col);
   }
 
@@ -197,7 +210,7 @@ export class BonusGame {
       if (this.janeliaProgress === JANELIA_KEYS.length) {
         this.janeliaSolved = true;
         this.audio.playTone(880, 160); // same chime as a card match
-        this.onMatch(); // a single flat bonus point, not one per letter
+        this.onMatch(this.config.janeliaPoints ?? 1); // a single flat bonus, not one per letter
       } else {
         this.audio.playTone(520, 90); // same tone as a single card reveal
       }
@@ -245,13 +258,13 @@ export class BonusGame {
         this.newRound(this.roundIndex);
       }
       this.render();
-    }, CONFIG.bonus.resultHoldMs);
+    }, this.config.resultHoldMs);
   }
 
   /** The 911 cheat: every unmatched card flips face-up for a beat (or, in
    *  round 3, every square shows its letter), purely a look -- no
    *  reveal/matched/progress state actually changes underneath it. */
-  peekAll(ms = CONFIG.bonus.peekMs) {
+  peekAll(ms = this.config.peekMs) {
     if (!this.active) return;
     this.peeking = true;
     this.render();
@@ -280,6 +293,7 @@ export class BonusGame {
       rowHeaders: this.rowHeaders,
       colHeaders: this.colHeaders,
       peeking: this.peeking,
+      pendingRowKey: this.pendingRowKey,
     });
   }
 }

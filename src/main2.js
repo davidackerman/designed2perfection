@@ -1,13 +1,18 @@
 // Test entry point (inconvenient2.html): identical to main.js except the
-// bonus board (bonus.js, a memory-match minigame) is swapped for an
-// even/odd guesser (evenodd.js). Everything else -- Simon, classic mode,
-// the title password, high scores, debug mode -- is the same code, just
-// duplicated here rather than parameterizing main.js for a one-off try.
+// two games are laid out side by side and separately labeled ("GAME 1:
+// MEMORY" / "GAME 2: REPEAT AFTER ME") instead of sharing one HUD, the
+// bonus board is a picture-card variant of the same engine (see bonus.js's
+// `config` option -- this page passes CONFIG.memory instead of
+// CONFIG.bonus), and the two games' totals are spelled out across the top
+// instead of tucked into one panel's corner. Everything else -- Simon,
+// classic mode, the title password, high scores, debug mode -- is the same
+// code, just duplicated here rather than parameterizing main.js for a
+// one-off try.
 
 import { UI } from './ui.js';
 import { Game, STATE } from './game.js';
 import { SimonGame } from './simon.js';
-import { EvenOddGame } from './evenodd.js';
+import { BonusGame } from './bonus.js';
 import { AudioManager } from './audio.js';
 import { Input, allBindingSlots } from './input.js';
 import { CONFIG } from './config.js';
@@ -18,139 +23,40 @@ const audio = new AudioManager();
 const scores = new ScoreStore();
 const reflexGame = new Game({ ui, audio, scores, onGameOver: handleGameOver });
 const simonGame = new SimonGame({ ui, audio, scores, onGameOver: handleGameOver });
-// Lives on the left half of the Simon screen, worked with the number pad
-// while push/pull/soap/swipe drive Simon on the right -- see evenodd.js.
-const evenOddGame = new EvenOddGame({ audio, onUpdate: renderEvenOdd });
+// Game 1: the picture memory board -- same engine as the real page's bonus
+// board, just handed CONFIG.memory instead of CONFIG.bonus.
+const bonusGame = new BonusGame({ ui, audio, onMatch: handleBonusMatch, config: CONFIG.memory });
 
-// Direct DOM refs for the even/odd panel -- kept local to this file rather
-// than added to the shared UI class, since this whole panel only exists on
-// this test page. The Best/Multiplier/Total line reuses index.html's
-// totalScore/totalBonus/total ids (renamed totalBest here -- see
-// UI.el/inconvenient2.html), but this page writes them directly instead of
-// going through ui.setHud's additive bonus math -- that math assumes a flat
-// bonus added to score, not a multiplier applied to Best.
-const eo = {
-  bar: document.querySelector('#eoBar'),
-  status: document.querySelector('#eoStatus'),
-  history: document.querySelector('#eoHistory'),
-  plot: document.querySelector('#eoPlot'),
-  accuracy: document.querySelector('#eoAccuracy'),
-  count: document.querySelector('#eoCount'),
-  qualify: document.querySelector('#eoQualify'),
-  multiplierHeading: document.querySelector('#bonusHeading'),
-  totalBest: document.querySelector('#totalBest'),
-  totalMultiplier: document.querySelector('#totalBonus'),
-  total: document.querySelector('#total'),
+// How many matches (including the JANELIA bonus) a complete run of
+// CONFIG.memory's rounds is worth -- see handleBonusMatch/refreshTotal.
+const MATCH_MAX = CONFIG.memory.rounds.reduce((sum, r) => {
+  return r.kind === 'janelia' ? sum + (CONFIG.memory.janeliaPoints ?? 1) : sum + (r.size * r.size) / 2;
+}, 0);
+let matches = 0;
+
+// Direct DOM refs for this page's own Total banner -- kept local here
+// rather than added to the shared UI class, since it only exists on this
+// test page (see #totalStat/inconvenient2.html). Game 1 is the memory
+// board's match count, Game 2 is Simon's Best (a stable, aspirational
+// number instead of the live, near-zero-most-of-the-round Score).
+const totalEls = {
+  game1: document.querySelector('#totalGame1'),
+  game2: document.querySelector('#totalGame2'),
+  value: document.querySelector('#totalValue'),
 };
 
-let currentMultiplier = CONFIG.evenOdd.multiplierMin;
-
-function formatMultiplier(m) {
-  return `×${m.toFixed(2)}`;
-}
-
-// digit ('0'/'1') is what's actually pressed and what the computer's oracle
-// actually predicts -- see EvenOddGame's 'even'/'odd' labels, which are just
-// that same bit spelled out for the rest of the code. No separate live
-// "computer's guess" reveal here -- the guess-vs-you log below already
-// shows the computer's call for every guess the moment it resolves, so a
-// second big display of the same thing would just be redundant.
-function bit(parity) {
-  return parity === 'even' ? '0' : '1';
-}
-
-function renderEvenOdd(state) {
-  currentMultiplier = state.multiplier;
-  eo.accuracy.textContent = state.accuracy === null ? '—' : `${Math.round(state.accuracy * 100)}%`;
-  eo.count.textContent = state.totalGuesses;
-  eo.multiplierHeading.textContent = formatMultiplier(state.multiplier);
-  // The multiplier doesn't apply to your score until you've sustained
-  // qualifyGuesses guesses since the last reset -- see
-  // EvenOddGame.updateMultiplier_. Below that, say so plainly rather than
-  // leaving it a mystery why a good run's accuracy isn't moving the total.
-  eo.qualify.textContent = state.qualified
-    ? ''
-    : `Bonus locks in at ${state.qualifyGuesses} guesses without a reset (${state.totalGuesses}/${state.qualifyGuesses})`;
-  renderHistory(state.history);
-  renderMultiplierPlot(state.multiplierLog, state.multiplierMin, state.multiplierMax);
-
-  if (state.timedOut) {
-    eo.status.textContent = `Too slow — multiplier reset to ${formatMultiplier(CONFIG.evenOdd.multiplierMin)}.`;
-    eo.status.className = 'eo-status eo-timeout';
-  } else {
-    eo.status.textContent = '';
-    eo.status.className = 'eo-status';
-  }
-}
-
-/** Two aligned rows, oldest to newest left to right -- same idea as Simon's
- *  own "Wanted vs. You" game-over recap (UI.renderSequenceRecap): a
- *  "Computer" row and a "You" row sharing one column per guess, rather than
- *  a row of two-line boxes, which read as an ambiguous second row wrapping
- *  underneath the first instead of "these two line up". Every cell for a
- *  given guess (both rows) shares one color: red-tinted if the computer got
- *  it right (bad for you), green-tinted if it didn't (good for you).
- *  Rebuilt from scratch each call, same "no diffing" convention as
- *  UI.renderBonusBoard -- at most historyLen (20) columns. */
-function renderHistory(history) {
-  eo.history.style.setProperty('--eo-steps', Math.max(history.length, 1));
-  const cell = (h, parity) => {
-    const cls = h.correct ? 'eo-history-cell eo-hist-right' : 'eo-history-cell eo-hist-wrong';
-    return `<span class="${cls}">${bit(parity)}</span>`;
-  };
-  eo.history.innerHTML =
-    '<span class="eo-history-label">Computer</span>' +
-    history.map((h) => cell(h, h.guess)).join('') +
-    '<span class="eo-history-label">You</span>' +
-    history.map((h) => cell(h, h.actual)).join('');
-}
-
-/** A running line plot of the multiplier over the run so far, oldest to
- *  newest (x axis: running guess count) -- see EvenOddGame.multiplierLog.
- *  Y axis is fixed to [multiplierMin, multiplierMax] (labeled directly on
- *  the chart), not autoscaled, so the line's height is directly comparable
- *  across the whole run. */
-function renderMultiplierPlot(log, min, max) {
-  if (log.length < 2) {
-    eo.plot.innerHTML = '';
-    return;
-  }
-  const w = 200;
-  const h = 50;
-  const padLeft = 14; // room for the axis labels below
-  const padY = 7;
-  const plotW = w - padLeft;
-  const plotH = h - padY * 2;
-  const points = log
-    .map((v, i) => {
-      const x = padLeft + (i / (log.length - 1)) * plotW;
-      const norm = (v - min) / (max - min);
-      const y = padY + (1 - norm) * plotH;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
-  eo.plot.innerHTML =
-    `<text x="1" y="${padY + 3}" class="eo-plot-axis">${max}&times;</text>` +
-    `<text x="1" y="${h - padY + 3}" class="eo-plot-axis">${min}&times;</text>` +
-    `<polyline class="eo-plot-line" points="${points}" />`;
-}
-
-// Redraws the countdown bar and the Best x Multiplier = Total line every
-// frame, rather than having evenOddGame (which has no idea what Simon's
-// best is) or SimonGame (which has no idea about the multiplier) push a
-// render whenever the other one's value changes.
-function tickEvenOddBar() {
-  if (evenOddGame.active) {
-    const frac = evenOddGame.msRemaining() / CONFIG.evenOdd.entryWindowMs;
-    eo.bar.style.width = `${Math.max(0, Math.min(1, frac)) * 100}%`;
-  }
+function refreshTotal() {
   const best = Number(ui.el.bestHeading.textContent) || 0;
-  eo.totalBest.textContent = best;
-  eo.totalMultiplier.textContent = formatMultiplier(currentMultiplier);
-  eo.total.textContent = (best * currentMultiplier).toFixed(1);
-  requestAnimationFrame(tickEvenOddBar);
+  ui.el.bonusHeading.textContent = `${matches}/${MATCH_MAX}`;
+  totalEls.game1.textContent = `${matches}/${MATCH_MAX}`;
+  totalEls.game2.textContent = best;
+  totalEls.value.textContent = best + matches;
 }
-requestAnimationFrame(tickEvenOddBar);
+
+function handleBonusMatch(count = 1) {
+  matches = Math.min(matches + count, MATCH_MAX);
+  refreshTotal();
+}
 
 let classicMode = localStorage.getItem(CONFIG.storage.classicMode) === '1';
 const activeGame = () => (classicMode ? reflexGame : simonGame);
@@ -182,14 +88,14 @@ for (let i = 0; i <= 9; i++) {
 }
 
 function handleDigit(digit) {
-  // Game over: a wrong pad only freezes the Simon side -- the even/odd panel
+  // Game over: a wrong pad only freezes the Simon side -- the memory board
   // keeps running the whole time, so digits still drive it here exactly
   // like mid-run. It's only a control or key press that means "go again"
   // for Simon; see handleAction and the global keydown handler below.
-  // Classic has no bonus panel, so there a digit just goes again too.
+  // Classic has no bonus board, so there a digit just goes again too.
   if (screen === 'over') {
     if (classicMode) startGame();
-    else evenOddGame.handleKey(digit);
+    else bonusGame.handleKey(digit);
     return;
   }
 
@@ -199,10 +105,8 @@ function handleDigit(digit) {
   if (answerKeyBuffer === ANSWER_KEY_CODE) {
     answerKeyBuffer = '';
     if (screen === 'title') ui.showAnswerToast('Title code', TITLE_CODE);
-    // Nothing is hidden on the even/odd board the way a card's face is --
-    // the operator cheat here is just showing the computer's live guess.
-    else if (evenOddGame.active) ui.showAnswerToast('Computer guess', bit(evenOddGame.guess));
-    return; // this keystroke dialed 911 -- don't also feed it to the title code or the bonus panel
+    bonusGame.peekAll(); // also flash the memory board's hidden faces, for whoever's running it
+    return; // this keystroke dialed 911 -- don't also feed it to the title code or the bonus board
   }
 
   if (screen === 'title') {
@@ -227,9 +131,9 @@ function handleDigit(digit) {
     return;
   }
 
-  // Mid-run, in Simon mode: the number pad drives the even/odd panel instead.
-  // Classic mode has no bonus panel; the digit means nothing.
-  if (screen === 'playing' && !classicMode) evenOddGame.handleKey(digit);
+  // Mid-run, in Simon mode: the number pad drives the memory board instead.
+  // Classic mode has no bonus board; the digit means nothing.
+  if (screen === 'playing' && !classicMode) bonusGame.handleKey(digit);
 }
 
 const slots = allBindingSlots();
@@ -265,14 +169,9 @@ function applyModeUI() {
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
-  currentMultiplier = CONFIG.evenOdd.multiplierMin;
-  eo.multiplierHeading.textContent = formatMultiplier(currentMultiplier);
-  eo.history.innerHTML = '';
-  eo.plot.innerHTML = '';
-  eo.accuracy.textContent = '—';
-  eo.count.textContent = '0';
-  eo.qualify.textContent = '';
-  eo.status.textContent = '';
+  document.querySelector('#totalStat').classList.toggle('hidden', classicMode);
+  matches = 0;
+  refreshTotal();
 }
 
 function toggleClassic() {
@@ -283,11 +182,12 @@ function toggleClassic() {
 }
 
 function toTitle() {
+  clearTimeout(simonAutoRestartTimer);
   screen = 'title';
   titleCodeProgress = 0;
   ui.resetTitleDigits();
   activeGame().abort();
-  evenOddGame.abort();
+  bonusGame.abort();
   ui.showOverlay('title');
   audio.playMusic('song');
 }
@@ -305,10 +205,14 @@ function handleAction(evt) {
 }
 
 function startGame(opts) {
+  clearTimeout(simonAutoRestartTimer);
   audio.unlock();
   screen = 'playing';
   activeGame().start(opts);
-  if (!classicMode) evenOddGame.start();
+  if (!classicMode) {
+    bonusGame.start();
+    refreshTotal();
+  }
 }
 
 function toggleHard() {
@@ -335,22 +239,33 @@ function toggleMute() {
 
 // --- scores ---------------------------------------------------------------
 
+let simonAutoRestartTimer = null;
+
 function handleGameOver(result) {
   screen = 'over';
   ui.setHud({ best: scores.best(result.mode) });
   const best = scores.best(result.mode);
+  refreshTotal();
   if (result.mode === 'simon') {
     ui.showSimonOver({ ...result, best });
+    // No "press anything" any more -- the score/best flash on their own for
+    // a beat, then the next sequence just starts. A manual press (handled
+    // elsewhere, same as always) gets there sooner and clears this first.
+    clearTimeout(simonAutoRestartTimer);
+    simonAutoRestartTimer = setTimeout(() => {
+      if (screen === 'over') startGame();
+    }, CONFIG.simon.failShowMs);
   } else {
     ui.showGameOver({ ...result, best, board: scores.board(result.mode) });
   }
 }
 
 function showScores(mode = scoresTab) {
+  clearTimeout(simonAutoRestartTimer);
   scoresTab = mode;
   screen = 'scores';
   activeGame().abort();
-  evenOddGame.abort();
+  bonusGame.abort();
   ui.showScores({
     mode,
     board: scores.board(mode),
@@ -374,9 +289,10 @@ function beginRebind(slotId) {
 }
 
 function toRemap() {
+  clearTimeout(simonAutoRestartTimer);
   screen = 'remap';
   activeGame().abort();
-  evenOddGame.abort();
+  bonusGame.abort();
   drawBindings();
   ui.showOverlay('remap');
 }
@@ -487,9 +403,9 @@ window.addEventListener('keydown', (e) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     activeGame().pause();
-    evenOddGame.pause();
+    bonusGame.pause();
   } else {
     activeGame().resume();
-    evenOddGame.resume();
+    bonusGame.resume();
   }
 });

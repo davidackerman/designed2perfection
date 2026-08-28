@@ -19,16 +19,17 @@ A pad pressed during playback or the gap between rounds costs nothing, but
 isn't silently swallowed either — a brief "WAIT" pulses over the pads so it
 reads as "hang on" rather than "did that even register?".
 
-When a run ends, only the Simon side freezes — a card confined to that half
-of the screen lays the round you died on against what you actually pressed,
-step by step, so you can see where the two parted company. The bonus board
-on the other half keeps running the entire time, so a wrong pad doesn't cost
-you a card you were mid-match on. There's no "go again" button to hunt for
-and no "new team" reset on offer — score and bonus always carry over from
-your best run so far, and pressing any control or key just starts the next
-sequence. `Esc` is the one exception: that backs out to the menu instead. The
-number pad is the other exception, in Simon mode — a digit keeps driving the
-still-live bonus board rather than restarting Simon.
+When a run ends, only the Simon side freezes — briefly: the round's score
+and your best flash on their own for a couple of seconds, then the next
+sequence just starts, no keypress needed. The bonus board on the other half
+keeps running the entire time, so a wrong pad doesn't cost you a card you
+were mid-match on. There's no "go again" button to hunt for and no "new
+team" reset on offer either — score and bonus always carry over from your
+best run so far, and pressing any control or key during that brief pause
+just skips the wait and gets there sooner. `Esc` is the one exception: that
+backs out to the menu instead. The number pad is the other exception, in
+Simon mode — a digit keeps driving the still-live bonus board rather than
+restarting Simon.
 
 High-score entry is disabled for now: a run's score/best still show on the
 game-over card, but nothing prompts for initials or gets added to the board.
@@ -39,57 +40,45 @@ on the title screen (off by default).
 ### Alternate bonus test build
 
 [`inconvenient2.html`](inconvenient2.html) (linked from the real title
-screen's hint line) is a test endpoint for trying out a different, explicitly
-**optional** bonus minigame in place of the memory-match board: beat the
-computer's even/odd guesser. Simon is still the actual game and takes visual
-precedence here — it sits on top and larger, labeled in big letters, with the
-bonus panel underneath as a compact strip rather than an equal half of the
-screen.
+screen's hint line) is a test endpoint for a picture-card variant of the
+same memory-match engine, laid out as two clearly separate, equally-billed
+games side by side instead of one game plus a bonus board: **Game 1:
+Memory** on the left, **Game 2: Repeat After Me** (the same Simon engine)
+on the right — each panel carries its own big tag line saying so.
 
-Every few seconds you press 0 or 1 on the number pad — restricted to just
-those two, not any digit, since a two-way choice is harder to disguise than
-picking freely among ten. The computer has already locked in a guess of
-which, using an ["Aaronson Oracle"](src/evenodd.js) — an ensemble of
-finite-context predictors (it looks for patterns over your last 1 to 5
-entries), each judged on its own accuracy so far, with whichever one's
-currently most accurate put in charge of the next guess. That guess stays
-hidden until you press — showing it up front would make "press the
-opposite" an unbeatable strategy — and there's no separate reveal once you
-do, either: a two-row "Computer"/"You" log immediately shows both for every
-guess (not just the last one), one column per guess so it's unambiguous
-which entry answers which, plus a running plot of the resulting score
-multiplier with its ×1–×2 range labeled on the y axis. Computer accuracy
-and the multiplier are both cumulative since the last reset — a long run's
-numbers reflect the whole run, not just its most recent guesses (only the
-on-screen log itself is capped, for space, at the most recent 20).
+Game 1 reuses [`src/bonus.js`](src/bonus.js) wholesale, just reconfigured
+(`CONFIG.memory` instead of `CONFIG.bonus`) with photos in place of shapes
+and letters: round 1 is a plain 2x2 dialed with one flat digit per card,
+round 2 is a 4x4 dialed with a row key then a column key (row before
+column is the standard convention here — same as a matrix's `[row][col]`
+or a spreadsheet's `R1C1`), and round 3 is the hidden-word JANELIA
+challenge, worth **+2** on this page instead of the real page's +1.
+Nothing is printed on a card's back — no decoy character either, since
+there's no alnum content to hide one among, just the photo once it's
+flipped. Dialing the row key lights that row's header up and leaves it lit
+while the column key is still pending, so the second keystroke doesn't
+feel like it went nowhere; it goes dark again the instant the pair actually
+flips.
 
-That multiplier defaults to ×1 (neutral), climbs toward ×2 once the
-computer's wrong 60%+ of the time (actually beaten, not just at a coin
-flip), and falls back toward ×1 once it's reading you 75%+ of the time —
-applied to your **Best** score, not your current round's live one (a more
-stable, aspirational number than one that's near-zero for most of a
-round). Missing the entry window resets the multiplier back to ×1,
-silently; there's no sound on a timeout, since one was easy to mistake for
-one of the per-guess right/wrong tones.
+Game 2 is Simon exactly as it is on the real page. The two games' totals
+are spelled out together across the very top of the screen instead of
+tucked into either panel's corner: `Game 1 <matches>/<max> + Game 2 <best>
+= Total`. Game 1's number is how many pairs have been matched so far
+(capped at 12: 2 + 8 + 2); Game 2's is Simon's **Best**, not the live,
+near-zero-most-of-the-round Score.
 
-It doesn't actually count toward your total, though, until you've sustained
-20 guesses since the last reset — short of that the applied multiplier
-stays pinned at ×1 no matter how well you're doing (a note under the plot
-spells out the countdown, e.g. `Bonus locks in at 20 guesses (14/20)`), and
-a timeout before then costs nothing because nothing was locked in yet.
-Cross 20 and the live number starts applying from that guess on, continuously,
-same as it does after.
+Everything else — Simon itself, classic mode, the title password, high
+scores — is identical to the real page, including the title screen: the
+heading reads the same `1nc0nVeni3nt`, deliberately without a trailing
+"2", so it doesn't read as one more digit of the number-pad code (both
+title screens spell out **Passcode:** above the dots). See
+[`src/main2.js`](src/main2.js).
 
-Simon takes clear visual precedence on this page — relabeled "Repeat After
-Me" in large type, sitting above the bonus panel (a compact strip, not an
-equal half of the screen) and sized larger than on the real page. Everything
-else (Simon itself, classic mode, the title password, high scores) is
-identical to the real page — including the title screen itself: the
-heading reads the same
-`1nc0nVeni3nt`, deliberately without a trailing "2", so it doesn't read as
-one more digit of the number-pad code (both title screens now also spell
-out **Passcode:** above the dots). See [`src/evenodd.js`](src/evenodd.js)
-and [`src/main2.js`](src/main2.js).
+An earlier round of this test build tried a completely different bonus
+minigame instead — beating a computer's even/odd guesser via an
+["Aaronson Oracle"](src/evenodd.js) predictor — shelved for now in favor
+of the picture board above, but left in the repo in case it's worth
+revisiting.
 
 ## The five commands (Classic mode)
 
@@ -231,8 +220,9 @@ python3 -m http.server 8000
 | [`src/scores.js`](src/scores.js) | High score boards, stats, and the storage backend |
 | [`src/audio.js`](src/audio.js) | Sound manifest, playback, and Simon's synthesized tones |
 | [`src/ui.js`](src/ui.js) | All DOM writes |
-| [`src/evenodd.js`](src/evenodd.js) | Test build's alternate bonus minigame: beat the computer's even/odd guesser |
-| [`src/main2.js`](src/main2.js) / [`inconvenient2.html`](inconvenient2.html) | Entry point for the even/odd test build |
+| [`src/bonus.js`](src/bonus.js) | The memory-match bonus board -- config-driven, shared by the real page (`CONFIG.bonus`) and the test build (`CONFIG.memory`) |
+| [`src/main2.js`](src/main2.js) / [`inconvenient2.html`](inconvenient2.html) | Entry point for the picture-card test build |
+| [`src/evenodd.js`](src/evenodd.js) | Shelved alternate bonus minigame (beat the computer's even/odd guesser), not currently wired to any page |
 | [`assets/img/`](assets/img/) | Placeholder SVG art (Classic) and photos of the actual hardware (Simon pads) |
 | [`assets/audio/`](assets/audio/) | Empty; see its README for the expected filenames |
 | [`HARDWARE.md`](HARDWARE.md) | Wiring the physical cabinet as a USB keyboard |

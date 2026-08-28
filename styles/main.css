@@ -147,19 +147,6 @@ html, body {
 #stage:not(.simon-mode) .panel-simon,
 #stage:not(.simon-mode) .panel-bonus { display: none; }
 
-/* inconvenient2.html only: Simon is the actual game and takes precedence,
-   so it sits on top and gets most of the height; the even/odd bonus panel
-   is a compact strip underneath instead of an equal side-by-side half. See
-   the eo-stacked class on that page's #stage -- Simon has to come first in
-   its markup for grid auto-placement to land it in the first (top) row. */
-#stage.simon-mode.eo-stacked {
-  grid-template-columns: 1fr;
-  /* Simon is the real game and gets the bulk of the height -- the bonus
-     panel's own content is a short, compact strip (no separate guess
-     reveal any more, see .eo-timer-col), so it doesn't need much. */
-  grid-template-rows: 2fr 1.25fr;
-}
-
 /* Which half is which: the live Score comes from Simon on the right, the
    live Bonus count from the cards on the left -- each shown right in its
    own heading instead of the top HUD. Total, still up in the HUD, is just
@@ -228,15 +215,16 @@ html, body {
   container-type: size;
 }
 
-/* inconvenient2.html: the heading here carries a third, much larger line
-   (the big "SIMON" label, see .panel-heading-tag-simon) above the usual
-   two -- needs more reserved headroom than the real page's heading, or it
-   overlaps the pads/the confined game-over card underneath it. */
-#stage.simon-mode.eo-stacked .panel-simon {
-  padding-top: 100px;
+/* inconvenient2.html: the heading here carries an extra "GAME 2: REPEAT
+   AFTER ME" tag line (see .panel-heading-tag-simon) above the usual
+   Score/Round/Best -- needs a bit more reserved headroom than the real
+   page's heading, or it overlaps the pads/the confined game-over card
+   underneath it. */
+#stage.simon-mode.test-build .panel-simon {
+  padding-top: 92px;
 }
-#stage.simon-mode.eo-stacked .simon-over {
-  padding-top: 100px;
+#stage.simon-mode.test-build .simon-over {
+  padding-top: 92px;
 }
 
 .simon-grid {
@@ -256,15 +244,6 @@ html, body {
   /* Deliberately no overflow: hidden -- .simon-pad's min-width/min-height: 0
      below is what keeps the tracks from overflowing, and clipping here would
      cut the glow and the scaled-up lit pad off at the edges. */
-}
-
-/* inconvenient2.html: Simon's panel now gets most of the stage's height
-   (see #stage.simon-mode.eo-stacked above), and the 560px cap was leaving
-   a lot of that unused -- loosen it here, scoped to this page only, so the
-   grid actually grows into the room it's been given instead of floating in
-   empty space. */
-#stage.simon-mode.eo-stacked .simon-grid {
-  --w: min(95cqw, 88cqh, 820px);
 }
 
 /* Placement is explicit rather than source-order, so re-ordering the markup
@@ -395,6 +374,18 @@ html, body {
   font-size: clamp(11px, 3.5cqw, 17px);
   color: var(--dim);
   letter-spacing: 0.06em;
+  border-radius: 4px;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+/* The row key, lit the moment it's dialed and left that way while its
+   column half is still pending -- otherwise there's no feedback at all
+   between the two keystrokes. Goes out the instant the pair actually flips
+   (BonusGame clears pendingRowKey right before that render) -- see
+   BonusGame.handleKey/render. */
+.bonus-header-active {
+  color: var(--bg);
+  background: var(--accent);
 }
 
 /* Round 1: no headers, no captions -- just the 2x2 of cards. You dial 0-3
@@ -464,6 +455,16 @@ html, body {
   font-size: clamp(16px, 6cqw, 34px);
   color: var(--accent);
   transform: rotateY(180deg);
+  overflow: hidden;
+}
+
+/* 'pictures' rounds (inconvenient2.html/CONFIG.memory): a photo fills the
+   whole face instead of a glyph -- see UI.renderBonusBoard. */
+.bonus-card-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 /* Faint distractor character in the corner, like a card's index -- unrelated
@@ -520,12 +521,11 @@ html, body {
   box-shadow: none !important;
 }
 
-/* A small caps label identifying which side is which -- only used on the
-   inconvenient2.html test build, where the bonus panel isn't a card board
-   any more so it needs its own name spelled out ("BONUS SCORE
-   MULTIPLIER"). Simon's own label (.panel-heading-tag-simon below) is
-   bumped up much larger -- Simon is the actual game here and the bonus
-   panel underneath it is deliberately secondary. */
+/* A small caps label identifying which panel is which -- only used on the
+   inconvenient2.html test build, which labels the two games "GAME 1:
+   MEMORY" / "GAME 2: REPEAT AFTER ME" instead of leaving Simon unlabeled.
+   Simon's own label (.panel-heading-tag-simon below) is bumped up larger,
+   matching the emphasis its heading already had on the real page. */
 .panel-heading-tag {
   font-size: 12px;
   font-weight: 700;
@@ -539,178 +539,33 @@ html, body {
   margin-bottom: 4px;
 }
 
-/* inconvenient2.html only: cut the panel down to a compact strip -- Simon
-   above (see #stage.simon-mode.eo-stacked) already gets most of the height
-   and the visual weight, this is just along for the ride. Extra
-   padding-top reserves room for this panel's own two-line heading (tag +
-   multiplier value), same story as .panel-simon's own padding-top below --
-   without it, .eo-board's content starts right under the panel's top edge
+/* inconvenient2.html only: this panel's heading carries an extra "GAME 1:
+   MEMORY" tag line above the usual "Matches X/Y", same story as
+   .panel-simon's own padding-top override above -- without the extra
+   headroom, the board's own top row starts right under the panel's edge
    and collides with the heading floating above it (z-index: 2). */
-#stage.simon-mode.eo-stacked .panel-bonus {
-  padding: 8px 24px;
-  padding-top: 56px;
+#stage.simon-mode.test-build .panel-bonus {
+  padding-top: 64px;
 }
 
-/* ---- inconvenient2.html test build: even/odd bonus panel, in place of the
-   memory-match board -- see evenodd.js/main2.js. A single compact row
-   (guess+timer, guess-vs-actual log, multiplier plot) rather than a tall
-   side panel, since this panel is now a strip under Simon, not a full
-   half of the screen. ---- */
-.eo-board {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  /* flex-start, not center: if this content ever runs taller than the
-     panel (long instructions text, a big history log), overflow should
-     clip cleanly at the bottom -- centering would push it up into the
-     panel's own heading above instead, which reads as garbled overlap
-     rather than an invisible clip. */
-  justify-content: flex-start;
-  gap: 6px;
-}
-
-.eo-instructions {
-  margin: 0;
-  color: var(--dim);
-  font-size: 13px;
-  line-height: 1.4;
-  text-align: center;
-}
-
-.eo-row {
+/* ---- inconvenient2.html test build: the two games' totals, spelled out
+   across the top HUD instead of tucked into one panel's corner -- see
+   #totalStat/main2.js's refreshTotal. Hidden outside Simon mode, same as
+   the stats it replaces. ---- */
+.total-stat {
+  flex: 1;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
   justify-content: center;
-  gap: 6px 30px;
-}
-
-.eo-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.eo-timer-col { min-width: 130px; justify-content: center; }
-.eo-history-col { min-width: 180px; max-width: 320px; }
-.eo-plot-col { min-width: 170px; }
-
-.eo-guess-label {
+  align-items: baseline;
+  gap: 8px;
   font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.16em;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: var(--dim);
   text-transform: uppercase;
-  color: var(--dim);
 }
-
-/* Counts down over entryWindowMs; a stalled entry lets this hit empty,
-   which is exactly what resets the multiplier to its baseline -- see
-   EvenOddGame.armDeadline_. No separate "computer's guess" reveal next to
-   it -- the guess-vs-you log already shows the computer's call for every
-   guess the moment it resolves. */
-.eo-timerbar {
-  width: 130px;
-  height: 7px;
-  border-radius: 3px;
-  background: var(--line);
-  overflow: hidden;
-}
-.eo-timerbar-fill {
-  height: 100%;
-  width: 100%;
-  background: var(--accent);
-  transition: width 90ms linear;
-}
-
-/* Only ever holds the "too slow, reset" message -- a per-guess result is
-   shown in the history log instead of a single overwritten line. */
-.eo-status {
-  margin: 0;
-  min-height: 1.3em;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--deny);
-}
-
-/* Two aligned rows, not a wrapped strip of two-line boxes -- same "shared
-   column per step" idea as Simon's own game-over recap (.seq/.seq-cell).
-   One column per guess (oldest to newest, left to right, matching the
-   plot), a "Computer" row above and a "You" row below sharing that column
-   grid, so which cell answers which guess is unambiguous. Rebuilt from
-   scratch each render, same convention as UI.renderBonusBoard -- at most
-   historyLen (20) columns, so no scrolling needed. See main2.js's
-   renderHistory. */
-.eo-history {
-  width: 100%;
-  display: grid;
-  grid-template-columns: auto repeat(var(--eo-steps, 1), minmax(14px, auto));
-  gap: 3px 3px;
-  align-items: center;
-  justify-items: center;
-  font-family: var(--mono);
-}
-.eo-history-label {
-  grid-column: 1;
-  justify-self: start;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--dim);
-  white-space: nowrap;
-}
-.eo-history-cell {
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 3px;
-  padding: 1px 5px;
-  color: var(--text);
-}
-/* Same verdict as the audio cues and the big guess reveal: computer right
-   is bad for you, wrong is good. */
-.eo-history-cell.eo-hist-right { background: rgba(255, 77, 77, 0.18); }
-.eo-history-cell.eo-hist-wrong { background: rgba(63, 214, 122, 0.18); }
-
-/* A running line plot of the multiplier over the run so far -- see
-   EvenOddGame.multiplierLog/main2.js's renderMultiplierPlot. Fixed y-axis
-   (multiplierMin-multiplierMax, labeled directly on the chart), not
-   autoscaled, so the line's height means the same thing at every point in
-   the run; x axis is the running guess count since the last reset. */
-.eo-plot {
-  width: 180px;
-  height: 30px;
-  display: block;
-}
-.eo-plot-line {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
-}
-.eo-plot-axis {
-  font-family: var(--mono);
-  font-size: 8px;
-  fill: var(--dim);
-}
-
-.eo-accuracy {
-  margin: 0;
-  color: var(--dim);
-  font-size: 12px;
-  font-family: var(--mono);
-}
-
-/* Only holds text before the multiplier has qualified (see
-   EvenOddGame.updateMultiplier_/qualifyGuesses) -- empty, and takes up no
-   space, once it has. */
-.eo-qualify {
-  margin: 0;
-  color: var(--deny);
-  font-size: 11px;
-  font-family: var(--mono);
-}
-.eo-qualify:empty { display: none; }
+.total-stat.hidden { display: none; }
 
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
@@ -733,17 +588,6 @@ html, body {
   border-radius: 10px;
   font-family: var(--mono);
   pointer-events: none;
-}
-
-/* inconvenient2.html: bottom-center of #stage now lands inside the
-   (much shorter) bonus panel, not open space under the pads -- move it to
-   a corner that's clear of both that panel and the big SIMON heading. */
-#stage.eo-stacked #keyHint {
-  left: auto;
-  right: 14px;
-  bottom: auto;
-  top: 14px;
-  transform: none;
 }
 
 #keyHintKey {
@@ -782,48 +626,6 @@ html, body {
 /* Simon puts no clock on your answer, so the bar has nothing to say. Hidden
    rather than removed, to keep the layout identical between the two modes. */
 #stage.simon-mode + #timer { visibility: hidden; }
-
-/* ---- game over: the round you died on vs. what you pressed ---- */
-.seq {
-  display: grid;
-  grid-template-columns: auto repeat(var(--steps), minmax(0, auto));
-  gap: 4px;
-  align-items: center;
-  justify-content: start;
-  margin: 14px 0 2px;
-  padding-bottom: 4px;
-  overflow-x: auto;           /* long runs scroll rather than stretch the card */
-}
-
-.seq-label {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--dim);
-  text-align: right;
-  padding-right: 8px;
-}
-
-.seq-cell {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-align: center;
-  padding: 4px 5px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  color: var(--dim);
-}
-
-.seq-push  { border-color: var(--pad-push);  color: var(--pad-push); }
-.seq-pull  { border-color: var(--pad-pull);  color: var(--pad-pull); }
-.seq-soap  { border-color: var(--pad-soap);  color: var(--pad-soap); }
-.seq-swipe { border-color: var(--pad-swipe); color: var(--pad-swipe); }
-
-/* The step where the two rows part company. */
-.seq-cell.bad { box-shadow: 0 0 0 2px var(--bad); }
-
-/* A step you never got to. */
-.seq-none { border-style: dashed; border-color: var(--line); }
 
 /* ---- high score board ---- */
 .board-wrap { margin: 4px 0 18px; }
