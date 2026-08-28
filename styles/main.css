@@ -475,12 +475,24 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 h1 { margin: 0; font-size: clamp(34px, 8vw, 60px); letter-spacing: 0.02em; }
 
 /* Title-screen number-pad code: each of the four marked characters turns
-   green as it's entered correctly, or red for a second on a wrong digit --
-   then the whole code resets back to plain text. You're in once all four
-   are green at once. */
+   green as it's entered correctly and stays that way. You're in once all
+   four are green at once. */
 .code-digit { transition: color 150ms ease; }
 .code-digit.code-good { color: var(--good); }
-.code-digit.code-bad { color: var(--bad); animation: nudge 220ms ease; }
+
+/* The "wrong" cue, shared by a wrong digit and by pressing a control
+   (push/pull/soap/swipe/tap) instead of dialing the code: the whole card
+   shakes and the title word turns solid red for the beat, overriding
+   whatever digits were green rather than singling one out. */
+@keyframes titleWrongShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+#titleOverlay .card.wrong-shake { animation: titleWrongShake 500ms ease; }
+#titleOverlay .card.wrong-shake #titleHeading,
+#titleOverlay .card.wrong-shake #titleHeading .code-digit { color: var(--bad); }
 h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 .tagline { color: var(--dim); margin: 8px 0 18px; font-size: 14px; }
 .reason { color: var(--accent); margin: 4px 0 10px; font-size: 15px; }

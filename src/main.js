@@ -59,7 +59,8 @@ function handleDigit(digit) {
       setTimeout(startGame, 500); // let all four land green before the stage swaps in
     }
   } else {
-    ui.flashTitleDigitBad(titleCodeProgress); // the digit that was expected, not the one typed
+    ui.resetTitleDigits(); // clear any green already earned -- one miss costs the whole attempt
+    ui.flashTitleWrong();
     titleCodeProgress = 0;
   }
 }
@@ -130,6 +131,7 @@ function toTitle() {
 function handleAction(evt) {
   if (screen === 'title') {
     audio.play('denied');
+    ui.flashTitleWrong(); // same shake+red cue as a wrong digit, but progress is untouched
     return;
   }
   activeGame().handleInput(evt);

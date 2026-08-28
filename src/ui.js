@@ -42,6 +42,7 @@ export class UI {
       modeBadge: $('#modeBadge'),
       muteBadge: $('#muteBadge'),
       title: $('#titleOverlay'),
+      titleCard: document.querySelector('#titleOverlay .card'),
       over: $('#overOverlay'),
       remap: $('#remapOverlay'),
       scores: $('#scoresOverlay'),
@@ -84,7 +85,7 @@ export class UI {
       swipe: $('#simonPadSwipe'),
     };
     this.flashTimer = null;
-    this.titleFlashTimer = null;
+    this.titleShakeTimer = null;
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
@@ -322,27 +323,28 @@ export class UI {
   }
 
   /** Title screen's number-pad code, entered instead of pressing Start: each
-   *  correct digit turns its character in the title green and stays that way.
-   *  A wrong digit nudges its character red for a second, then the whole
-   *  code resets back to plain text -- one mistake costs the full sequence,
-   *  not just that digit. */
+   *  correct digit turns its character in the title green and stays that
+   *  way. Nothing marks a wrong digit individually -- see flashTitleWrong. */
   markTitleDigitGood(index) {
-    clearTimeout(this.titleFlashTimer); // a fresh correct run cancels any pending reset
     const el = this.titleCodeDigits[index];
     if (!el) return;
     el.classList.remove('code-bad');
     el.classList.add('code-good');
   }
 
-  flashTitleDigitBad(index) {
-    const el = this.titleCodeDigits[index];
-    if (el) {
-      el.classList.remove('code-good');
-      void el.offsetWidth; // reflow, so back-to-back mistakes each nudge
-      el.classList.add('code-bad');
-    }
-    clearTimeout(this.titleFlashTimer);
-    this.titleFlashTimer = setTimeout(() => this.resetTitleDigits(), 1000);
+  /** The shared "wrong" cue for the title screen: the whole card shakes and
+   *  the title word turns solid red for the beat, covering over whatever
+   *  digits were green -- not just the offending one. Used both for a wrong
+   *  digit (caller also clears progress -- see resetTitleDigits) and for
+   *  pressing a control (push/pull/soap/swipe/tap) instead of dialing the
+   *  code, which doesn't touch progress at all. */
+  flashTitleWrong() {
+    const card = this.el.titleCard;
+    card.classList.remove('wrong-shake');
+    void card.offsetWidth; // reflow, so back-to-back mistakes each re-shake
+    card.classList.add('wrong-shake');
+    clearTimeout(this.titleShakeTimer);
+    this.titleShakeTimer = setTimeout(() => card.classList.remove('wrong-shake'), 500);
   }
 
   resetTitleDigits() {
