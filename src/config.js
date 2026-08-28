@@ -75,6 +75,13 @@ export const CONFIG = {
     accuracyForMinMultiplier: 0.75, // computer at or above this accuracy -> x1 (it's reading you)
     multiplierMax: 2,
     multiplierMin: 1,
+    // The multiplier doesn't actually apply to your score until you've
+    // sustained this many guesses since the last reset -- short of that,
+    // the applied multiplier stays pinned at multiplierMin (1) no matter
+    // how well you're doing, so a reset before qualifying costs nothing
+    // (there was nothing locked in yet) and one past it keeps applying
+    // the live number continuously, same as it does today.
+    qualifyGuesses: 20,
   },
 
   scores: {

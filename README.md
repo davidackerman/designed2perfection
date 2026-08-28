@@ -70,6 +70,14 @@ Missing the entry window resets it back to ×1, silently; there's no sound
 on a timeout, since one was easy to mistake for one of the per-guess
 right/wrong tones.
 
+It doesn't actually count toward your score, though, until you've sustained
+20 guesses since the last reset — short of that the applied multiplier
+stays pinned at ×1 no matter how well you're doing (a note under the plot
+spells out the countdown, e.g. `Bonus locks in at 20 guesses (14/20)`), and
+a timeout before then costs nothing because nothing was locked in yet.
+Cross 20 and the live number starts applying from that guess on, continuously,
+same as it does after.
+
 Everything else (Simon — relabeled "Repeat After Me" on this page, classic
 mode, the title password, high scores) is identical to the real page —
 including the title screen itself: the heading reads the same

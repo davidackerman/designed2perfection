@@ -702,6 +702,17 @@ html, body {
   font-family: var(--mono);
 }
 
+/* Only holds text before the multiplier has qualified (see
+   EvenOddGame.updateMultiplier_/qualifyGuesses) -- empty, and takes up no
+   space, once it has. */
+.eo-qualify {
+  margin: 0;
+  color: var(--deny);
+  font-size: 11px;
+  font-family: var(--mono);
+}
+.eo-qualify:empty { display: none; }
+
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-6px); }

@@ -36,6 +36,7 @@ const eo = {
   plot: document.querySelector('#eoPlot'),
   accuracy: document.querySelector('#eoAccuracy'),
   count: document.querySelector('#eoCount'),
+  qualify: document.querySelector('#eoQualify'),
   multiplierHeading: document.querySelector('#bonusHeading'),
   totalScore: document.querySelector('#totalScore'),
   totalMultiplier: document.querySelector('#totalBonus'),
@@ -64,6 +65,13 @@ function renderEvenOdd(state) {
   eo.accuracy.textContent = state.accuracy === null ? '—' : `${Math.round(state.accuracy * 100)}%`;
   eo.count.textContent = state.totalGuesses;
   eo.multiplierHeading.textContent = formatMultiplier(state.multiplier);
+  // The multiplier doesn't apply to your score until you've sustained
+  // qualifyGuesses guesses since the last reset -- see
+  // EvenOddGame.updateMultiplier_. Below that, say so plainly rather than
+  // leaving it a mystery why a good run's accuracy isn't moving the total.
+  eo.qualify.textContent = state.qualified
+    ? ''
+    : `Bonus locks in at ${state.qualifyGuesses} guesses without a reset (${state.totalGuesses}/${state.qualifyGuesses})`;
   renderHistory(state.history);
   renderMultiplierPlot(state.multiplierLog, state.multiplierMin, state.multiplierMax);
 

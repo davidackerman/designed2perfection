@@ -12,6 +12,13 @@
 // both ends, so it never goes below x1 or above x2. Same "wrong pad only
 // freezes Simon" story as the memory board: this game has no losing state,
 // only a multiplier that resets and starts climbing back.
+//
+// It doesn't actually apply, though, until you've sustained
+// qualifyGuesses guesses since the last reset -- short of that the
+// *applied* multiplier stays pinned at x1 no matter how well the raw
+// number is doing, so a reset before qualifying costs nothing (nothing
+// was locked in yet) and crossing the threshold just starts applying the
+// live number from then on, continuously, same as it does today.
 
 import { CONFIG } from './config.js';
 
@@ -103,10 +110,13 @@ export class EvenOddGame {
     // historyLen guesses".
     this.correctCount = 0;
     this.totalCount = 0;
-    // Neutral baseline until you've proven something either way -- see
-    // updateMultiplier_.
-    this.multiplier = CONFIG.evenOdd.multiplierMin;
-    this.multiplierLog = []; // one point per resolved guess, capped at plotLen, for the running plot
+    // rawMultiplier is the live accuracy-derived number (see
+    // updateMultiplier_); appliedMultiplier is what actually counts toward
+    // score -- pinned at the neutral baseline until qualifyGuesses is hit,
+    // see updateMultiplier_ again.
+    this.rawMultiplier = CONFIG.evenOdd.multiplierMin;
+    this.appliedMultiplier = CONFIG.evenOdd.multiplierMin;
+    this.multiplierLog = []; // one point (of appliedMultiplier) per resolved guess, capped at plotLen, for the running plot
   }
 
   start() {
@@ -195,18 +205,25 @@ export class EvenOddGame {
    *  the neutral x1 baseline -- there's nothing yet to judge it against.
    *  Uses correctCount/totalCount (cumulative since the last reset), not
    *  the display-capped history array -- so a long run's multiplier keeps
-   *  reflecting the whole run, not just its last historyLen guesses. */
+   *  reflecting the whole run, not just its last historyLen guesses.
+   *
+   *  rawMultiplier is that number, always live. appliedMultiplier -- what
+   *  actually feeds the Score x Multiplier = Total line -- only starts
+   *  tracking it once totalCount reaches qualifyGuesses; short of that it
+   *  stays pinned at the baseline, so nothing you're doing counts toward
+   *  score until you've sustained it a while. */
   updateMultiplier_() {
-    const { accuracyForMaxMultiplier: lo, accuracyForMinMultiplier: hi, multiplierMax: max, multiplierMin: min } = CONFIG.evenOdd;
+    const { accuracyForMaxMultiplier: lo, accuracyForMinMultiplier: hi, multiplierMax: max, multiplierMin: min, qualifyGuesses } = CONFIG.evenOdd;
     if (!this.totalCount) {
-      this.multiplier = min;
+      this.rawMultiplier = min;
     } else {
       const accuracy = this.correctCount / this.totalCount;
       const clamped = Math.min(Math.max(accuracy, lo), hi);
       const t = (clamped - lo) / (hi - lo); // 0 at lo (best for you) -> 1 at hi (worst for you)
-      this.multiplier = max - t * (max - min);
+      this.rawMultiplier = max - t * (max - min);
     }
-    this.multiplierLog.push(this.multiplier);
+    this.appliedMultiplier = this.totalCount >= qualifyGuesses ? this.rawMultiplier : min;
+    this.multiplierLog.push(this.appliedMultiplier);
     if (this.multiplierLog.length > CONFIG.evenOdd.plotLen) this.multiplierLog.shift();
   }
 
@@ -214,7 +231,10 @@ export class EvenOddGame {
     if (!this.onUpdate) return;
     this.onUpdate({
       guess: this.guess,
-      multiplier: this.multiplier,
+      multiplier: this.appliedMultiplier, // what actually counts toward score -- see updateMultiplier_
+      rawMultiplier: this.rawMultiplier,
+      qualified: this.totalCount >= CONFIG.evenOdd.qualifyGuesses,
+      qualifyGuesses: CONFIG.evenOdd.qualifyGuesses,
       multiplierMax: CONFIG.evenOdd.multiplierMax,
       multiplierMin: CONFIG.evenOdd.multiplierMin,
       multiplierLog: this.multiplierLog.slice(),
