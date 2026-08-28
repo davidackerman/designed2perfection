@@ -95,7 +95,14 @@ export class EvenOddGame {
 
   resetRun_() {
     this.oracle = new AaronsonOracle();
-    this.history = []; // trailing { actual, guess, correct }, capped at historyLen -- what both the multiplier and the on-screen log are computed from
+    this.history = []; // recent { actual, guess, correct }, capped at historyLen -- only for the on-screen guess-vs-you log
+    // correctCount/totalCount are cumulative since this reset and never
+    // trimmed -- the multiplier and the accuracy readout are both computed
+    // from these, NOT from the (display-capped) history array above, so
+    // "accuracy" always means "since the last reset", not "over the last
+    // historyLen guesses".
+    this.correctCount = 0;
+    this.totalCount = 0;
     // Neutral baseline until you've proven something either way -- see
     // updateMultiplier_.
     this.multiplier = CONFIG.evenOdd.multiplierMin;
@@ -158,6 +165,8 @@ export class EvenOddGame {
     this.oracle.update(actual === 'even' ? '0' : '1');
     this.history.push({ actual, guess, correct });
     if (this.history.length > CONFIG.evenOdd.historyLen) this.history.shift();
+    this.totalCount += 1;
+    if (correct) this.correctCount += 1;
 
     this.updateMultiplier_();
     // Computer right is bad news for you (low tone); computer wrong is good
@@ -182,14 +191,17 @@ export class EvenOddGame {
    *  (0.75), linear in between; accuracy is clamped to that range first, so
    *  a computer doing *worse* than a coin flip still caps at x2 (there's no
    *  "extra credit" beyond the max), and one reading you well past 75% still
-   *  only costs you down to x1, never further. With no history yet, this is
-   *  the neutral x1 baseline -- there's nothing yet to judge it against. */
+   *  only costs you down to x1, never further. With no guesses yet, this is
+   *  the neutral x1 baseline -- there's nothing yet to judge it against.
+   *  Uses correctCount/totalCount (cumulative since the last reset), not
+   *  the display-capped history array -- so a long run's multiplier keeps
+   *  reflecting the whole run, not just its last historyLen guesses. */
   updateMultiplier_() {
     const { accuracyForMaxMultiplier: lo, accuracyForMinMultiplier: hi, multiplierMax: max, multiplierMin: min } = CONFIG.evenOdd;
-    if (!this.history.length) {
+    if (!this.totalCount) {
       this.multiplier = min;
     } else {
-      const accuracy = this.history.filter((h) => h.correct).length / this.history.length;
+      const accuracy = this.correctCount / this.totalCount;
       const clamped = Math.min(Math.max(accuracy, lo), hi);
       const t = (clamped - lo) / (hi - lo); // 0 at lo (best for you) -> 1 at hi (worst for you)
       this.multiplier = max - t * (max - min);
@@ -200,18 +212,15 @@ export class EvenOddGame {
 
   emit_(timedOut = false) {
     if (!this.onUpdate) return;
-    const accuracy = this.history.length
-      ? this.history.filter((h) => h.correct).length / this.history.length
-      : null;
     this.onUpdate({
       guess: this.guess,
       multiplier: this.multiplier,
       multiplierMax: CONFIG.evenOdd.multiplierMax,
       multiplierMin: CONFIG.evenOdd.multiplierMin,
       multiplierLog: this.multiplierLog.slice(),
-      history: this.history.slice(),
-      accuracy,
-      totalGuesses: this.history.length,
+      history: this.history.slice(), // recent guesses only, for the on-screen log
+      accuracy: this.totalCount ? this.correctCount / this.totalCount : null, // cumulative since last reset
+      totalGuesses: this.totalCount, // cumulative, not this.history.length
       timedOut,
     });
   }

@@ -53,20 +53,30 @@ predictors (it looks for patterns over your last 1 to 5 entries), each
 judged on its own accuracy so far, with whichever one's currently most
 accurate put in charge of the next guess. That guess stays hidden until you
 enter the digit — showing it up front would make "press the opposite" an
-unbeatable strategy — then it briefly reveals both together and logs them
-side by side (every guess-vs-actual pair from the run, not just the last
-one), plus a running plot of the resulting score multiplier. That
-multiplier defaults to ×1 (neutral), climbs toward ×2 while the computer's
-stuck at a coin flip, and falls back toward ×1 once it's reading you 75%+ of
-the time — applied to your Simon score, not added to it. Missing the entry
-window resets it back to ×1, silently; there's no sound on a timeout,
-since one was easy to mistake for one of the per-guess right/wrong tones.
+unbeatable strategy — then it briefly reveals both together (`Computer: ...
+· You: ...`) and logs the pair into a two-row "Computer"/"You" strip, one
+column per guess so it's unambiguous which entry answers which (every
+guess since the last reset, not just the last one), plus a running plot of
+the resulting score multiplier with its ×1–×2 range labeled on the y axis
+and the running guess count as the x axis. Accuracy and the multiplier are
+both cumulative since the last reset — a long run's numbers reflect the
+whole run, not just its most recent guesses (only the on-screen log itself
+is capped, for space, at the most recent 20).
 
-Everything else (Simon, classic mode, the title password, high scores) is
-identical to the real page — including the title screen itself: the heading
-reads the same `1nc0nVeni3nt`, deliberately without a trailing "2", so it
-doesn't read as one more digit of the number-pad code. See
-[`src/evenodd.js`](src/evenodd.js) and [`src/main2.js`](src/main2.js).
+That multiplier defaults to ×1 (neutral), climbs toward ×2 while the
+computer's stuck at a coin flip, and falls back toward ×1 once it's reading
+you 75%+ of the time — applied to your Simon score, not added to it.
+Missing the entry window resets it back to ×1, silently; there's no sound
+on a timeout, since one was easy to mistake for one of the per-guess
+right/wrong tones.
+
+Everything else (Simon — relabeled "Repeat After Me" on this page, classic
+mode, the title password, high scores) is identical to the real page —
+including the title screen itself: the heading reads the same
+`1nc0nVeni3nt`, deliberately without a trailing "2", so it doesn't read as
+one more digit of the number-pad code (both title screens now also spell
+out **Passcode:** above the dots). See [`src/evenodd.js`](src/evenodd.js)
+and [`src/main2.js`](src/main2.js).
 
 ## The five commands (Classic mode)
 

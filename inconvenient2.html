@@ -41,16 +41,19 @@
     <!-- Simon mode: all four pads shown at once in a 2x2 block. -->
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
-        <div class="panel-heading-tag panel-heading-tag-simon">SIMON</div>
+        <div class="panel-heading-tag panel-heading-tag-simon">REPEAT AFTER ME</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
-          Round <span id="roundHeading" class="panel-heading-value">0</span>
-          <span class="panel-heading-sep">·</span>
           Best <span id="bestHeading" class="panel-heading-value">0</span>
+          <!-- Round isn't shown here -- not meaningful enough to earn a
+               place in this heading -- but the span itself has to stay:
+               SimonGame/UI.setHud write to it every round regardless of
+               whether this page displays it. -->
+          <span id="roundHeading" class="hidden"></span>
         </div>
         <div class="panel-heading-total">
-          Score <span id="totalScore" class="panel-heading-value">0</span> &times;
+          Score <span id="totalScore" class="panel-heading-value">0</span>
           <span id="totalBonus" class="panel-heading-value">&times;1.00</span> =
           Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
         </div>
@@ -102,9 +105,9 @@
             <div class="eo-history" id="eoHistory"></div>
           </div>
           <div class="eo-col eo-plot-col">
-            <span class="eo-guess-label">Multiplier over time</span>
+            <span class="eo-guess-label">Multiplier (y: &times;1&ndash;&times;2) vs. guess # (x)</span>
             <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
-            <p class="eo-accuracy">Accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses</p>
+            <p class="eo-accuracy">Accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses (cumulative)</p>
           </div>
         </div>
       </div>
@@ -137,6 +140,7 @@
            first place. The title text is identical to the real page; only
            the <title> tag and the hint line below say this is the test build. -->
       <h1 id="titleHeading">1nc0nVeni3nt</h1>
+      <div class="password-label">Passcode:</div>
       <div class="password-field" id="passwordField">
         <span class="password-dot"></span>
         <span class="password-dot"></span>

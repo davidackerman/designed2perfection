@@ -154,7 +154,7 @@ html, body {
    its markup for grid auto-placement to land it in the first (top) row. */
 #stage.simon-mode.eo-stacked {
   grid-template-columns: 1fr;
-  grid-template-rows: 2.4fr 1fr;
+  grid-template-rows: 1.7fr 1.5fr;
 }
 
 /* Which half is which: the live Score comes from Simon on the right, the
@@ -515,23 +515,28 @@ html, body {
    bumped up much larger -- Simon is the actual game here and the bonus
    panel underneath it is deliberately secondary. */
 .panel-heading-tag {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.22em;
   color: var(--accent);
   margin-bottom: 2px;
 }
 .panel-heading-tag-simon {
-  font-size: 28px;
-  letter-spacing: 0.16em;
+  font-size: clamp(18px, 4.5cqw, 28px);
+  letter-spacing: 0.12em;
   margin-bottom: 4px;
 }
 
 /* inconvenient2.html only: cut the panel down to a compact strip -- Simon
    above (see #stage.simon-mode.eo-stacked) already gets most of the height
-   and the visual weight, this is just along for the ride. */
+   and the visual weight, this is just along for the ride. Extra
+   padding-top reserves room for this panel's own two-line heading (tag +
+   multiplier value), same story as .panel-simon's own padding-top below --
+   without it, .eo-board's content starts right under the panel's top edge
+   and collides with the heading floating above it (z-index: 2). */
 #stage.simon-mode.eo-stacked .panel-bonus {
-  padding: 10px 24px;
+  padding: 8px 24px;
+  padding-top: 56px;
 }
 
 /* ---- inconvenient2.html test build: even/odd bonus panel, in place of the
@@ -544,14 +549,19 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* flex-start, not center: if this content ever runs taller than the
+     panel (long instructions text, a big history log), overflow should
+     clip cleanly at the bottom -- centering would push it up into the
+     panel's own heading above instead, which reads as garbled overlap
+     rather than an invisible clip. */
+  justify-content: flex-start;
   gap: 6px;
 }
 
 .eo-instructions {
   margin: 0;
   color: var(--dim);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.4;
   text-align: center;
 }
@@ -560,9 +570,9 @@ html, body {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  gap: 8px 30px;
+  gap: 6px 30px;
 }
 
 .eo-col {
@@ -571,23 +581,23 @@ html, body {
   align-items: center;
   gap: 4px;
 }
-.eo-guess-col { min-width: 130px; }
-.eo-history-col { min-width: 160px; max-width: 280px; }
-.eo-plot-col { min-width: 150px; }
+.eo-guess-col { min-width: 150px; }
+.eo-history-col { min-width: 180px; max-width: 320px; }
+.eo-plot-col { min-width: 170px; }
 
 .eo-guess-label {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-size: 12px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--dim);
 }
 
 .eo-guess-value {
   font-family: var(--mono);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--text);
   transition: color 120ms ease;
 }
@@ -602,8 +612,8 @@ html, body {
    which is exactly what resets the multiplier to its baseline -- see
    EvenOddGame.armDeadline_. */
 .eo-timerbar {
-  width: 140px;
-  height: 6px;
+  width: 150px;
+  height: 7px;
   border-radius: 3px;
   background: var(--line);
   overflow: hidden;
@@ -619,48 +629,58 @@ html, body {
    shown in the history log instead of a single overwritten line. */
 .eo-status {
   margin: 0;
-  min-height: 1.2em;
-  font-size: 11px;
+  min-height: 1.3em;
+  font-size: 13px;
   font-weight: 600;
   color: var(--deny);
 }
 
-/* Every resolved guess this run, oldest to newest -- computer's guess on
-   top, what you actually entered underneath, same "high/low tone" verdict
-   as EvenOddGame's audio cues: computer right is bad for you, wrong is
-   good. Rebuilt from scratch each render, same convention as
-   UI.renderBonusBoard -- at most historyLen (20) entries, so no scrolling
-   needed. */
+/* Two aligned rows, not a wrapped strip of two-line boxes -- same "shared
+   column per step" idea as Simon's own game-over recap (.seq/.seq-cell).
+   One column per guess (oldest to newest, left to right, matching the
+   plot), a "Computer" row above and a "You" row below sharing that column
+   grid, so which cell answers which guess is unambiguous. Rebuilt from
+   scratch each render, same convention as UI.renderBonusBoard -- at most
+   historyLen (20) columns, so no scrolling needed. See main2.js's
+   renderHistory. */
 .eo-history {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 3px;
+  display: grid;
+  grid-template-columns: auto repeat(var(--eo-steps, 1), minmax(14px, auto));
+  gap: 3px 3px;
+  align-items: center;
+  justify-items: center;
   font-family: var(--mono);
 }
-.eo-hist-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.15;
-  font-size: 9px;
+.eo-history-label {
+  grid-column: 1;
+  justify-self: start;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.eo-history-cell {
+  font-size: 12px;
   font-weight: 700;
   border-radius: 3px;
-  padding: 1px 4px;
+  padding: 1px 5px;
+  color: var(--text);
 }
-.eo-hist-comp { color: var(--dim); }
-.eo-hist-you { color: var(--text); }
-.eo-hist-item.eo-hist-right { background: rgba(255, 77, 77, 0.18); }  /* computer right = bad for you */
-.eo-hist-item.eo-hist-wrong { background: rgba(63, 214, 122, 0.18); } /* computer wrong = good for you */
+/* Same verdict as the audio cues and the big guess reveal: computer right
+   is bad for you, wrong is good. */
+.eo-history-cell.eo-hist-right { background: rgba(255, 77, 77, 0.18); }
+.eo-history-cell.eo-hist-wrong { background: rgba(63, 214, 122, 0.18); }
 
 /* A running line plot of the multiplier over the run so far -- see
    EvenOddGame.multiplierLog/main2.js's renderMultiplierPlot. Fixed y-axis
-   (multiplierMin-multiplierMax), not autoscaled, so the line's height means
-   the same thing at every point in the run. */
+   (multiplierMin-multiplierMax, labeled directly on the chart), not
+   autoscaled, so the line's height means the same thing at every point in
+   the run; x axis is the running guess count since the last reset. */
 .eo-plot {
-  width: 160px;
-  height: 34px;
+  width: 180px;
+  height: 30px;
   display: block;
 }
 .eo-plot-line {
@@ -669,11 +689,16 @@ html, body {
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
 }
+.eo-plot-axis {
+  font-family: var(--mono);
+  font-size: 8px;
+  fill: var(--dim);
+}
 
 .eo-accuracy {
   margin: 0;
   color: var(--dim);
-  font-size: 10.5px;
+  font-size: 12px;
   font-family: var(--mono);
 }
 
@@ -929,11 +954,20 @@ h1 { margin: 0; font-size: clamp(34px, 8vw, 60px); letter-spacing: 0.02em; }
    digit of TITLE_CODE (main.js), each an empty circle until its digit lands
    right, at which point the circle is replaced by the digit itself in
    green and stays that way. You're in once all four show their digit. */
+.password-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--dim);
+  text-align: center;
+  margin-top: 14px;
+}
 .password-field {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin: 16px 0 20px;
+  margin: 8px 0 20px;
 }
 .password-dot {
   width: 22px;

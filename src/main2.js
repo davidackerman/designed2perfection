@@ -70,7 +70,7 @@ function renderEvenOdd(state) {
   const resolved = !state.timedOut && state.history[state.history.length - 1];
   clearTimeout(guessRevealTimer);
   if (resolved) {
-    eo.guess.textContent = `${resolved.guess.toUpperCase()} — you: ${resolved.actual.toUpperCase()}`;
+    eo.guess.textContent = `Computer: ${resolved.guess.toUpperCase()} · You: ${resolved.actual.toUpperCase()}`;
     eo.guess.className = resolved.correct ? 'eo-guess-value eo-computer-right' : 'eo-guess-value eo-computer-wrong';
     guessRevealTimer = setTimeout(() => {
       eo.guess.textContent = '?';
@@ -90,30 +90,34 @@ function renderEvenOdd(state) {
   }
 }
 
-/** Every resolved guess, oldest to newest (left to right, matching the plot
- *  below) -- computer's guess on top, what you actually entered underneath,
- *  colored by whether the computer got it right (bad for you) or wrong
- *  (good for you). Rebuilt from scratch each call, same "no diffing"
- *  convention as UI.renderBonusBoard -- at most historyLen (20) entries. */
+/** Two aligned rows, oldest to newest left to right -- same idea as Simon's
+ *  own "Wanted vs. You" game-over recap (UI.renderSequenceRecap): a
+ *  "Computer" row and a "You" row sharing one column per guess, rather than
+ *  a row of two-line boxes, which read as an ambiguous second row wrapping
+ *  underneath the first instead of "these two line up". Every cell for a
+ *  given guess (both rows) shares one color: red-tinted if the computer got
+ *  it right (bad for you), green-tinted if it didn't (good for you).
+ *  Rebuilt from scratch each call, same "no diffing" convention as
+ *  UI.renderBonusBoard -- at most historyLen (20) columns. */
 function renderHistory(history) {
   const letter = (parity) => (parity === 'even' ? 'E' : 'O');
-  eo.history.innerHTML = history
-    .map((h) => {
-      const cls = h.correct ? 'eo-hist-right' : 'eo-hist-wrong';
-      return (
-        `<div class="eo-hist-item ${cls}" title="Computer guessed ${h.guess}, you entered ${h.actual}">` +
-        `<span class="eo-hist-comp">${letter(h.guess)}</span>` +
-        `<span class="eo-hist-you">${letter(h.actual)}</span>` +
-        '</div>'
-      );
-    })
-    .join('');
+  eo.history.style.setProperty('--eo-steps', Math.max(history.length, 1));
+  const cell = (h, parity) => {
+    const cls = h.correct ? 'eo-history-cell eo-hist-right' : 'eo-history-cell eo-hist-wrong';
+    return `<span class="${cls}">${letter(parity)}</span>`;
+  };
+  eo.history.innerHTML =
+    '<span class="eo-history-label">Computer</span>' +
+    history.map((h) => cell(h, h.guess)).join('') +
+    '<span class="eo-history-label">You</span>' +
+    history.map((h) => cell(h, h.actual)).join('');
 }
 
 /** A running line plot of the multiplier over the run so far, oldest to
- *  newest -- see EvenOddGame.multiplierLog. Y axis is fixed to
- *  [multiplierMin, multiplierMax] (1x-2x), not autoscaled, so the line's
- *  height is directly comparable across the whole run. */
+ *  newest (x axis: running guess count) -- see EvenOddGame.multiplierLog.
+ *  Y axis is fixed to [multiplierMin, multiplierMax] (labeled directly on
+ *  the chart), not autoscaled, so the line's height is directly comparable
+ *  across the whole run. */
 function renderMultiplierPlot(log, min, max) {
   if (log.length < 2) {
     eo.plot.innerHTML = '';
@@ -121,15 +125,22 @@ function renderMultiplierPlot(log, min, max) {
   }
   const w = 200;
   const h = 50;
+  const padLeft = 14; // room for the axis labels below
+  const padY = 7;
+  const plotW = w - padLeft;
+  const plotH = h - padY * 2;
   const points = log
     .map((v, i) => {
-      const x = (i / (log.length - 1)) * w;
+      const x = padLeft + (i / (log.length - 1)) * plotW;
       const norm = (v - min) / (max - min);
-      const y = h - norm * h;
+      const y = padY + (1 - norm) * plotH;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(' ');
-  eo.plot.innerHTML = `<polyline class="eo-plot-line" points="${points}" />`;
+  eo.plot.innerHTML =
+    `<text x="1" y="${padY + 3}" class="eo-plot-axis">${max}&times;</text>` +
+    `<text x="1" y="${h - padY + 3}" class="eo-plot-axis">${min}&times;</text>` +
+    `<polyline class="eo-plot-line" points="${points}" />`;
 }
 
 // Redraws the countdown bar and the Score x Multiplier = Total line every
