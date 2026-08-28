@@ -46,8 +46,23 @@ begins; a wrong digit nudges it red and resets. In debug mode the old
 Start/`Space`/`Enter` shortcuts still work, so testing doesn't require
 dialing the code every time.
 
-Dialing `911` on the number pad at any point brings up an answer-key popup —
-for whoever's running the cabinet, not meant to be found by players.
+Dialing `911` on the number pad at any point pops up the title code for a
+few seconds — for whoever's running the cabinet, not meant to be found by
+players. It's a self-dismissing toast, not a modal: it doesn't pause or
+block anything underneath it.
+
+Mid-run, in Simon mode, the same `911` dial instead flips every bonus-board
+card face-up for about a second, showing the answer there too. The bonus
+board's own controls, for reference:
+
+- **Round 1** (2x2): no labels shown — dial the four cards as `0`/`1`/`2`/`3`,
+  reading order (top-left, top-right, bottom-left, bottom-right).
+- **Round 2+** (4x4): also no labels on the cards — instead, dial the phone
+  key its row's letter/digit is on, then the phone key its column's is on.
+  Row/column headers are a random, non-repeating draw of phone-keypad keys
+  (a bare digit, or one of its letters), so e.g. rows might read `J7AG` and
+  columns `8E09` — since no two headers on the same axis ever share a key,
+  one keystroke per axis is always enough.
 
 ## Debug mode
 

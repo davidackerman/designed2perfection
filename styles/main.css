@@ -68,6 +68,19 @@ html, body {
 .stat-label { font-size: 10px; letter-spacing: 0.18em; color: var(--dim); }
 .stat span:last-child { font-size: 24px; font-variant-numeric: tabular-nums; }
 
+/* Total spelled out as the actual sum, not just the result -- and bigger
+   than the other stats, since it's the one number that matters across
+   both halves of the screen. */
+.stat-total .total-equation {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  color: var(--dim);
+}
+.stat-total .total-equation #total {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .badges { margin-left: auto; display: flex; gap: 8px; }
 .badge {
   font-family: var(--mono);
@@ -669,6 +682,41 @@ h1 { margin: 0; font-size: clamp(34px, 8vw, 60px); letter-spacing: 0.02em; }
 .door-panel-right { border-left: 2px solid var(--line); }
 .door-open.opening .door-panel-left { transform: translateX(-100%); }
 .door-open.opening .door-panel-right { transform: translateX(100%); }
+
+/* The 911 popup: a brief, self-dismissing card -- see UI.showAnswerToast.
+   Floats above everything, blocks nothing underneath it. */
+.answer-toast {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  padding: 12px 28px;
+  background: rgba(13, 17, 23, 0.94);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  text-align: center;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.answer-toast-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 4px;
+}
+.answer-toast-value {
+  display: block;
+  font-family: var(--mono);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
 
 h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 .tagline { color: var(--dim); margin: 8px 0 18px; font-size: 14px; }

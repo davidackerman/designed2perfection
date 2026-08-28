@@ -57,7 +57,10 @@ function handleDigit(digit) {
   answerKeyBuffer = (answerKeyBuffer + digit).slice(-ANSWER_KEY_CODE.length);
   if (answerKeyBuffer === ANSWER_KEY_CODE) {
     answerKeyBuffer = '';
-    ui.showAnswerKey(TITLE_CODE);
+    // The title code only means anything on the title screen -- mid-run
+    // the bonus board's own cards are the thing worth showing an answer
+    // for, and peekAll() (below) does that on its own, no text needed.
+    if (screen === 'title') ui.showAnswerToast('Title code', TITLE_CODE);
     bonusGame.peekAll(); // also flash the bonus board's hidden faces, for whoever's running it
     return; // this keystroke dialed 911 -- don't also feed it to the title code or the bonus board
   }
@@ -285,7 +288,6 @@ document.querySelector('#newTeamBtn').addEventListener('click', () => { if (debu
 document.querySelector('#againBtn').addEventListener('click', startGame);
 document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
-document.querySelector('#answerKeyDoneBtn').addEventListener('click', () => ui.hideAnswerKey());
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#remapResetBtn').addEventListener('click', () => {
@@ -382,7 +384,6 @@ window.addEventListener('keydown', (e) => {
   const digit = DIGIT_KEYS[e.code];
   if (digit !== undefined && !e.repeat) { handleDigit(digit); return; }
 
-  if (e.code === 'Escape' && ui.answerKeyOpen()) { ui.hideAnswerKey(); return; }
 
   if (e.code === 'KeyM') { toggleMute(); return; }
   if (e.code === 'Backquote') { toggleDebug(); return; }

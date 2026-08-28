@@ -20,8 +20,14 @@
     <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
     <!-- Simon mode only: Score/Bonus live over their own half of the stage
          instead (see .panel-heading below) -- Total is the two added
-         together, so it's the one number worth keeping up here. -->
-    <div id="totalStat" class="stat hidden"><span class="stat-label">Total</span><span id="total">0</span></div>
+         together, so it's the one number worth keeping up here, spelled
+         out as the actual sum rather than just the result. -->
+    <div id="totalStat" class="stat stat-total hidden">
+      <span class="stat-label">Total</span>
+      <span class="total-equation">
+        <span id="totalScore">0</span> + <span id="totalBonus">0</span> = <span id="total">0</span>
+      </span>
+    </div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
       <label class="music-vol" title="Background music volume">
@@ -181,24 +187,14 @@
     </div>
   </div>
 
-  <!-- Dial 911 on the number pad at any point to bring this up -- for
-       whoever's running the cabinet, not for players to stumble onto. -->
-  <div id="answerKeyOverlay" class="overlay hidden">
-    <div class="card">
-      <h2>ANSWER KEY</h2>
-      <p class="tagline">The title screen's number-pad code.</p>
-      <p class="bigscore" id="answerKeyCode"></p>
-      <p class="tagline">
-        Bonus board: round 1's four cards dial as 0/1/2/3, top-left to
-        bottom-right, reading order -- not shown on screen. Round 2+ cards
-        don't show their own address either -- dial the phone key its row's
-        letter/digit is on (left), then its column's (top).
-      </p>
-      <div class="row">
-        <button id="answerKeyDoneBtn" class="primary" type="button">DONE</button>
-      </div>
-    </div>
-  </div>
+  <!-- Dial 911 on the number pad at any point: a brief, self-dismissing
+       popup with the title code -- for whoever's running the cabinet, not
+       meant to be found by players. Not a modal: no Done button, doesn't
+       block anything underneath, just fades on its own -- see
+       UI.showAnswerToast. The bonus board gets its own answer at the same
+       time: dialing 911 also flips every card face-up for a second (see
+       BonusGame.peekAll), so there's nothing to show here for that part. -->
+  <div id="answerToast" class="answer-toast hidden"></div>
 
 </div>
 <!-- Cache-busting. GitHub Pages serves every file with max-age=600, and a

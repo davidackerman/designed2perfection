@@ -41,6 +41,8 @@ export class UI {
       best: $('#best'),
       totalStat: $('#totalStat'),
       total: $('#total'),
+      totalScore: $('#totalScore'),
+      totalBonus: $('#totalBonus'),
       bonusHeading: $('#bonusHeading'),
       bonusBoard: $('#bonusBoard'),
       modeBadge: $('#modeBadge'),
@@ -50,8 +52,7 @@ export class UI {
       over: $('#overOverlay'),
       remap: $('#remapOverlay'),
       scores: $('#scoresOverlay'),
-      answerKey: $('#answerKeyOverlay'),
-      answerKeyCode: $('#answerKeyCode'),
+      answerToast: $('#answerToast'),
       overScore: $('#overScore'),
       overBest: $('#overBest'),
       overBestLine: $('#overBestLine'),
@@ -152,9 +153,14 @@ export class UI {
       this._bonusMax = bMax;
       this.el.bonusHeading.textContent = `${b}/${bMax}`;
     }
-    if (total !== undefined) this.el.total.textContent = total;
-    else if (score !== undefined || bonus !== undefined) {
-      this.el.total.textContent = (this._score || 0) + (this._bonus || 0);
+    if (total !== undefined) {
+      this.el.total.textContent = total;
+    } else if (score !== undefined || bonus !== undefined) {
+      const s = this._score || 0;
+      const b = this._bonus || 0;
+      this.el.totalScore.textContent = s;
+      this.el.totalBonus.textContent = b;
+      this.el.total.textContent = s + b;
     }
   }
 
@@ -415,18 +421,17 @@ export class UI {
     setTimeout(() => wrap.remove(), 700);
   }
 
-  /** The 911 easter egg: reveal the code for whoever's running the cabinet. */
-  showAnswerKey(code) {
-    this.el.answerKeyCode.textContent = code;
-    this.el.answerKey.classList.remove('hidden');
-  }
-
-  hideAnswerKey() {
-    this.el.answerKey.classList.add('hidden');
-  }
-
-  answerKeyOpen() {
-    return !this.el.answerKey.classList.contains('hidden');
+  /** The 911 easter egg: a brief, self-dismissing popup -- for whoever's
+   *  running the cabinet, not a real in-game element. Not part of the
+   *  overlay system: doesn't pause or block anything, just fades on its
+   *  own after `ms`. Retriggering (a second 911 mid-toast) restarts the
+   *  clock rather than stacking. */
+  showAnswerToast(label, value, ms = 3000) {
+    const el = this.el.answerToast;
+    el.innerHTML = `<span class="answer-toast-label">${label}</span><span class="answer-toast-value">${value}</span>`;
+    el.classList.remove('hidden');
+    clearTimeout(this.answerToastTimer);
+    this.answerToastTimer = setTimeout(() => el.classList.add('hidden'), ms);
   }
 
   /** The bonus board: rebuilt from scratch every call, same as renderBoard/
