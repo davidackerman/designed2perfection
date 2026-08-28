@@ -108,9 +108,9 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
 
 ## Design decisions worth knowing before you change things
 
-- **Simon ignores which variant fired.** Swipe has two physical variants
-  (stripe up/down, bound to `F`/`R` by default) but Simon treats either as
-  the same "swipe" pad — no orientation check, no separate up/down. Tap is
+- **Simon ignores which variant fired.** Swipe (the card) has two physical
+  variants (stripe up/down, bound to `C`/`R` by default) but Simon treats
+  either as the same "swipe" pad — no orientation check, no separate up/down. Tap is
   excluded from Simon entirely (only push/pull/soap/swipe are pads). See
   `PADS` and `PAD_SLOTS` at the top of `simon.js`.
 - **Press feedback duration matches playback, not a fixed constant.** A
@@ -158,6 +158,19 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
   hair either side. Let the diamond go tall — which is what happens if you size
   it off width alone — and the photos letterbox top and bottom instead, leaving
   a lit ring around mostly empty space.
+
+## The default keymap changed
+
+`F` push, `B` pull, `S` soap, `C` card — see the table in
+[HARDWARE.md](HARDWARE.md). Only the card's *stripe-down* variant kept its old
+key (`R`), since it's classic-mode-only and nothing asked for it to move; `A`
+and `D` are now unbound.
+
+`CONFIG.storage.bindings` moved to `janelia-it:bindings:v2` at the same time.
+That matters: `Input.load()` prefers a saved mapping over the defaults, so
+without a new storage key any browser that had ever opened the Controls screen
+would quietly keep the old keys and the change would look like it hadn't
+landed. Bump it again next time the table changes.
 
 ## Presses that land out of turn
 

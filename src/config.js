@@ -61,7 +61,10 @@ export const CONFIG = {
     classicMode: 'janelia-it:classic',
     muted: 'janelia-it:muted',
     musicVolume: 'janelia-it:music-volume',
-    bindings: 'janelia-it:bindings',
+    // Bumped when the default keymap changes: Input.load() prefers whatever is
+    // saved here over the defaults, so without a new key a cabinet that had
+    // ever visited the Controls screen would silently keep the old mapping.
+    bindings: 'janelia-it:bindings:v2',
     debug: 'janelia-it:debug',
   },
 };

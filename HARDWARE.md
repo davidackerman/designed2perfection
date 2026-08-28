@@ -8,16 +8,23 @@ HID keyboard** works with no code changes — an Arduino Pro Micro / Leonardo
 
 | Control | Physical part | Sends |
 | --- | --- | --- |
-| Push | arcade button | `A` |
-| Pull | pull lever / handle w/ limit switch | `S` |
-| Soap | IR proximity sensor | `D` |
-| Swipe, stripe up | card slot, orientation sensor A | `F` |
-| Swipe, stripe down | card slot, orientation sensor B | `R` |
+| Push | arcade button | `F` |
+| Pull | pull lever / handle w/ limit switch | `B` |
+| Soap | IR proximity sensor | `S` |
+| Swipe (card), stripe up | card slot, orientation sensor A | `C` |
+| Swipe (card), stripe down | card slot, orientation sensor B | `R` |
 | Tap, face up | RFID pad, orientation sensor A | `G` |
 | Tap, face down | RFID pad, orientation sensor B | `T` |
 
+Simon mode only uses push / pull / soap / swipe, and ignores card orientation
+entirely — `C` alone covers the card there. `R` only matters in classic mode,
+which is the only place the two swipe variants are told apart.
+
 Any of these can be re-bound in-game (title screen → **Controls**); the mapping
-persists in `localStorage`, so you set it once on the cabinet's browser.
+persists in `localStorage`, so you set it once on the cabinet's browser. Note
+that a saved mapping wins over the defaults above, so changing the table means
+bumping `CONFIG.storage.bindings` — otherwise a cabinet that has ever been
+through the Controls screen quietly keeps the old keys.
 
 ## What the firmware must guarantee
 
@@ -38,10 +45,10 @@ persists in `localStorage`, so you set it once on the cabinet's browser.
 
 ## Bringing up a new control
 
-Turn on **debug mode** (`` ` ``, or the Debug button on the title screen) and
-watch the **last key** readout while you actuate each control. It prints the raw
+Turn on **debug mode** (add `?debug=1` to the URL, or press `` ` ``) and watch
+the **last key** readout while you actuate each control. It prints the raw
 `KeyboardEvent.code` the browser received and which control it mapped to —
-`F swipe:stripe-up` for a recognised control, `Q unbound KeyQ` for a keycode the
+`C swipe:stripe-up` for a recognised control, `Q unbound KeyQ` for a keycode the
 game doesn't know. That tells you three things at once: whether the switch fires
 at all, what code the firmware is really sending, and whether it lands on the
 control you intended.

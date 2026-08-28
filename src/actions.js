@@ -14,7 +14,7 @@ export const ACTIONS = [
     // Both doors look identical. The only tell is the placard, way up there.
     placard: 'PUSH',
     variants: [
-      { id: 'default', key: 'KeyA', label: 'Push', short: 'PUSH', image: 'assets/img/door.svg' },
+      { id: 'default', key: 'KeyF', label: 'Push', short: 'PUSH', image: 'assets/img/door.svg' },
     ],
   },
   {
@@ -23,7 +23,7 @@ export const ACTIONS = [
     video: 'assets/video/pullit.mp4',
     placard: 'PULL',
     variants: [
-      { id: 'default', key: 'KeyS', label: 'Pull', short: 'PULL', image: 'assets/img/door.svg' },
+      { id: 'default', key: 'KeyB', label: 'Pull', short: 'PULL', image: 'assets/img/door.svg' },
     ],
   },
   {
@@ -32,7 +32,7 @@ export const ACTIONS = [
     video: 'assets/video/soapit.mp4',
     repeatable: true,
     variants: [
-      { id: 'default', key: 'KeyD', label: 'Wave', short: 'SOAP', image: 'assets/img/soap.svg' },
+      { id: 'default', key: 'KeyS', label: 'Wave', short: 'SOAP', image: 'assets/img/soap.svg' },
     ],
   },
   {
@@ -40,7 +40,7 @@ export const ACTIONS = [
     audioKey: 'swipe',
     video: 'assets/video/swipeit.mp4',
     variants: [
-      { id: 'stripe-up', key: 'KeyF', label: 'Swipe stripe up', short: 'SWIPE \u2191', image: 'assets/img/swipe-up.svg' },
+      { id: 'stripe-up', key: 'KeyC', label: 'Swipe stripe up', short: 'SWIPE \u2191', image: 'assets/img/swipe-up.svg' },
       { id: 'stripe-down', key: 'KeyR', label: 'Swipe stripe down', short: 'SWIPE \u2193', image: 'assets/img/swipe-down.svg' },
     ],
   },
