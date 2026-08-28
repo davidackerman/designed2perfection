@@ -56,6 +56,7 @@ const totalEls = {
   game2: document.querySelector('#totalGame2'),
   value: document.querySelector('#totalValue'),
 };
+const typingHeading = document.querySelector('#typingHeading');
 const typingBestHeading = document.querySelector('#typingBestHeading');
 const typingPanel = document.querySelector('.panel-typing');
 
@@ -76,6 +77,7 @@ function refreshTotal() {
     localStorage.setItem(CONFIG.storage.typingBest, String(typingBest));
   }
   ui.el.bestHeading.textContent = simonBest;
+  typingHeading.textContent = typingCurrent;
   typingBestHeading.textContent = typingBest;
   totalEls.game1.textContent = typingBest;
   totalEls.game2.textContent = simonBest;

@@ -55,10 +55,12 @@
       <div class="panel-heading">
         <div class="panel-heading-tag" id="game1Tag">GAME 1: AI INVASION</div>
         <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it: type each falling icon's letters using the rotary-keypad mapping (2=ABC · 3=DEF · ... · 9=WXY -- no Q or Z, a rotary dial never had either) before it reaches your ship. Missing one resets you back to one letter at a time.</div>
-        <!-- Just Best, not Destroyed-this-run -- see main3.js's refreshTotal,
-             which ratchets this up live the instant a run passes it, not
-             only once it ends, so this alone already shows a hot streak in
-             progress as well as the settled record. -->
+        <!-- Unlike Simon's panel, this one keeps its live counter alongside
+             Best -- a miss visibly drops Destroyed back to 0 (see
+             typing.js's escape()/main3.js's handleShipEscaped), while Best
+             (see refreshTotal's ratchet) never does. -->
+        Destroyed <span id="typingHeading" class="panel-heading-value">0</span>
+        <span class="panel-heading-sep">·</span>
         Best <span id="typingBestHeading" class="panel-heading-value">0</span>
       </div>
       <div id="typingField" class="typing-field">
