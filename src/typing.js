@@ -198,27 +198,36 @@ export class TypingInvasion {
     this.onMiss?.();
   }
 
-  /** Purely cosmetic: a dot travels from the cursor to wherever the target
-   *  ship's icon actually is right now. Fire-and-forget -- it doesn't touch
-   *  any game state, that already happened in hit() before this is called. */
+  /** Purely cosmetic: a beam shoots out from the tip of the cursor arrow
+   *  toward wherever the target ship's icon actually is right now, then
+   *  fades. Drawn as a single line rotated/scaled to span exactly that
+   *  distance, so it reads unmistakably as fired *from the arrow*, not just
+   *  a dot that happens to appear near the target. Fire-and-forget -- it
+   *  doesn't touch any game state, that already happened in hit(). */
   fireBlast(ship) {
     const fieldRect = this.fieldEl.getBoundingClientRect();
     const from = this.cursorEl.getBoundingClientRect();
     const to = ship.el.getBoundingClientRect();
-    const startX = from.left + from.width / 2 - fieldRect.left;
-    const startY = from.top + from.height / 2 - fieldRect.top;
+    // The tip of the arrow glyph is near the top-left of its box, not the
+    // center -- see the cursor.png artwork itself.
+    const startX = from.left + from.width * 0.3 - fieldRect.left;
+    const startY = from.top + from.height * 0.08 - fieldRect.top;
     const endX = to.left + to.width / 2 - fieldRect.left;
     const endY = to.top + to.height / 2 - fieldRect.top;
+    const dist = Math.hypot(endX - startX, endY - startY);
+    const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
 
     const blast = document.createElement('div');
     blast.className = 'ai-blast';
     blast.style.left = `${startX}px`;
     blast.style.top = `${startY}px`;
+    blast.style.width = `${dist}px`;
+    blast.style.transform = `rotate(${angle}deg) scaleX(0)`;
     this.fieldEl.appendChild(blast);
     requestAnimationFrame(() => {
-      blast.style.transform = `translate(${endX - startX}px, ${endY - startY}px)`;
-      blast.style.opacity = '0.15';
+      blast.style.transform = `rotate(${angle}deg) scaleX(1)`;
     });
-    setTimeout(() => blast.remove(), 170);
+    setTimeout(() => blast.classList.add('ai-blast-fade'), 90);
+    setTimeout(() => blast.remove(), 280);
   }
 }

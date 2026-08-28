@@ -614,20 +614,24 @@ html, body {
   animation: shipEscape 320ms ease forwards;
 }
 
-/* The blast: a dot that travels from the cursor to wherever the target ship
-   actually is right now -- see TypingInvasion.fireBlast. Positioned in JS,
-   animated purely by the left/top -> transform transition below. */
+/* The blast: a beam from the tip of the cursor arrow to wherever the target
+   ship actually is right now -- see TypingInvasion.fireBlast. Positioned,
+   sized (its width *is* the distance to the target) and rotated in JS; the
+   scaleX(0) -> scaleX(1) transition is what makes it look fired rather than
+   just placed, growing out from the arrow instead of appearing whole. */
 .ai-blast {
   position: absolute;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px 2px var(--accent);
+  height: 3px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, #fff, var(--accent));
+  border-radius: 2px;
+  box-shadow: 0 0 6px 1px var(--accent);
   opacity: 1;
-  transition: transform 150ms linear, opacity 150ms linear;
+  transition: transform 90ms ease-out, opacity 190ms ease-in;
   pointer-events: none;
+}
+.ai-blast.ai-blast-fade {
+  opacity: 0;
 }
 
 /* A ship reaching the cursor resets the current run's count (see main3.js's
