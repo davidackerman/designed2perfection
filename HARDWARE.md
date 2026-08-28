@@ -11,14 +11,12 @@ HID keyboard** works with no code changes — an Arduino Pro Micro / Leonardo
 | Push | arcade button | `F` |
 | Pull | pull lever / handle w/ limit switch | `B` |
 | Soap | IR proximity sensor | `S` |
-| Swipe (card), stripe up | card slot, orientation sensor A | `C` |
-| Swipe (card), stripe down | card slot, orientation sensor B | `R` |
+| Swipe (card) | card slot | `C` |
 | Tap, face up | RFID pad, orientation sensor A | `G` |
 | Tap, face down | RFID pad, orientation sensor B | `T` |
 
-Simon mode only uses push / pull / soap / swipe, and ignores card orientation
-entirely — `C` alone covers the card there. `R` only matters in classic mode,
-which is the only place the two swipe variants are told apart.
+The card slot is one control: it can't tell which way the card went in, so
+there's no orientation flaw on it in either mode. The tap pad still has two.
 
 Any of these can be re-bound in-game (title screen → **Controls**); the mapping
 persists in `localStorage`, so you set it once on the cabinet's browser. Note
@@ -37,18 +35,19 @@ through the Controls screen quietly keeps the old keys.
   nothing until the hand leaves and returns (or until a re-arm timeout of
   ~250 ms). This matters: "soap it" sometimes needs 2–3 separate waves, and the
   game counts keystrokes.
-- **Orientation is a separate keycode, not a modifier.** The swiper and tap pad
-  each report *which way the card was presented* by choosing between two
-  keycodes. If your reader can't tell orientation, bind both variants to the
-  same key — the game then accepts either, and the orientation flaw is
-  effectively disabled.
+- **Orientation is a separate keycode, not a modifier.** The tap pad reports
+  *which way the card was presented* by choosing between two keycodes. Don't
+  bind both of its variants to one key to work around a reader that can't tell:
+  the game resolves a keycode to the first control holding it, so the other
+  variant would never fire and classic mode would call it a wrong orientation
+  every time. Give the action a single variant instead, the way swipe does.
 
 ## Bringing up a new control
 
 Turn on **debug mode** (add `?debug=1` to the URL, or press `` ` ``) and watch
 the **last key** readout while you actuate each control. It prints the raw
 `KeyboardEvent.code` the browser received and which control it mapped to —
-`C swipe:stripe-up` for a recognised control, `Q unbound KeyQ` for a keycode the
+`C swipe:default` for a recognised control, `Q unbound KeyQ` for a keycode the
 game doesn't know. That tells you three things at once: whether the switch fires
 at all, what code the firmware is really sending, and whether it lands on the
 control you intended.

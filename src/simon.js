@@ -12,13 +12,13 @@ import { STATE } from './state.js';
 
 const PADS = ['push', 'pull', 'soap', 'swipe'];
 
-// Debug hint only: which bound key(s) count as this pad. Swipe has two
-// variants (stripe up/down) and Simon accepts either, so both show up.
+// Debug hint only: which bound key counts as this pad. Every Simon pad is a
+// single control -- tap, the one action with real variants, isn't a pad.
 const PAD_SLOTS = {
   push: ['push:default'],
   pull: ['pull:default'],
   soap: ['soap:default'],
-  swipe: ['swipe:stripe-up', 'swipe:stripe-down'],
+  swipe: ['swipe:default'],
 };
 
 const REASONS = {
@@ -162,8 +162,8 @@ export class SimonGame {
     this.frame = requestAnimationFrame(() => this.tickInput());
   }
 
-  /** Simon mode ignores which variant fired (e.g. swipe orientation) -- only
-   *  which of the four pads it was. No Bop-It-style press sfx here -- whatever
+  /** Simon mode keys off the action only, never the variant -- none of the
+   *  four pads has one. No Bop-It-style press sfx here -- whatever
    *  pad you press lights up with its own flash+tone, same as a real Simon
    *  console, whether you turn out to be right or wrong. Lit for the same
    *  duration as this round's own playback step, not a separate fixed length.

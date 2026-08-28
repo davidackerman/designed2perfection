@@ -39,9 +39,10 @@ export const ACTIONS = [
     id: 'swipe',
     audioKey: 'swipe',
     video: 'assets/video/swipeit.mp4',
+    // The card slot can't tell which way the card went in, so unlike the tap
+    // pad this is one control with one keycode -- no orientation flaw here.
     variants: [
-      { id: 'stripe-up', key: 'KeyC', label: 'Swipe stripe up', short: 'SWIPE \u2191', image: 'assets/img/swipe-up.svg' },
-      { id: 'stripe-down', key: 'KeyR', label: 'Swipe stripe down', short: 'SWIPE \u2193', image: 'assets/img/swipe-down.svg' },
+      { id: 'default', key: 'KeyC', label: 'Swipe', short: 'SWIPE', image: 'assets/img/swipe-up.svg' },
     ],
   },
   {

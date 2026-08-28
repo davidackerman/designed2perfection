@@ -108,10 +108,9 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
 
 ## Design decisions worth knowing before you change things
 
-- **Simon ignores which variant fired.** Swipe (the card) has two physical
-  variants (stripe up/down, bound to `C`/`R` by default) but Simon treats
-  either as the same "swipe" pad — no orientation check, no separate up/down. Tap is
-  excluded from Simon entirely (only push/pull/soap/swipe are pads). See
+- **No Simon pad has variants.** The card slot can't sense orientation, so
+  swipe is one control on one key; push, pull and soap always were. Tap is the
+  only action with variants left, and it's excluded from Simon entirely. See
   `PADS` and `PAD_SLOTS` at the top of `simon.js`.
 - **Press feedback duration matches playback, not a fixed constant.** A
   correct or wrong press lights the pad and plays its tone for exactly
@@ -162,9 +161,9 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
 ## The default keymap changed
 
 `F` push, `B` pull, `S` soap, `C` card — see the table in
-[HARDWARE.md](HARDWARE.md). Only the card's *stripe-down* variant kept its old
-key (`R`), since it's classic-mode-only and nothing asked for it to move; `A`
-and `D` are now unbound.
+[HARDWARE.md](HARDWARE.md). `A`, `D`, `R` are all unbound now: swipe used to
+have stripe-up/stripe-down variants on two keys, but the real reader can't tell
+which way the card went in, so it's one control on one key.
 
 `CONFIG.storage.bindings` moved to `janelia-it:bindings:v2` at the same time.
 That matters: `Input.load()` prefers a saved mapping over the defaults, so

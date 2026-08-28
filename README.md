@@ -20,10 +20,10 @@ on the title screen (off by default).
 
 | Command | Cabinet control | Default key | The flaw it re-creates |
 | --- | --- | --- | --- |
-| **PUSH IT** | arcade button | `A` | Both doors look identical; only the placard tells you |
-| **PULL IT** | pull lever | `S` | …and the placard is small, and up high |
-| **SOAP IT** | proximity sensor | `D` | Sometimes takes 2–3 waves to do anything |
-| **SWIPE IT** | card swiper | `F` / `R` | Stripe up or stripe down, as pictured |
+| **PUSH IT** | arcade button | `F` | Both doors look identical; only the placard tells you |
+| **PULL IT** | pull lever | `B` | …and the placard is small, and up high |
+| **SOAP IT** | proximity sensor | `S` | Sometimes takes 2–3 waves to do anything |
+| **SWIPE IT** | card swiper | `C` | The reader is indifferent to how you hold it |
 | **TAP IT** | card tap pad | `G` / `T` | Face up or face down, as pictured |
 
 Other keys: `Space` (or `Enter`) start · `H` hard mode (Classic only) · `M` mute · `` ` `` debug · `Esc` quit a run.
