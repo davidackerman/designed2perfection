@@ -172,7 +172,15 @@ export class SimonGame {
    *  hammering the same pad twice in a row reads as two distinct presses
    *  rather than one held glow. */
   handleInput({ actionId }) {
-    if (this.state !== STATE.PLAYING || this.phase !== 'input') return;
+    if (this.state !== STATE.PLAYING) return;
+    if (this.phase !== 'input') {
+      // Playback, or the gap between rounds. Pressing here isn't a mistake and
+      // costs nothing -- but at low rounds it's most of the wall clock, and
+      // swallowing it in silence is indistinguishable from a dropped input.
+      // Say "not yet" instead of nothing.
+      this.ui.flash('nothing');
+      return;
+    }
 
     const stepMs = this.stepMsFor(this.round);
     this.lightPad(actionId, stepMs, { press: true });

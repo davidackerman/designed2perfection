@@ -251,9 +251,14 @@ window.addEventListener('keydown', (e) => {
 
   // Simon: no variants, no tap pad, and swipe doesn't care which way --
   // just push/pull/soap/swipe, so lastDebugStep.actionId is enough.
-  if (!simonGame.lastDebugStep) return;
   e.preventDefault();
   e.stopImmediatePropagation();
+  // No step pending means it's playback or the between-rounds gap. Give the
+  // same "not yet" cue a real pad press gets there, rather than nothing.
+  if (!simonGame.lastDebugStep) {
+    ui.flash('nothing');
+    return;
+  }
   simonGame.handleInput({ actionId: simonGame.lastDebugStep.actionId });
 }, true);
 

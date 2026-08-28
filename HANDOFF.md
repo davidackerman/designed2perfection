@@ -159,6 +159,29 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
   it off width alone — and the photos letterbox top and bottom instead, leaving
   a lit ring around mostly empty space.
 
+## Presses that land out of turn
+
+Simon ignores input during playback and during the gap between rounds
+(`interRoundMs` + the lead-in gap ~= 1.25s after every cleared round). That's
+deliberate, but at low rounds it's most of the wall clock, and swallowing a
+press in silence is indistinguishable from dropping it — it's what made the
+input feel broken. An out-of-turn press now gets the existing `flash('nothing')`
+nudge, in both the real-key and `Space` paths. It still costs you nothing.
+
+## Cache-busting
+
+GitHub Pages serves every file with `max-age=600` and a reload only revalidates
+the document, so a fresh `index.html` could run against ten-minute-old JS — the
+game "randomly misbehaving" when it was really a half-updated cache. Every
+`src/` module and the stylesheet is now loaded through a `?v=__BUILD__` query
+(via an import map in `index.html`; import maps don't cover a module script's
+own `src`, so the entry point carries its version directly). The deploy
+workflow rewrites `__BUILD__` with the commit SHA. Locally it stays literal,
+which is fine.
+
+**Adding a module to `src/` means adding a line to that import map.** Missing
+one just means it isn't cache-busted; nothing breaks.
+
 ## Running / testing locally
 
 Same as [README.md](README.md) says — no build step:

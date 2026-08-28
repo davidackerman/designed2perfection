@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>1nc0nVeni3nt</title>
 <meta name="description" content="A memory game about the everyday obstacles of Janelia Research Campus: doors, soap dispensers, and badge readers. Watch the sequence, repeat it back." />
-<link rel="stylesheet" href="styles/main.css" />
+<link rel="stylesheet" href="styles/main.css?v=__BUILD__" />
 <link rel="icon" href="assets/img/favicon.svg" />
 </head>
 <body>
@@ -157,6 +157,32 @@
   </div>
 
 </div>
-<script type="module" src="src/main.js"></script>
+<!-- Cache-busting. GitHub Pages serves every file with max-age=600, and a
+     reload only revalidates the document itself -- so without this you can end
+     up running a fresh index.html against ten-minute-old JS, which reads as the
+     game randomly misbehaving rather than as a stale cache. The deploy workflow
+     rewrites __BUILD__ with the commit SHA; locally it stays literal, which is
+     a perfectly good constant.
+
+     Import maps don't apply to a module script's own src, so the entry point
+     carries its version directly and the map covers everything it pulls in.
+     Adding a module to src/ means adding a line here too -- one that's missed
+     just doesn't get busted, it doesn't break. -->
+<script type="importmap">
+{
+  "imports": {
+    "./src/actions.js": "./src/actions.js?v=__BUILD__",
+    "./src/audio.js": "./src/audio.js?v=__BUILD__",
+    "./src/config.js": "./src/config.js?v=__BUILD__",
+    "./src/game.js": "./src/game.js?v=__BUILD__",
+    "./src/input.js": "./src/input.js?v=__BUILD__",
+    "./src/scores.js": "./src/scores.js?v=__BUILD__",
+    "./src/simon.js": "./src/simon.js?v=__BUILD__",
+    "./src/state.js": "./src/state.js?v=__BUILD__",
+    "./src/ui.js": "./src/ui.js?v=__BUILD__"
+  }
+}
+</script>
+<script type="module" src="src/main.js?v=__BUILD__"></script>
 </body>
 </html>

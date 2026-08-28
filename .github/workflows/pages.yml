@@ -23,7 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
-      # No build step: the repo root is the site.
+      # Still no build step -- this just stamps the commit into index.html's
+      # ?v= cache-busting queries, so a deploy can't leave a browser running
+      # new HTML against JS/CSS still inside its ten-minute max-age.
+      - name: Stamp build version
+        run: sed -i "s/__BUILD__/${GITHUB_SHA:0:12}/g" index.html
+      # The repo root is the site.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
