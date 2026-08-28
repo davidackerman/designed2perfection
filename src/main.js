@@ -53,14 +53,21 @@ function handleDigit(digit) {
 
   if (digit === TITLE_CODE[titleCodeProgress]) {
     ui.markTitleDigitGood(titleCodeProgress);
+    audio.play('codeRight');
     titleCodeProgress++;
     if (titleCodeProgress === TITLE_CODE.length) {
       titleCodeProgress = 0;
-      setTimeout(startGame, 500); // let all four land green before the stage swaps in
+      // Hold on the all-green moment for a beat before the success tone and
+      // the game itself begin, rather than firing both immediately.
+      setTimeout(() => {
+        audio.play('success');
+        startGame();
+      }, 1000);
     }
   } else {
     ui.resetTitleDigits(); // clear any green already earned -- one miss costs the whole attempt
     ui.flashTitleWrong();
+    audio.play('codeWrong');
     titleCodeProgress = 0;
   }
 }

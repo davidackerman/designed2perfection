@@ -86,6 +86,7 @@ export class UI {
     };
     this.flashTimer = null;
     this.titleShakeTimer = null;
+    this.hintFrame = null;
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
@@ -97,6 +98,27 @@ export class UI {
       this.el[key].classList.toggle('hidden', key !== name);
     }
     this.el.stage.classList.toggle('idle', name !== null);
+    if (name === 'title') this.startTitleHint();
+  }
+
+  /** A minute of the title sitting untouched, then over the following minute
+   *  the code digits grow to 1.5x and the rest of the word shrinks to 0.5x --
+   *  an increasingly obvious nudge for a team that's stuck. Restarts every
+   *  time the title is (re)shown; stops itself once it's hidden again. */
+  startTitleHint() {
+    const shownAt = Date.now();
+    cancelAnimationFrame(this.hintFrame);
+    const HINT_DELAY_MS = 60000;
+    const HINT_RAMP_MS = 60000;
+    const tick = () => {
+      if (this.el.title.classList.contains('hidden')) return; // left the title
+      const elapsed = Date.now() - shownAt;
+      const progress = Math.min(1, Math.max(0, (elapsed - HINT_DELAY_MS) / HINT_RAMP_MS));
+      this.el.title.style.setProperty('--hint-progress', progress);
+      this.hintFrame = requestAnimationFrame(tick);
+    };
+    this.el.title.style.setProperty('--hint-progress', 0);
+    this.hintFrame = requestAnimationFrame(tick);
   }
 
   hideOverlays() {

@@ -121,12 +121,17 @@ export class SimonGame {
         return;
       }
       const actionId = this.sequence[i];
+      // Round 1's one step is most players' first look at the flash+tone
+      // mechanic, right after the jarring title-code transition -- hold it
+      // twice as long so it can't be missed the way a normal-speed single
+      // flash could be.
+      const thisStepMs = this.round === 1 ? stepMs * 2 : stepMs;
       i += 1;
-      this.lightPad(actionId, stepMs);
+      this.lightPad(actionId, thisStepMs);
       this.playbackTimer = setTimeout(() => {
         this.ui.clearSimonStep();
         this.playbackTimer = setTimeout(playStep, gapMs);
-      }, stepMs);
+      }, thisStepMs);
     };
     this.ui.clearSimonStep();
     this.playbackTimer = setTimeout(playStep, gapMs);

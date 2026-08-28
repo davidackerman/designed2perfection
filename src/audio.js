@@ -25,6 +25,8 @@ export const MANIFEST = {
   denied: 'assets/audio/denied.mp3',     // card read at the wrong orientation
   lose: 'assets/audio/lose.mp3',         // any way a run can end: wrong button or ran out of time
   wrong: 'assets/audio/wrong.mp3',       // a control pressed at the title instead of dialing the code
+  codeRight: 'assets/audio/correct_password_entry.mp3', // a correct digit in the title code
+  codeWrong: 'assets/audio/failed_password_entry.mp3',  // a wrong digit in the title code
   gameover: 'assets/audio/gameover.mp3',
   start: 'assets/audio/start.mp3',
   song: 'assets/audio/song.mp3', // looping background music for a run
