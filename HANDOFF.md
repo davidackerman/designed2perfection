@@ -10,8 +10,9 @@ delta on top of it.
 The game now has two modes:
 
 - **Simon (default)** — a tone-and-picture sequence that grows by one step
-  every round and speeds up, like the classic handheld. Nothing on screen
-  explains the rule anywhere; first-timers are meant to work it out by
+  every round, with playback speeding up as it goes, like the classic
+  handheld. Your answer is untimed: only a wrong pad ends a run. Nothing on
+  screen explains the rule anywhere; first-timers are meant to work it out by
   watching a round or two.
 - **Classic** — the original five-command reflex game (push/pull/soap/
   swipe/tap, placards, hard mode, high score boards). Unchanged in behavior,
@@ -173,6 +174,31 @@ That matters: `Input.load()` prefers a saved mapping over the defaults, so
 without a new storage key any browser that had ever opened the Controls screen
 would quietly keep the old keys and the change would look like it hadn't
 landed. Bump it again next time the table changes.
+
+## No clock on the answer
+
+Simon used to time each press (`inputWindowMs` and friends, a rAF loop driving
+the timer bar, `fail('timeout')`). All of it is gone: `awaitPress()` just
+publishes which step is outstanding and waits. The only way to lose is a wrong
+pad, so `fail()` takes no reason. Consequences worth knowing:
+
+- The timer bar has nothing to say in Simon and is hidden there
+  (`#stage.simon-mode + #timer`), rather than sitting at zero.
+- `pause()`/`resume()` only have the two timed phases left to handle; a run
+  waiting on a press needs nothing done to it when the tab comes back.
+- Playback still speeds up per round (`stepMsFor`), which is the whole of the
+  difficulty curve now.
+
+## The game-over recap
+
+`SimonGame.fail()` hands `sequence` and `pressed` (the round you died on, and
+your presses in it) to `onGameOver`, and `ui.renderSequenceRecap` lays them out
+as two aligned rows — one grid column per step, so "You" sits under "Wanted"
+and the step where they diverge is ringed. Steps you never reached are dashed
+placeholders. Classic passes no sequence and the block stays hidden.
+
+Pad colours moved to `--pad-push`/`-pull`/`-soap`/`-swipe` in `:root` so the
+recap chips and the lit pads can't drift apart.
 
 ## Presses that land out of turn
 

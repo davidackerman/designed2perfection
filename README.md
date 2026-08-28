@@ -9,9 +9,14 @@ ignore you, and badge readers that care very much which way you hold the card.
 ## Modes
 
 The game defaults to a Simon-style mode: a tone-and-picture sequence over
-four of the controls (push/pull/soap/swipe) that grows by one step each round
-and speeds up as it goes. Nothing on screen explains the rule — it's meant to
-be worked out by watching. See [`src/simon.js`](src/simon.js).
+four of the controls (push/pull/soap/swipe) that grows by one step each round.
+The *playback* speeds up as it goes; your answer isn't timed at all — take as
+long as you like over a press, and the only way to lose is to press the wrong
+pad. Nothing on screen explains the rule — it's meant to be worked out by
+watching. See [`src/simon.js`](src/simon.js).
+
+When a run ends, the game-over card lays the round you died on against what you
+actually pressed, step by step, so you can see where the two parted company.
 
 The original reflex game below is still there as **Classic mode**, a toggle
 on the title screen (off by default).
@@ -33,8 +38,8 @@ mapping persists in `localStorage`.
 
 ## Debug mode
 
-Press `` ` `` (backtick) or hit **Debug** on the title screen. A bar appears
-under the timer showing:
+Add `?debug=1` to the URL, or press `` ` `` (backtick) — there's no button, so
+the title screen carries no instructions. A bar appears at the bottom showing:
 
 - **A keycap on the stage** showing the key this moment wants. In Classic mode
   that's the current challenge's `action:variant` slot and how many hits it
@@ -54,7 +59,10 @@ under the timer showing:
 
 The setting persists, and the chips re-render after a re-bind.
 
-## How a round works
+## How a round works (Classic mode)
+
+Classic is the timed one — Simon puts no clock on your answer, and hides the
+timer bar entirely.
 
 The screen shows a **picture** on one side and a **word** on the other, and the
 call-out plays. Hit the right control before the timer bar empties.

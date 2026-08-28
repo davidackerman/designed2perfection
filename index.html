@@ -111,6 +111,10 @@
       <p class="tagline" id="overPlace"></p>
       <p class="tagline" id="overBestLine">Best (<span id="overMode">normal</span>): <span id="overBest">0</span></p>
 
+      <!-- Simon only: the round you died on, step by step, against what you
+           actually pressed. Filled in by ui.renderSequenceRecap. -->
+      <div id="overSequence" class="seq hidden"></div>
+
       <form id="entryRow" class="entry hidden" autocomplete="off">
         <label for="initials">NEW HIGH SCORE</label>
         <input id="initials" maxlength="3" spellcheck="false" autocapitalize="characters" placeholder="AAA" />

@@ -14,6 +14,9 @@ const OVER_HEADINGS = {
   hard: 'YOU DID NOT GET IN',
 };
 
+// What each Simon pad is called in the game-over recap.
+const PAD_LABEL = { push: 'PUSH', pull: 'PULL', soap: 'SOAP', swipe: 'SWIPE' };
+
 const ORDINALS = ['1st', '2nd', '3rd'];
 const place = (rank) => ORDINALS[rank] || `${rank + 1}th`;
 
@@ -50,6 +53,7 @@ export class UI {
       overReason: $('#overReason'),
       overHeading: $('#overHeading'),
       overBoard: $('#overBoard'),
+      overSequence: $('#overSequence'),
       entryRow: $('#entryRow'),
       initials: $('#initials'),
       scoresBoard: $('#scoresBoard'),
@@ -330,7 +334,7 @@ export class UI {
     target.innerHTML = `<table class="board"><tbody>${rows}</tbody></table>`;
   }
 
-  showGameOver({ score, best, reason, mode, board, rank, qualifies, defaultName }) {
+  showGameOver({ score, best, reason, mode, board, rank, qualifies, defaultName, sequence, pressed }) {
     this.setDebugExpected(null);   // the round is over; don't leave the hint up
     this.el.overScore.textContent = score;
     this.el.overBest.textContent = best;
@@ -353,9 +357,39 @@ export class UI {
       // Autofocus so you can just type and hit Enter.
       setTimeout(() => this.el.initials.focus(), 0);
     }
+    this.renderSequenceRecap(sequence, pressed);
     this.renderBoard(this.el.overBoard, qualifies && !board.length ? [] : board, rank);
     this.el.overBoard.classList.toggle('hidden', qualifies && !board.length);
     this.showOverlay('over');
+  }
+
+  /** Simon only: the round you died on laid out against what you actually
+   *  pressed, one column per step so the two rows line up and the divergence
+   *  is visible instead of remembered. Classic passes no sequence and gets
+   *  nothing. */
+  renderSequenceRecap(sequence, pressed = []) {
+    const el = this.el.overSequence;
+    if (!sequence || !sequence.length) {
+      el.classList.add('hidden');
+      el.innerHTML = '';
+      return;
+    }
+    // One shared column track per step, so "You" sits under "Sequence".
+    el.style.setProperty('--steps', sequence.length);
+    const wrongAt = sequence.findIndex((id, i) => i < pressed.length && pressed[i] !== id);
+    const cell = (id, i) => {
+      // &nbsp; so a step you never reached still has a text line's height and
+      // the two rows stay level.
+      if (!id) return '<span class="seq-cell seq-none">&nbsp;</span>';
+      const bad = i === wrongAt ? ' bad' : '';
+      return `<span class="seq-cell seq-${id}${bad}">${PAD_LABEL[id] || id}</span>`;
+    };
+    el.innerHTML =
+      '<span class="seq-label">Wanted</span>' +
+      sequence.map(cell).join('') +
+      '<span class="seq-label">You</span>' +
+      sequence.map((_, i) => cell(pressed[i], i)).join('');
+    el.classList.remove('hidden');
   }
 
   /** After the initials are saved: swap the form out for the placement line. */

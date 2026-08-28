@@ -34,9 +34,8 @@ export const CONFIG = {
     minStepMs: 300,          // floor -- playback never gets faster than this
     decay: 0.93,             // stepMs *= decay per round (i.e. per sequence length)
     gapRatio: 0.5,           // dark gap between steps, as a fraction of stepMs
-    inputWindowMs: 2500,     // time allowed for the first press of a round
-    inputMinWindowMs: 1200,  // floor for that same window
-    inputDecay: 0.95,        // inputWindowMs *= decay per round
+    // No knobs for the answer clock: there isn't one. Take as long as you
+    // like over a press -- only a wrong pad ends the run.
     interRoundMs: 900,       // pause after a correct sequence before it grows
     bonusMax: 10,            // bonus meter ceiling; scoring TBD
     tones: {

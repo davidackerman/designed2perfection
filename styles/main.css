@@ -8,6 +8,11 @@
   --good: #3fd67a;
   --bad: #ff4d4d;
   --deny: #ffd23f;
+  /* One per Simon pad, shared by the lit pad and the game-over recap chips. */
+  --pad-push: #1fae57;
+  --pad-pull: #d64545;
+  --pad-soap: #d9b62a;
+  --pad-swipe: #2f6fd6;
   --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -229,10 +234,10 @@ html, body {
   55%  { transform: scale(1.08); filter: brightness(1.25); }
   100% { transform: scale(1.05); filter: brightness(1); }
 }
-.simon-pad-push.active { box-shadow: 0 0 0 4px #1fae57, 0 0 30px 6px rgba(31, 174, 87, 0.5); }
-.simon-pad-pull.active { box-shadow: 0 0 0 4px #d64545, 0 0 30px 6px rgba(214, 69, 69, 0.5); }
-.simon-pad-soap.active { box-shadow: 0 0 0 4px #d9b62a, 0 0 30px 6px rgba(217, 182, 42, 0.5); }
-.simon-pad-swipe.active { box-shadow: 0 0 0 4px #2f6fd6, 0 0 30px 6px rgba(47, 111, 214, 0.5); }
+.simon-pad-push.active { box-shadow: 0 0 0 4px var(--pad-push), 0 0 30px 6px rgba(31, 174, 87, 0.5); }
+.simon-pad-pull.active { box-shadow: 0 0 0 4px var(--pad-pull), 0 0 30px 6px rgba(214, 69, 69, 0.5); }
+.simon-pad-soap.active { box-shadow: 0 0 0 4px var(--pad-soap), 0 0 30px 6px rgba(217, 182, 42, 0.5); }
+.simon-pad-swipe.active { box-shadow: 0 0 0 4px var(--pad-swipe), 0 0 30px 6px rgba(47, 111, 214, 0.5); }
 
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
@@ -289,6 +294,52 @@ html, body {
   border-radius: 999px;
 }
 #timerFill.critical { background: var(--bad); }
+
+/* Simon puts no clock on your answer, so the bar has nothing to say. Hidden
+   rather than removed, to keep the layout identical between the two modes. */
+#stage.simon-mode + #timer { visibility: hidden; }
+
+/* ---- game over: the round you died on vs. what you pressed ---- */
+.seq {
+  display: grid;
+  grid-template-columns: auto repeat(var(--steps), minmax(0, auto));
+  gap: 4px;
+  align-items: center;
+  justify-content: start;
+  margin: 14px 0 2px;
+  padding-bottom: 4px;
+  overflow-x: auto;           /* long runs scroll rather than stretch the card */
+}
+
+.seq-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+  text-align: right;
+  padding-right: 8px;
+}
+
+.seq-cell {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 4px 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--dim);
+}
+
+.seq-push  { border-color: var(--pad-push);  color: var(--pad-push); }
+.seq-pull  { border-color: var(--pad-pull);  color: var(--pad-pull); }
+.seq-soap  { border-color: var(--pad-soap);  color: var(--pad-soap); }
+.seq-swipe { border-color: var(--pad-swipe); color: var(--pad-swipe); }
+
+/* The step where the two rows part company. */
+.seq-cell.bad { box-shadow: 0 0 0 2px var(--bad); }
+
+/* A step you never got to. */
+.seq-none { border-style: dashed; border-color: var(--line); }
 
 /* ---- high score board ---- */
 .board-wrap { margin: 4px 0 18px; }
