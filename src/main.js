@@ -25,6 +25,45 @@ let screen = 'title'; // title | playing | over | remap | scores
 let scoresTab = 'simon';
 let pending = null;    // the run awaiting initials
 
+// The title screen's number-pad code, in place of a Start button: the digits
+// and roman numeral buried in the title itself, in reading order --
+// 1nc0nVeni3nt -> 1, 0, V (=5), 3.
+const TITLE_CODE = '1053';
+// Dial this on the number pad at any point to bring up the answer key.
+const ANSWER_KEY_CODE = '911';
+let titleCodeProgress = 0;
+let answerKeyBuffer = '';
+
+// Real numeric keypad or a keyboard's Numpad row -- accept either, since it's
+// not yet decided which one the cabinet ships with.
+const DIGIT_KEYS = {};
+for (let i = 0; i <= 9; i++) {
+  DIGIT_KEYS[`Digit${i}`] = String(i);
+  DIGIT_KEYS[`Numpad${i}`] = String(i);
+}
+
+function handleDigit(digit) {
+  answerKeyBuffer = (answerKeyBuffer + digit).slice(-ANSWER_KEY_CODE.length);
+  if (answerKeyBuffer === ANSWER_KEY_CODE) {
+    answerKeyBuffer = '';
+    ui.showAnswerKey(TITLE_CODE);
+  }
+
+  if (screen !== 'title') return; // the code only means anything at the title
+
+  if (digit === TITLE_CODE[titleCodeProgress]) {
+    titleCodeProgress++;
+    if (titleCodeProgress === TITLE_CODE.length) {
+      titleCodeProgress = 0;
+      ui.flashTitleCode(true);
+      setTimeout(startGame, 500); // let the green land before the stage swaps in
+    }
+  } else {
+    titleCodeProgress = 0;
+    ui.flashTitleCode(false);
+  }
+}
+
 const slots = allBindingSlots();
 let debug = localStorage.getItem(CONFIG.storage.debug) === '1';
 
@@ -77,6 +116,7 @@ function toggleClassic() {
 
 function toTitle() {
   screen = 'title';
+  titleCodeProgress = 0; // don't carry a half-typed code across screens
   activeGame().abort(); // stops any run music
   ui.showOverlay('title');
   audio.playMusic('song');
@@ -173,11 +213,15 @@ function toRemap() {
   ui.showOverlay('remap');
 }
 
-document.querySelector('#startBtn').addEventListener('click', startGame);
+// Outside debug mode these two no longer start anything -- the title-screen
+// code (see handleDigit above) is the only way in. Debug mode keeps the old
+// one-click behavior so testing doesn't require dialing a code every time.
+document.querySelector('#startBtn').addEventListener('click', () => { if (debug) startGame(); });
+document.querySelector('#newTeamBtn').addEventListener('click', () => { if (debug) newTeam(); });
 document.querySelector('#againBtn').addEventListener('click', startGame);
 document.querySelector('#overNewTeamBtn').addEventListener('click', newTeam);
-document.querySelector('#newTeamBtn').addEventListener('click', newTeam);
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
+document.querySelector('#answerKeyDoneBtn').addEventListener('click', () => ui.hideAnswerKey());
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#remapResetBtn').addEventListener('click', () => {
@@ -269,6 +313,13 @@ window.addEventListener('keydown', (e) => {
   if (isTyping(e)) return;   // entering initials
   if (e.defaultPrevented) return;
 
+  // The 911 easter egg works from anywhere; a digit is otherwise unbound to
+  // any control, so this never steals a keystroke another handler wants.
+  const digit = DIGIT_KEYS[e.code];
+  if (digit !== undefined && !e.repeat) { handleDigit(digit); return; }
+
+  if (e.code === 'Escape' && ui.answerKeyOpen()) { ui.hideAnswerKey(); return; }
+
   if (e.code === 'KeyM') { toggleMute(); return; }
   if (e.code === 'Backquote') { toggleDebug(); return; }
 
@@ -279,7 +330,10 @@ window.addEventListener('keydown', (e) => {
 
   if (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') {
     e.preventDefault();
-    if (activeGame().state !== STATE.PLAYING) startGame();
+    if (activeGame().state === STATE.PLAYING) return;
+    // Title screen now takes the number-pad code instead, unless debugging.
+    if (screen === 'title' && !debug) return;
+    startGame();
     return;
   }
 

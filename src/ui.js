@@ -45,6 +45,9 @@ export class UI {
       over: $('#overOverlay'),
       remap: $('#remapOverlay'),
       scores: $('#scoresOverlay'),
+      titleHeading: $('#titleHeading'),
+      answerKey: $('#answerKeyOverlay'),
+      answerKeyCode: $('#answerKeyCode'),
       overScore: $('#overScore'),
       overBest: $('#overBest'),
       overBestLine: $('#overBestLine'),
@@ -78,6 +81,7 @@ export class UI {
       swipe: $('#simonPadSwipe'),
     };
     this.flashTimer = null;
+    this.titleFlashTimer = null;
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
@@ -312,6 +316,33 @@ export class UI {
     this.flashTimer = setTimeout(() => {
       stage.classList.remove(`flash-${kind}`);
     }, 260);
+  }
+
+  /** Title screen's number-pad code, entered instead of pressing Start:
+   *  green once it's complete and right, a red nudge on a wrong digit. */
+  flashTitleCode(good) {
+    const el = this.el.titleHeading;
+    el.classList.remove('title-good', 'title-bad');
+    void el.offsetWidth; // reflow, so back-to-back wrong digits each nudge
+    el.classList.add(good ? 'title-good' : 'title-bad');
+    clearTimeout(this.titleFlashTimer);
+    this.titleFlashTimer = setTimeout(() => {
+      el.classList.remove('title-good', 'title-bad');
+    }, good ? 900 : 420);
+  }
+
+  /** The 911 easter egg: reveal the code for whoever's running the cabinet. */
+  showAnswerKey(code) {
+    this.el.answerKeyCode.textContent = code;
+    this.el.answerKey.classList.remove('hidden');
+  }
+
+  hideAnswerKey() {
+    this.el.answerKey.classList.add('hidden');
+  }
+
+  answerKeyOpen() {
+    return !this.el.answerKey.classList.contains('hidden');
   }
 
   /** Render one board as a table; `highlight` marks the run just played. */

@@ -75,7 +75,7 @@
   <!-- Overlays -->
   <div id="titleOverlay" class="overlay">
     <div class="card">
-      <h1>1nc0nVeni3nt</h1>
+      <h1 id="titleHeading">1nc0nVeni3nt</h1>
       <ul class="legend hidden" id="classicLegend">
         <li><b>PUSH IT</b> — the button. Check the placard.</li>
         <li><b>PULL IT</b> — the lever. Check the placard.</li>
@@ -92,7 +92,7 @@
         <button id="classicBtn" type="button">Classic mode: <span id="classicToggle">OFF</span></button>
       </div>
       <p class="hint">
-        <b>Space</b> start · <b>M</b> mute · <b>Esc</b> quit a run
+        <b>M</b> mute · <b>Esc</b> quit a run
       </p>
       <p class="hint hidden" id="classicHint">
         <b>H</b> hard mode<br />
@@ -158,6 +158,19 @@
       <div class="row">
         <button id="remapDoneBtn" class="primary" type="button">DONE</button>
         <button id="remapResetBtn" type="button">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dial 911 on the number pad at any point to bring this up -- for
+       whoever's running the cabinet, not for players to stumble onto. -->
+  <div id="answerKeyOverlay" class="overlay hidden">
+    <div class="card">
+      <h2>ANSWER KEY</h2>
+      <p class="tagline">The title screen's number-pad code.</p>
+      <p class="bigscore" id="answerKeyCode"></p>
+      <div class="row">
+        <button id="answerKeyDoneBtn" class="primary" type="button">DONE</button>
       </div>
     </div>
   </div>

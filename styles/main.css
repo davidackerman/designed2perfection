@@ -473,6 +473,13 @@ button.danger { background: var(--bad); border-color: var(--bad); color: #16181d
 }
 
 h1 { margin: 0; font-size: clamp(34px, 8vw, 60px); letter-spacing: 0.02em; }
+
+/* Title-screen number-pad code: right digit sequence turns the title itself
+   green (and starts the game); a wrong digit nudges it red, same shake as a
+   wrong stage press. */
+#titleHeading { transition: color 150ms ease; }
+#titleHeading.title-good { color: var(--good); }
+#titleHeading.title-bad { color: var(--bad); animation: nudge 220ms ease; }
 h2 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.08em; }
 .tagline { color: var(--dim); margin: 8px 0 18px; font-size: 14px; }
 .reason { color: var(--accent); margin: 4px 0 10px; font-size: 15px; }

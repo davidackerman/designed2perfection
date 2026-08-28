@@ -31,10 +31,23 @@ on the title screen (off by default).
 | **SWIPE IT** | card swiper | `C` | The reader is indifferent to how you hold it |
 | **TAP IT** | card tap pad | `G` / `T` | Face up or face down, as pictured |
 
-Other keys: `Space` (or `Enter`) start · `H` hard mode (Classic only) · `M` mute · `` ` `` debug · `Esc` quit a run.
+Other keys: `H` hard mode (Classic only) · `M` mute · `` ` `` debug · `Esc` quit a run.
 
 Every control is re-bindable from the title screen (**Controls**), and the
 mapping persists in `localStorage`.
+
+## Starting a game
+
+There's no Start button, functionally — outside debug mode, the title screen
+only reacts to a number-pad code. It's the title itself: read off the digits
+and the one roman numeral in `1nc0nVeni3nt` in order (`1`, `0`, `V` = `5`,
+`3`) to get `1053`. Get it right and the title flashes green and the game
+begins; a wrong digit nudges it red and resets. In debug mode the old
+Start/`Space`/`Enter` shortcuts still work, so testing doesn't require
+dialing the code every time.
+
+Dialing `911` on the number pad at any point brings up an answer-key popup —
+for whoever's running the cabinet, not meant to be found by players.
 
 ## Debug mode
 
