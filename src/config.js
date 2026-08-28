@@ -126,11 +126,11 @@ export const CONFIG = {
   // codebase's usual one-off-test-build approach).
   typing: {
     maxAlive: 5,                 // ships on screen at once, ceiling
-    spawnMsStart: 2400,          // ms between spawns at the very start
-    spawnMsMin: 950,             // floor, once spawnRampKills is reached
+    spawnMsStart: 2900,          // ms between spawns at the very start
+    spawnMsMin: 1200,            // floor, once spawnRampKills is reached
     spawnRampKills: 25,
-    fallMsStart: 15000,          // ms to cross from top to the cursor at the start
-    fallMsMin: 6200,             // floor, once fallRampKills is reached
+    fallMsStart: 19000,          // ms to cross from top to the cursor at the start
+    fallMsMin: 7500,             // floor, once fallRampKills is reached
     fallRampKills: 25,
     escapeY: 92,                 // % down the field a ship counts as having reached the cursor
     wordLengthThreshold: 10,     // kills before 3-letter words start appearing instead of single letters
@@ -140,7 +140,7 @@ export const CONFIG = {
       'YAK', 'ELK', 'JAY', 'KOI', 'EEL', 'HEN', 'SOW', 'DOE', 'EWE', 'BOT',
       'APE', 'COD', 'ORC', 'ODD', 'EGO', 'ICE', 'JOB',
     ],
-    // The enemies -- cursor.png is the player's own ship (see #typingCursor
+    // The enemies -- nessie.png is the player's own ship (see #typingCursor
     // in inconvenient3.html/CSS's .typing-cursor), not one of these.
     icons: [
       'assets/img/ai/chatgpt.png',

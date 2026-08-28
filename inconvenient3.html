@@ -20,11 +20,13 @@
     <div class="stat" id="bestStat"><span class="stat-label">Best</span><span id="best">0</span></div>
     <!-- Simon-mode only, this page only: the two games' totals spelled out
          across the top instead of tucked into one panel's corner -- see
-         main3.js's refreshTotal. Game 1 here is best + current, not just
-         current -- see handleShipEscaped. -->
+         main3.js's refreshTotal. Both halves are each game's own persisted
+         *best*, not whatever's live mid-run -- spelled out as "Best X" so
+         that's not ambiguous, since each panel below also shows its own
+         live/current number right next to its best. -->
     <div class="total-stat hidden" id="totalStat">
-      Game 1 <span id="totalGame1" class="panel-heading-value">0</span> +
-      Game 2 <span id="totalGame2" class="panel-heading-value">0</span> =
+      Best Shooting <span id="totalGame1" class="panel-heading-value">0</span> +
+      Best Repeat After Me <span id="totalGame2" class="panel-heading-value">0</span> =
       Total <span id="totalValue" class="panel-heading-value panel-heading-total-value">0</span>
     </div>
     <div class="badges">
@@ -52,11 +54,13 @@
     <section class="panel panel-typing">
       <div class="panel-heading">
         <div class="panel-heading-tag" id="game1Tag">GAME 1: AI INVASION</div>
-        <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it: type each falling icon's letters using the rotary-keypad mapping (2=ABC · 3=DEF · ... · 9=WXYZ) before it reaches your ship.</div>
+        <div class="panel-heading-desc">AI is coming for your jobs. Use old-school technology to defeat it: type each falling icon's letters using the rotary-keypad mapping (2=ABC · 3=DEF · ... · 9=WXYZ) before it reaches your ship. Missing one resets you back to one letter at a time.</div>
         Destroyed <span id="typingHeading" class="panel-heading-value">0</span>
+        <span class="panel-heading-sep">·</span>
+        Best <span id="typingBestHeading" class="panel-heading-value">0</span>
       </div>
       <div id="typingField" class="typing-field">
-        <img id="typingCursor" class="typing-cursor" src="assets/img/ai/cursor.png" alt="" />
+        <img id="typingCursor" class="typing-cursor" src="assets/img/ai/nessie.png" alt="" />
       </div>
     </section>
 

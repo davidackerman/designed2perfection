@@ -50,21 +50,26 @@ const totalEls = {
   value: document.querySelector('#totalValue'),
 };
 const typingHeading = document.querySelector('#typingHeading');
+const typingBestHeading = document.querySelector('#typingBestHeading');
 const typingPanel = document.querySelector('.panel-typing');
 
+// The banner is each game's own persisted *best* added together, not
+// whatever's live mid-run -- Simon's own best already lives in #bestHeading
+// (simon.js/UI.setHud write to it on every game-over that qualifies), so
+// this just reads that back rather than tracking a second copy of it.
 function refreshTotal() {
-  const score = Number(ui.el.scoreHeading.textContent) || 0;
-  const game1Total = typingBest + typingCurrent;
+  const simonBest = Number(ui.el.bestHeading.textContent) || 0;
   typingHeading.textContent = typingCurrent;
-  totalEls.game1.textContent = game1Total;
-  totalEls.game2.textContent = score;
-  totalEls.value.textContent = score + game1Total;
+  typingBestHeading.textContent = typingBest;
+  totalEls.game1.textContent = typingBest;
+  totalEls.game2.textContent = simonBest;
+  totalEls.value.textContent = simonBest + typingBest;
 }
 
-// Simon's own Score changes every round (simon.js writes straight to
-// #scoreHeading, with no callback out to this file), so refreshTotal() alone
-// -- called only on shooter events -- would leave the banner's Game 2 stuck
-// between them. A per-frame tick keeps it live, same idea as main2.js's.
+// Both bests can change from places that never call refreshTotal() directly
+// (a qualifying Simon game-over writes #bestHeading through UI.setHud, not
+// through this file) -- a per-frame tick keeps the banner in sync with
+// whatever's currently displayed, same idea as main2.js's.
 function tickTotalBanner() {
   refreshTotal();
   requestAnimationFrame(tickTotalBanner);

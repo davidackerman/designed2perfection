@@ -551,18 +551,20 @@ html, body {
   overflow: hidden;
 }
 
-/* Your ship: the literal old-school pointer image (assets/img/ai/cursor.png)
-   -- the blast in .ai-blast fires from its center. It's a black glyph on a
-   transparent background; inverting it turns the glyph white without
-   touching the transparent background around it (alpha is untouched by
-   filter: invert), which reads much better against the dark panel. */
+/* Your ship: a photo (assets/img/ai/nessie.png), not a glyph -- the blast in
+   .ai-blast fires from its top-center. Framed like a small photo chip
+   (cropped/rounded/bordered), same treatment as .ai-ship-icon, rather than
+   stretched or left as a bare rectangle. */
 .typing-cursor {
   position: absolute;
   left: 50%;
   bottom: 4%;
-  width: clamp(26px, 9cqw, 40px);
+  width: clamp(46px, 14cqw, 72px);
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
   transform: translateX(-50%);
-  filter: invert(1) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px var(--line), 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .ai-ship {

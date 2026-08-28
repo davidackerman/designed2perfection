@@ -188,7 +188,10 @@ export class TypingInvasion {
 
   /** Reaching the cursor without being finished off: same shape as a card
    *  mismatch in bonus.js -- a beat of "wrong" audio and visual, then gone.
-   *  Doesn't stop the game; see main3.js's onMiss for what actually resets. */
+   *  Doesn't stop the game, but it does send the whole run back to square
+   *  one -- see resetProgress(). main3.js's onMiss handles the *score* side
+   *  of a miss (current run's count vs. the persisted best); this is the
+   *  gameplay side. */
   escape(ship) {
     if (this.lockedId === ship.id) this.lockedId = null;
     this.ships = this.ships.filter((s) => s !== ship);
@@ -196,22 +199,37 @@ export class TypingInvasion {
     ship.el.classList.add('escaping');
     setTimeout(() => ship.el.remove(), 340);
     this.onMiss?.();
+    this.resetProgress();
   }
 
-  /** Purely cosmetic: a beam shoots out from the tip of the cursor arrow
+  /** A miss doesn't just cost the score -- it resets the difficulty ramp
+   *  too, back to slow single-letter ships, same as a fresh start() (kills
+   *  drives both the word-length threshold and the spawn/fall speed ramp).
+   *  Clears every other ship still mid-flight as well, so the board doesn't
+   *  end up with some ships still at the old (faster/longer-word) pace
+   *  alongside new ones spawning at the reset pace. */
+  resetProgress() {
+    this.kills = 0;
+    this.lockedId = null;
+    this.ships.forEach((s) => s.el.remove());
+    this.ships = [];
+    this.spawnCountdown = 500;
+  }
+
+  /** Purely cosmetic: a beam shoots out from the top of the cursor ship
    *  toward wherever the target ship's icon actually is right now, then
    *  fades. Drawn as a single line rotated/scaled to span exactly that
-   *  distance, so it reads unmistakably as fired *from the arrow*, not just
+   *  distance, so it reads unmistakably as fired *from the ship*, not just
    *  a dot that happens to appear near the target. Fire-and-forget -- it
    *  doesn't touch any game state, that already happened in hit(). */
   fireBlast(ship) {
     const fieldRect = this.fieldEl.getBoundingClientRect();
     const from = this.cursorEl.getBoundingClientRect();
     const to = ship.el.getBoundingClientRect();
-    // The tip of the arrow glyph is near the top-left of its box, not the
-    // center -- see the cursor.png artwork itself.
-    const startX = from.left + from.width * 0.3 - fieldRect.left;
-    const startY = from.top + from.height * 0.08 - fieldRect.top;
+    // Top-center of the cursor's own box -- works for any cursor image,
+    // pointed glyph or plain photo alike.
+    const startX = from.left + from.width * 0.5 - fieldRect.left;
+    const startY = from.top + from.height * 0.1 - fieldRect.top;
     const endX = to.left + to.width / 2 - fieldRect.left;
     const endY = to.top + to.height / 2 - fieldRect.top;
     const dist = Math.hypot(endX - startX, endY - startY);
