@@ -15,12 +15,19 @@ long as you like over a press, and the only way to lose is to press the wrong
 pad. Nothing on screen explains the rule — it's meant to be worked out by
 watching. See [`src/simon.js`](src/simon.js).
 
-When a run ends, the game-over card lays the round you died on against what you
-actually pressed, step by step, so you can see where the two parted company.
-There's no "go again" button to hunt for and no "new team" reset on offer —
-score and bonus always carry over from your best run so far, and pressing
-literally anything (a control, a key, a digit) just starts the next sequence.
-`Esc` is the one exception: that backs out to the menu instead.
+When a run ends, only the Simon side freezes — a card confined to that half
+of the screen lays the round you died on against what you actually pressed,
+step by step, so you can see where the two parted company. The bonus board
+on the other half keeps running the entire time, so a wrong pad doesn't cost
+you a card you were mid-match on. There's no "go again" button to hunt for
+and no "new team" reset on offer — score and bonus always carry over from
+your best run so far, and pressing any control or key just starts the next
+sequence. `Esc` is the one exception: that backs out to the menu instead. The
+number pad is the other exception, in Simon mode — a digit keeps driving the
+still-live bonus board rather than restarting Simon.
+
+High-score entry is disabled for now: a run's score/best still show on the
+game-over card, but nothing prompts for initials or gets added to the board.
 
 The original reflex game below is still there as **Classic mode**, a toggle
 on the title screen (off by default).
@@ -120,11 +127,10 @@ Separate top-10 boards for Simon, normal, and hard, because a hard-mode 20 is
 worth a great deal more than a normal-mode 20 — and a Simon score means
 something different from either.
 
-- Beat the bottom of the board and you're asked for three initials, arcade
-  style, prefilled with the last name entered. Ties don't bump anyone: you have
-  to *beat* the tenth place, and equal scores keep the earlier run higher.
-- The game-over card shows where you placed and the board around you, with your
-  run highlighted.
+Entering a new high score is disabled for now — beating the board doesn't
+prompt for initials or add anything to it, so the boards below are frozen
+until that's turned back on.
+
 - **High scores** on the title screen shows either board, plus lifetime stats:
   runs played, commands survived, and which command has ended the most runs
   ("most often undone by PULL IT"). Clearing takes two clicks, so a stray elbow

@@ -160,6 +160,10 @@ html, body {
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
+  /* Above .simon-over (see below), which covers the whole panel including
+     the space behind this heading -- Score/Round/Best/Total should keep
+     reading clearly even while the pads underneath are frozen. */
+  z-index: 2;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.24em;
@@ -277,6 +281,30 @@ html, body {
 .simon-pad-pull.active { box-shadow: 0 0 0 4px var(--pad-pull), 0 0 30px 6px rgba(168, 85, 247, 0.5); }
 .simon-pad-soap.active { box-shadow: 0 0 0 4px var(--pad-soap), 0 0 30px 6px rgba(217, 182, 42, 0.5); }
 .simon-pad-swipe.active { box-shadow: 0 0 0 4px var(--pad-swipe), 0 0 30px 6px rgba(224, 86, 156, 0.5); }
+
+/* A wrong pad only freezes the Simon side -- covers the whole panel (the
+   heading paints on top, see .panel-heading's z-index) rather than the
+   whole stage, since the bonus board on the left keeps running the entire
+   time and shouldn't be dimmed or covered by any of this. */
+.simon-over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg-panel);
+  text-align: center;
+  padding: 20px;
+  /* Same top offset as .panel-simon's own padding-top, so this content
+     starts below the Score/Round/Best/Total heading instead of fighting it
+     for the same space (the heading's z-index only keeps it legible, it
+     doesn't move this flex box's centered content out of the way). */
+  padding-top: 76px;
+  overflow: auto;
+}
+.simon-over.hidden { display: none; }
 
 /* ---- bonus board: a memory-match minigame, live in the left half ---- */
 #stage.simon-mode .panel-bonus {
@@ -552,35 +580,6 @@ html, body {
 .board tr.new td { background: rgba(255, 158, 44, 0.12); color: var(--accent); }
 .board tr.new .rank, .board tr.new .when { color: var(--accent); }
 .board-empty { color: var(--dim); font-size: 13px; margin: 14px 0; }
-
-.entry {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin: 14px 0 4px;
-}
-.entry label {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--accent);
-}
-#initials {
-  width: 5.5em;
-  padding: 10px 12px;
-  font-family: var(--mono);
-  font-size: 20px;
-  letter-spacing: 0.28em;
-  text-align: center;
-  text-transform: uppercase;
-  color: var(--text);
-  background: #1a2029;
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-}
-#initials:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .tab { opacity: 0.5; }
 .tab.on { opacity: 1; border-color: var(--accent); color: var(--accent); }
@@ -893,6 +892,7 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   /* No size cap here -- --w already fits the grid to the narrower panel. */
   .simon-grid { gap: 8px; }
   #stage.simon-mode .panel-simon { padding: 26px; padding-top: 62px; }
+  .simon-over { padding-top: 62px; }
   #stage.simon-mode { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
   #stage.simon-mode .panel-bonus { padding: 14px; }
 }

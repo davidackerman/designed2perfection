@@ -6,19 +6,8 @@ const $ = (sel) => document.querySelector(sel);
 
 const OVERLAYS = ['title', 'over', 'remap', 'scores'];
 
-// The classic game is about getting through a door, so "you did not get in"
-// is the joke. Simon isn't -- you just lost the thread of the sequence.
-const OVER_HEADINGS = {
-  simon: 'OUT OF SEQUENCE',
-  normal: 'YOU DID NOT GET IN',
-  hard: 'YOU DID NOT GET IN',
-};
-
 // What each Simon pad is called in the game-over recap.
 const PAD_LABEL = { push: 'PUSH', pull: 'PULL', soap: 'SOAP', swipe: 'SWIPE' };
-
-const ORDINALS = ['1st', '2nd', '3rd'];
-const place = (rank) => ORDINALS[rank] || `${rank + 1}th`;
 
 function formatDate(t) {
   if (!t) return '';
@@ -58,15 +47,15 @@ export class UI {
       answerToast: $('#answerToast'),
       overScore: $('#overScore'),
       overBest: $('#overBest'),
-      overBestLine: $('#overBestLine'),
-      overPlace: $('#overPlace'),
       overMode: $('#overMode'),
       overReason: $('#overReason'),
-      overHeading: $('#overHeading'),
       overBoard: $('#overBoard'),
-      overSequence: $('#overSequence'),
-      entryRow: $('#entryRow'),
-      initials: $('#initials'),
+      simonOver: $('#simonOver'),
+      simonOverHeading: $('#simonOverHeading'),
+      simonOverReason: $('#simonOverReason'),
+      simonOverScore: $('#simonOverScore'),
+      simonOverBest: $('#simonOverBest'),
+      simonOverSequence: $('#simonOverSequence'),
       scoresBoard: $('#scoresBoard'),
       scoresStats: $('#scoresStats'),
       tabNormal: $('#tabNormal'),
@@ -106,6 +95,10 @@ export class UI {
       this.el[key].classList.toggle('hidden', key !== name);
     }
     this.el.stage.classList.toggle('idle', name !== null);
+    // Simon's own game-over view lives in its panel, not this overlay
+    // system (see showSimonOver) -- but switching to any of these screens
+    // still needs to clear it out.
+    this.hideSimonOver();
     if (name === 'title') this.startTitleHint();
   }
 
@@ -132,6 +125,11 @@ export class UI {
   hideOverlays() {
     for (const key of OVERLAYS) this.el[key].classList.add('hidden');
     this.el.stage.classList.remove('idle');
+    this.hideSimonOver();
+  }
+
+  hideSimonOver() {
+    this.el.simonOver.classList.add('hidden');
   }
 
   /** Score and Bonus each live over their own half of the Simon screen (see
@@ -537,41 +535,39 @@ export class UI {
     target.innerHTML = `<table class="board"><tbody>${rows}</tbody></table>`;
   }
 
-  showGameOver({ score, best, reason, mode, board, rank, qualifies, defaultName, sequence, pressed }) {
+  /** Classic mode only -- Simon's own game-over view is showSimonOver below,
+   *  confined to its own panel so the bonus board can keep running. No
+   *  initials entry: this is purely informational now, board included for
+   *  reference but nothing on it gets highlighted since nothing was saved. */
+  showGameOver({ score, best, reason, mode, board }) {
     this.setDebugExpected(null);   // the round is over; don't leave the hint up
     this.el.overScore.textContent = score;
     this.el.overBest.textContent = best;
     this.el.overReason.textContent = reason;
     this.el.overMode.textContent = mode;
-    this.el.overHeading.textContent = OVER_HEADINGS[mode] || OVER_HEADINGS.simon;
-    this.el.overPlace.innerHTML =
-      rank >= 0
-        ? `<b class="accent">${place(rank)}</b> on the ${mode} board`
-        : qualifies
-          ? 'That makes the board.'
-          : 'Not good enough for the board.';
-
-    // While the initials form is up, the best/board lines are about to change
-    // anyway -- one less thing competing with the input for attention.
-    this.el.entryRow.classList.toggle('hidden', !qualifies);
-    this.el.overBestLine.classList.toggle('hidden', qualifies);
-    if (qualifies) {
-      this.el.initials.value = defaultName || '';
-      // Autofocus so you can just type and hit Enter.
-      setTimeout(() => this.el.initials.focus(), 0);
-    }
-    this.renderSequenceRecap(sequence, pressed);
-    this.renderBoard(this.el.overBoard, qualifies && !board.length ? [] : board, rank);
-    this.el.overBoard.classList.toggle('hidden', qualifies && !board.length);
+    this.renderBoard(this.el.overBoard, board);
     this.showOverlay('over');
   }
 
-  /** Simon only: the round you died on laid out against what you actually
-   *  pressed, one column per step so the two rows line up and the divergence
-   *  is visible instead of remembered. Classic passes no sequence and gets
-   *  nothing. */
+  /** Simon's game-over view, confined to .panel-simon instead of a
+   *  full-screen overlay -- the bonus board on the left keeps running the
+   *  whole time (main.js keeps routing digits to it), so nothing here
+   *  should cover it or dim the stage. Any control/key press goes again;
+   *  see main.js's handleAction/handleDigit. */
+  showSimonOver({ score, best, reason, sequence, pressed }) {
+    this.setDebugExpected(null);
+    this.el.simonOverScore.textContent = score;
+    this.el.simonOverBest.textContent = best;
+    this.el.simonOverReason.textContent = reason;
+    this.renderSequenceRecap(sequence, pressed);
+    this.el.simonOver.classList.remove('hidden');
+  }
+
+  /** The round you died on laid out against what you actually pressed, one
+   *  column per step so the two rows line up and the divergence is visible
+   *  instead of remembered. */
   renderSequenceRecap(sequence, pressed = []) {
-    const el = this.el.overSequence;
+    const el = this.el.simonOverSequence;
     if (!sequence || !sequence.length) {
       el.classList.add('hidden');
       el.innerHTML = '';
@@ -593,16 +589,6 @@ export class UI {
       '<span class="seq-label">You</span>' +
       sequence.map((_, i) => cell(pressed[i], i)).join('');
     el.classList.remove('hidden');
-  }
-
-  /** After the initials are saved: swap the form out for the placement line. */
-  confirmEntry({ mode, board, rank, best }) {
-    this.el.entryRow.classList.add('hidden');
-    this.el.overBestLine.classList.remove('hidden');
-    this.el.overBoard.classList.remove('hidden');
-    this.el.overBest.textContent = best;
-    this.el.overPlace.innerHTML = `<b class="accent">${place(rank)}</b> on the ${mode} board`;
-    this.renderBoard(this.el.overBoard, board, rank);
   }
 
   showScores({ mode, board, stats, nemesis }) {

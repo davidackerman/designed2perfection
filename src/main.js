@@ -27,7 +27,6 @@ ui.keyFor = (slot) => input.keyFor(slot);
 
 let screen = 'title'; // title | playing | over | remap | scores
 let scoresTab = 'simon';
-let pending = null;    // the run awaiting initials
 
 // The title screen's number-pad code, in place of a Start button: the digits
 // and roman numeral buried in the title itself, in reading order --
@@ -47,12 +46,15 @@ for (let i = 0; i <= 9; i++) {
 }
 
 function handleDigit(digit) {
-  // Game over: no dedicated "go again" button to hunt for -- any digit
-  // (same as any other key or a control press, see handleAction/the global
-  // keydown handler) just goes again, unless a high score is still waiting
-  // on initials.
+  // Game over: a wrong pad only freezes the Simon side -- the bonus board
+  // keeps running the whole time (see handleGameOver/ui.showSimonOver), so
+  // digits still drive it here exactly like mid-run. It's only a control or
+  // key press that means "go again" for Simon; see handleAction and the
+  // global keydown handler below. Classic has no bonus board, so there a
+  // digit just goes again too, same as anything else.
   if (screen === 'over') {
-    if (!pending) startGame();
+    if (classicMode) startGame();
+    else bonusGame.handleKey(digit);
     return;
   }
 
@@ -188,10 +190,10 @@ function handleAction(evt) {
     return;
   }
   // Game over: whatever control you just pressed also just means "go
-  // again" -- see handleDigit. Not while a high score is still waiting on
-  // initials, though.
+  // again" -- see handleDigit for the number pad's own rule during Simon's
+  // game over (it keeps driving the still-live bonus board instead).
   if (screen === 'over') {
-    if (!pending) startGame();
+    startGame();
     return;
   }
   activeGame().handleInput(evt);
@@ -234,24 +236,16 @@ function toggleMute() {
 
 function handleGameOver(result) {
   screen = 'over';
-  pending = result.qualifies ? result : null;
   ui.setHud({ best: scores.best(result.mode) });
-  ui.showGameOver({
-    ...result,
-    best: scores.best(result.mode),
-    board: scores.board(result.mode),
-    rank: -1,                       // assigned once the initials are in
-    defaultName: scores.lastName,
-  });
-}
-
-function saveScore(initials) {
-  if (!pending) return;
-  const { mode, score } = pending;
-  const rank = scores.add(mode, initials, score);
-  pending = null;
-  ui.setHud({ best: scores.best(mode) });
-  ui.confirmEntry({ mode, board: scores.board(mode), rank, best: scores.best(mode) });
+  const best = scores.best(result.mode);
+  // Simon's own game-over view is confined to .panel-simon -- the bonus
+  // board keeps running underneath it the whole time. Classic has no bonus
+  // board to protect, so it keeps the full-screen card.
+  if (result.mode === 'simon') {
+    ui.showSimonOver({ ...result, best });
+  } else {
+    ui.showGameOver({ ...result, best, board: scores.board(result.mode) });
+  }
 }
 
 function showScores(mode = scoresTab) {
@@ -295,14 +289,18 @@ function toRemap() {
 document.querySelector('#startBtn').addEventListener('click', () => { if (debug) startGame(); });
 document.querySelector('#menuBtn').addEventListener('click', toTitle);
 // No "GO AGAIN" button -- clicking anywhere on the game-over card that isn't
-// itself an interactive element (Menu, the initials form, ...) does the same
-// thing a keypress or a control press does. See handleDigit/handleAction for
-// the keyboard/cabinet side of the same rule.
-document.querySelector('#overOverlay').addEventListener('click', (e) => {
-  if (screen !== 'over' || pending) return;
+// itself an interactive element (Menu, ...) does the same thing a keypress
+// or a control press does. See handleDigit/handleAction for the keyboard/
+// cabinet side of the same rule. Two elements because Simon's own game-over
+// view is a separate, panel-confined element (see #simonOver/handleGameOver),
+// not this classic-only full-screen overlay.
+function goAgainOnEmptyClick(e) {
+  if (screen !== 'over') return;
   if (e.target.closest('button, input, a')) return;
   startGame();
-});
+}
+document.querySelector('#overOverlay').addEventListener('click', goAgainOnEmptyClick);
+document.querySelector('#simonOver').addEventListener('click', goAgainOnEmptyClick);
 document.querySelector('#remapBtn').addEventListener('click', toRemap);
 document.querySelector('#remapDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#remapResetBtn').addEventListener('click', () => {
@@ -317,11 +315,6 @@ document.querySelector('#scoresDoneBtn').addEventListener('click', toTitle);
 document.querySelector('#tabSimon').addEventListener('click', () => showScores('simon'));
 document.querySelector('#tabNormal').addEventListener('click', () => showScores('normal'));
 document.querySelector('#tabHard').addEventListener('click', () => showScores('hard'));
-
-document.querySelector('#entryRow').addEventListener('submit', (e) => {
-  e.preventDefault();
-  saveScore(document.querySelector('#initials').value);
-});
 
 // Two-step clear, so a stray click on the cabinet can't wipe the board.
 const clearBtn = document.querySelector('#scoresClearBtn');
@@ -359,7 +352,7 @@ const CHEAT_KEY = 'Space';
 window.addEventListener('keydown', (e) => {
   if (e.code !== CHEAT_KEY) return;
   if (!debug || activeGame().state !== STATE.PLAYING) return;
-  if (isTyping(e) || e.repeat) return;
+  if (e.repeat) return;
 
   if (classicMode) {
     if (!reflexGame.challenge) return;
@@ -386,7 +379,6 @@ window.addEventListener('keydown', (e) => {
 // only fire for keys that aren't bound to a control.
 window.addEventListener('keydown', (e) => {
   if (input.capture) return; // remap screen is eating keys
-  if (isTyping(e)) return;   // entering initials
   if (e.defaultPrevented) return;
 
   // The 911 easter egg works from anywhere; a digit is otherwise unbound to
@@ -406,12 +398,12 @@ window.addEventListener('keydown', (e) => {
   // Game over: Escape backs out to the menu; literally anything else just
   // goes again -- there's no "go again" button to find, and no "new team"
   // reset on offer, since a retry already carries the score and bonus
-  // forward on its own (see SimonGame.start()'s resuming check). Not while
-  // a high score is still waiting on initials, though -- isTyping already
-  // guards that above.
+  // forward on its own (see SimonGame.start()'s resuming check). Digits
+  // never reach here -- they're handled above by handleDigit, which keeps
+  // driving the still-live bonus board instead (Simon mode only).
   if (screen === 'over') {
     if (e.code === 'Escape') { toTitle(); return; }
-    if (!pending && !e.repeat) { e.preventDefault(); startGame(); }
+    if (!e.repeat) { e.preventDefault(); startGame(); }
     return;
   }
 
@@ -427,11 +419,6 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyH' && classicMode && activeGame().state !== STATE.PLAYING) { toggleHard(); return; }
   if (e.code === 'Escape' && activeGame().state === STATE.PLAYING) toTitle();
 });
-
-function isTyping(e) {
-  const el = e.target;
-  return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
-}
 
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {

@@ -74,6 +74,20 @@
         <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pullit.jpeg" alt="" />
         <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-br" src="assets/img/swipeit.jpeg" alt="" />
       </div>
+
+      <!-- A wrong pad only freezes the Simon side -- the bonus board on the
+           left keeps running the whole time (main.js keeps feeding it digits
+           even while this is up), so this covers just the Simon panel
+           instead of the whole stage. Any control/key press goes again;
+           see main.js's handleAction/handleDigit. -->
+      <div id="simonOver" class="simon-over hidden">
+        <h2 id="simonOverHeading">OUT OF SEQUENCE</h2>
+        <p id="simonOverReason" class="reason"></p>
+        <p class="bigscore"><span id="simonOverScore">0</span></p>
+        <p class="tagline">Best: <span id="simonOverBest">0</span></p>
+        <div id="simonOverSequence" class="seq hidden"></div>
+        <p class="hint">Press anything to go again.</p>
+      </div>
     </section>
 
     <!-- Debug mode only: the key this round wants, on the stage where you're
@@ -141,32 +155,23 @@
     </div>
   </div>
 
+  <!-- Classic mode only -- Simon's own game-over view is confined to
+       .panel-simon (see #simonOver above) so the bonus board can keep
+       running underneath; classic has no bonus board, so freezing the
+       whole stage here is fine. -->
   <div id="overOverlay" class="overlay hidden">
     <div class="card">
-      <!-- Reworded per mode in ui.showGameOver: the door joke only lands in
-           classic, where you were actually trying to get through one. -->
-      <h2 id="overHeading">OUT OF SEQUENCE</h2>
+      <h2>YOU DID NOT GET IN</h2>
       <p id="overReason" class="reason"></p>
       <p class="bigscore"><span id="overScore">0</span></p>
-      <p class="tagline" id="overPlace"></p>
-      <p class="tagline" id="overBestLine">Best (<span id="overMode">normal</span>): <span id="overBest">0</span></p>
-
-      <!-- Simon only: the round you died on, step by step, against what you
-           actually pressed. Filled in by ui.renderSequenceRecap. -->
-      <div id="overSequence" class="seq hidden"></div>
-
-      <form id="entryRow" class="entry hidden" autocomplete="off">
-        <label for="initials">NEW HIGH SCORE</label>
-        <input id="initials" maxlength="3" spellcheck="false" autocapitalize="characters" placeholder="AAA" />
-        <button id="saveScoreBtn" class="primary" type="submit">SAVE</button>
-      </form>
+      <p class="tagline">Best (<span id="overMode">normal</span>): <span id="overBest">0</span></p>
 
       <div id="overBoard" class="board-wrap"></div>
 
       <div class="row">
         <button id="menuBtn" type="button">Menu</button>
       </div>
-      <p class="hint">Press anything to go again -- score and bonus carry over.</p>
+      <p class="hint">Press anything to go again.</p>
     </div>
   </div>
 
