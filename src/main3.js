@@ -37,6 +37,14 @@ const typingGame = new TypingInvasion({
   onMiss: handleShipEscaped,
 });
 
+// Both bests are plain persisted high-water marks, entirely independent of
+// ScoreStore -- Simon's own "Best" was actually always reading
+// scores.best('simon'), which is always 0 (nothing ever calls scores.add()
+// any more; see UI.showGameOver's own comment about that), so whenever a
+// run ended, UI.setHud({best: scores.best(...)}) was stomping the display
+// back to 0. Tracking it ourselves, the same way typingBest already
+// was, sidesteps that entirely.
+let simonBest = Number(localStorage.getItem(CONFIG.storage.simonBest) || 0);
 let typingBest = Number(localStorage.getItem(CONFIG.storage.typingBest) || 0);
 let typingCurrent = 0;
 
@@ -48,27 +56,37 @@ const totalEls = {
   game2: document.querySelector('#totalGame2'),
   value: document.querySelector('#totalValue'),
 };
-const typingHeading = document.querySelector('#typingHeading');
 const typingBestHeading = document.querySelector('#typingBestHeading');
 const typingPanel = document.querySelector('.panel-typing');
 
-// The banner is each game's own persisted *best* added together, not
-// whatever's live mid-run -- Simon's own best already lives in #bestHeading
-// (simon.js/UI.setHud write to it on every game-over that qualifies), so
-// this just reads that back rather than tracking a second copy of it.
+// Ratchets both bests up live, mid-run, the instant the current run passes
+// the old one -- not just when the run ends -- and re-asserts #bestHeading's
+// text every single frame (this runs off tickTotalBanner below), so it
+// can't be left showing a stale/wrong value by anything else that writes to
+// it (see the comment on simonBest above). Only ever goes up; never reset
+// to 0 except by an explicit high score clear, which this page doesn't have.
 function refreshTotal() {
-  const simonBest = Number(ui.el.bestHeading.textContent) || 0;
-  typingHeading.textContent = typingCurrent;
+  const simonScore = Number(ui.el.scoreHeading.textContent) || 0;
+  if (simonScore > simonBest) {
+    simonBest = simonScore;
+    localStorage.setItem(CONFIG.storage.simonBest, String(simonBest));
+  }
+  if (typingCurrent > typingBest) {
+    typingBest = typingCurrent;
+    localStorage.setItem(CONFIG.storage.typingBest, String(typingBest));
+  }
+  ui.el.bestHeading.textContent = simonBest;
   typingBestHeading.textContent = typingBest;
   totalEls.game1.textContent = typingBest;
   totalEls.game2.textContent = simonBest;
   totalEls.value.textContent = simonBest + typingBest;
 }
 
-// Both bests can change from places that never call refreshTotal() directly
-// (a qualifying Simon game-over writes #bestHeading through UI.setHud, not
-// through this file) -- a per-frame tick keeps the banner in sync with
-// whatever's currently displayed, same idea as main2.js's.
+// Simon's own Score changes every round (simon.js writes straight to
+// #scoreHeading, with no callback out to this file) and can pass simonBest
+// mid-run at any moment -- a per-frame tick is what makes refreshTotal's
+// ratchet actually live rather than only catching up on the next shooter
+// event, same idea as main2.js's ticker.
 function tickTotalBanner() {
   refreshTotal();
   requestAnimationFrame(tickTotalBanner);
@@ -81,10 +99,8 @@ function handleShipDestroyed() {
 }
 
 function handleShipEscaped() {
-  if (typingCurrent > typingBest) {
-    typingBest = typingCurrent;
-    localStorage.setItem(CONFIG.storage.typingBest, String(typingBest));
-  }
+  // refreshTotal()'s own ratchet already caught typingBest up to this run's
+  // peak on some earlier frame, before this reset -- nothing to compare here.
   typingCurrent = 0;
   refreshTotal();
   typingPanel.classList.remove('miss-flash');
@@ -278,11 +294,14 @@ let simonAutoRestartTimer = null;
 
 function handleGameOver(result) {
   screen = 'over';
-  ui.setHud({ best: scores.best(result.mode) });
-  const best = scores.best(result.mode);
+  // Catches this run's final score into simonBest (if it's a new one)
+  // before reading it below -- see refreshTotal's ratchet.
   refreshTotal();
   if (result.mode === 'simon') {
-    ui.showSimonOver({ ...result, best });
+    // Not scores.best('simon') -- see the comment on simonBest above; that's
+    // always 0 (nothing calls scores.add() any more) and would overwrite
+    // this transient "just failed" readout with the wrong number.
+    ui.showSimonOver({ ...result, best: simonBest });
     // No "press anything" any more -- the score/best flash on their own for
     // a beat, then the next sequence just starts. A manual press (handled
     // elsewhere, same as always) gets there sooner and clears this first.
@@ -291,6 +310,8 @@ function handleGameOver(result) {
       if (screen === 'over') startGame();
     }, CONFIG.simon.failShowMs);
   } else {
+    const best = scores.best(result.mode);
+    ui.setHud({ best });
     ui.showGameOver({ ...result, best, board: scores.board(result.mode) });
   }
 }

@@ -163,6 +163,7 @@ export const CONFIG = {
     hardMode: 'janelia-it:hard',
     classicMode: 'janelia-it:classic',
     typingBest: 'janelia-it:typing-best', // inconvenient3.html's own persisted best -- see main3.js
+    simonBest: 'janelia-it:simon-best',   // inconvenient3.html's own persisted Simon best -- see main3.js
     muted: 'janelia-it:muted',
     musicVolume: 'janelia-it:music-volume',
     // Bumped when the default keymap changes: Input.load() prefers whatever is
