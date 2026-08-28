@@ -18,6 +18,7 @@
     <div class="stat"><span class="stat-label" id="scoreLabel">Score</span><span id="score">0</span></div>
     <div class="stat"><span class="stat-label">Round</span><span id="round">0</span></div>
     <div class="stat"><span class="stat-label">Best</span><span id="best">0</span></div>
+    <div id="totalStat" class="stat hidden"><span class="stat-label">Total</span><span id="total">0</span></div>
     <div id="bonusStat" class="stat hidden"><span class="stat-label">Bonus</span><span id="bonus">0/10</span></div>
     <div class="badges">
       <span id="modeBadge" class="badge">NORMAL</span>
@@ -35,6 +36,14 @@
     </section>
     <section class="panel panel-word">
       <video id="stageWord" playsinline></video>
+    </section>
+
+    <!-- Simon mode, left half: a memory-match bonus board, live the whole
+         time a run is going, worked with the number pad while push/pull/
+         soap/swipe drive Simon on the right half. Rebuilt from scratch on
+         every render -- see UI.renderBonusBoard. -->
+    <section class="panel panel-bonus">
+      <div id="bonusBoard" class="bonus-board"></div>
     </section>
 
     <!-- Simon mode: all four pads shown at once in a 2x2 block, full
@@ -175,6 +184,12 @@
       <h2>ANSWER KEY</h2>
       <p class="tagline">The title screen's number-pad code.</p>
       <p class="bigscore" id="answerKeyCode"></p>
+      <p class="tagline">
+        Bonus board, round 2+: dial the phone key a letter's on, then which
+        letter on that key (1st/2nd/3rd...). A bare digit is itself + 0.
+        E.g. <b>K</b> is <b>5</b>, <b>2</b> (JKL's 2nd letter). Digit <b>7</b>
+        is <b>7</b>, <b>0</b>.
+      </p>
       <div class="row">
         <button id="answerKeyDoneBtn" class="primary" type="button">DONE</button>
       </div>

@@ -49,6 +49,24 @@ export const CONFIG = {
     },
   },
 
+  // The bonus board: a memory-match minigame that runs live, side by side
+  // with Simon, on the number pad. Round 1 is a trivial 2x2 (labels double
+  // as the match positions); round 2 on is a 4x4 where the label you dial
+  // and the symbol you're matching are two independent random draws.
+  bonus: {
+    resultHoldMs: 1200,  // a resolved pair (match or mismatch) stays face-up this long before it clears/flips back
+    matchClearMs: 400,   // fade-out duration once a match is confirmed
+    peekMs: 1000,        // the 911 cheat: how long every card flips face-up
+    // Standard phone-keypad letter groups. 0 and 1 have no letters -- a bare
+    // digit label is dialed as "<digit>,0" so entry is always exactly two
+    // keys once round 2 mixes digits and letters. See the 911 answer key.
+    phoneKeys: { 2: 'ABC', 3: 'DEF', 4: 'GHI', 5: 'JKL', 6: 'MNO', 7: 'PQRS', 8: 'TUV', 9: 'WXYZ' },
+    rounds: [
+      { size: 2, kind: 'shapes' }, // 2x2, 2 pairs, positions dialed as a single digit 0-3
+      { size: 4, kind: 'alnum' },  // 4x4, 8 pairs, positions dialed as two keys (see phoneKeys)
+    ],
+  },
+
   scores: {
     maxEntries: 10,          // per board
     initialsLength: 3,

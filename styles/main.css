@@ -157,11 +157,12 @@ html, body {
 #stage.flash-deny { box-shadow: inset 0 0 0 3px var(--deny); }
 #stage.flash-nothing { animation: nudge 220ms ease; }
 
-/* ---- simon mode: all four pads shown at once, 2x2 ---- */
-#stage.simon-mode { grid-template-columns: 1fr; }
+/* ---- simon mode: bonus board on the left, pads on the right ---- */
+#stage.simon-mode { grid-template-columns: 1fr 1fr; }
 #stage.simon-mode .panel-image,
 #stage.simon-mode .panel-word { display: none; }
-#stage:not(.simon-mode) .panel-simon { display: none; }
+#stage:not(.simon-mode) .panel-simon,
+#stage:not(.simon-mode) .panel-bonus { display: none; }
 
 /* Room for a lit pad's ring and glow to spill past the block's edge: all four
    pads sit flush against it, and anything clipping here slices the ring (and
@@ -238,6 +239,79 @@ html, body {
 .simon-pad-pull.active { box-shadow: 0 0 0 4px var(--pad-pull), 0 0 30px 6px rgba(214, 69, 69, 0.5); }
 .simon-pad-soap.active { box-shadow: 0 0 0 4px var(--pad-soap), 0 0 30px 6px rgba(217, 182, 42, 0.5); }
 .simon-pad-swipe.active { box-shadow: 0 0 0 4px var(--pad-swipe), 0 0 30px 6px rgba(47, 111, 214, 0.5); }
+
+/* ---- bonus board: a memory-match minigame, live in the left half ---- */
+#stage.simon-mode .panel-bonus {
+  padding: 30px;
+  container-type: size;
+}
+
+.bonus-board {
+  --bonus-size: 2;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(var(--bonus-size), 1fr);
+  grid-template-rows: repeat(var(--bonus-size), 1fr);
+  gap: 8px;
+}
+
+.bonus-card {
+  perspective: 600px;
+}
+
+.bonus-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 200ms ease, opacity 240ms ease;
+  transform-style: preserve-3d;
+}
+
+.bonus-card.flipped .bonus-card-inner { transform: rotateY(180deg); }
+
+/* A confirmed match: hold the flipped face for a beat (see resultHoldMs),
+   then fade the whole card out rather than reflowing the grid around it. */
+.bonus-card.matched .bonus-card-inner {
+  transition: transform 200ms ease, opacity 400ms ease 1200ms;
+  opacity: 0;
+}
+
+.bonus-card-face,
+.bonus-card-back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  font-family: var(--mono);
+  background: var(--bg-panel);
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+
+.bonus-card-back {
+  font-size: clamp(14px, 5cqw, 28px);
+  color: var(--text);
+}
+
+.bonus-card-face {
+  font-size: clamp(16px, 6cqw, 34px);
+  color: var(--accent);
+  transform: rotateY(180deg);
+}
+
+/* Faint distractor character on the back, unrelated to this card's own
+   match content -- see BonusGame.newRound. Purely visual noise. */
+.decoy {
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  font-size: 0.5em;
+  color: var(--dim);
+  opacity: 0.35;
+}
 
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
@@ -611,4 +685,6 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   /* No size cap here -- --w already fits the grid to the narrower panel. */
   .simon-grid { gap: 8px; }
   #stage.simon-mode .panel-simon { padding: 26px; }
+  #stage.simon-mode { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  #stage.simon-mode .panel-bonus { padding: 14px; }
 }

@@ -1,6 +1,7 @@
 import { UI } from './ui.js';
 import { Game, STATE } from './game.js';
 import { SimonGame } from './simon.js';
+import { BonusGame } from './bonus.js';
 import { AudioManager } from './audio.js';
 import { Input, allBindingSlots } from './input.js';
 import { CONFIG } from './config.js';
@@ -11,6 +12,9 @@ const audio = new AudioManager();
 const scores = new ScoreStore();
 const reflexGame = new Game({ ui, audio, scores, onGameOver: handleGameOver });
 const simonGame = new SimonGame({ ui, audio, scores, onGameOver: handleGameOver });
+// Lives on the left half of the Simon screen, worked with the number pad
+// while push/pull/soap/swipe drive Simon on the right -- see bonus.js.
+const bonusGame = new BonusGame({ ui, audio, onMatch: handleBonusMatch });
 
 let classicMode = localStorage.getItem(CONFIG.storage.classicMode) === '1';
 const activeGame = () => (classicMode ? reflexGame : simonGame);
@@ -43,36 +47,66 @@ for (let i = 0; i <= 9; i++) {
 }
 
 function handleDigit(digit) {
+  // 911 rides on top of whatever else digits mean on the current screen --
+  // mid-run, that's the bonus board (below), so the '9' and the first '1'
+  // of a mid-game 911 dial also land there as ordinary presses (only the
+  // completing keystroke is caught in time to skip it, just below). Worst
+  // case that leaves one bonus card flipped early or a two-key entry half
+  // buffered -- harmless, and this is an operator-only cheat code to begin
+  // with, so it's not worth adding input latency to real play to fully
+  // avoid.
   answerKeyBuffer = (answerKeyBuffer + digit).slice(-ANSWER_KEY_CODE.length);
   if (answerKeyBuffer === ANSWER_KEY_CODE) {
     answerKeyBuffer = '';
     ui.showAnswerKey(TITLE_CODE);
+    bonusGame.peekAll(); // also flash the bonus board's hidden faces, for whoever's running it
+    return; // this keystroke dialed 911 -- don't also feed it to the title code or the bonus board
   }
 
-  if (screen !== 'title') return; // the code only means anything at the title
-
-  if (digit === TITLE_CODE[titleCodeProgress]) {
-    ui.markTitleDigitGood(titleCodeProgress);
-    audio.play('codeRight');
-    titleCodeProgress++;
-    if (titleCodeProgress === TITLE_CODE.length) {
+  if (screen === 'title') {
+    if (digit === TITLE_CODE[titleCodeProgress]) {
+      ui.markTitleDigitGood(titleCodeProgress);
+      audio.play('codeRight');
+      titleCodeProgress++;
+      if (titleCodeProgress === TITLE_CODE.length) {
+        titleCodeProgress = 0;
+        ui.markTitleAllGood(); // the rest of the word goes green too, not just the four digits
+        // Hold on the all-green moment for a beat -- time to orient yourself --
+        // before the success tone and the game itself begin, rather than
+        // firing both immediately.
+        setTimeout(() => {
+          audio.play('success');
+          ui.playDoorOpen();
+          startGame({ fromPasswordSuccess: true });
+        }, 1000);
+      }
+    } else {
+      ui.resetTitleDigits(); // clear any green already earned -- one miss costs the whole attempt
+      ui.flashTitleWrong();
+      audio.play('codeWrong');
       titleCodeProgress = 0;
-      ui.markTitleAllGood(); // the rest of the word goes green too, not just the four digits
-      // Hold on the all-green moment for a beat -- time to orient yourself --
-      // before the success tone and the game itself begin, rather than
-      // firing both immediately.
-      setTimeout(() => {
-        audio.play('success');
-        ui.playDoorOpen();
-        startGame({ fromPasswordSuccess: true });
-      }, 1000);
     }
-  } else {
-    ui.resetTitleDigits(); // clear any green already earned -- one miss costs the whole attempt
-    ui.flashTitleWrong();
-    audio.play('codeWrong');
-    titleCodeProgress = 0;
+    return;
   }
+
+  // Mid-run, in Simon mode: the number pad drives the bonus board instead --
+  // see bonus.js. Classic mode has no bonus board; the digit means nothing.
+  if (screen === 'playing' && !classicMode) bonusGame.handleKey(digit);
+}
+
+function handleBonusMatch() {
+  simonGame.bonus = Math.min(simonGame.bonus + 1, simonGame.bonusMax);
+  refreshBonusHud();
+}
+
+/** Bonus/total are Simon-only; recompute both from the live bonus count and
+ *  the mode's all-time best whenever either could have changed. */
+function refreshBonusHud() {
+  ui.setHud({
+    bonus: simonGame.bonus,
+    bonusMax: simonGame.bonusMax,
+    total: scores.best(simonGame.mode) + simonGame.bonus,
+  });
 }
 
 const slots = allBindingSlots();
@@ -116,6 +150,7 @@ function applyModeUI() {
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
+  refreshBonusHud();
 }
 
 function toggleClassic() {
@@ -130,6 +165,7 @@ function toTitle() {
   titleCodeProgress = 0; // don't carry a half-typed code across screens
   ui.resetTitleDigits();
   activeGame().abort(); // stops any run music
+  bonusGame.abort();
   ui.showOverlay('title');
   audio.playMusic('song');
 }
@@ -152,10 +188,15 @@ function startGame(opts) {
   audio.unlock();
   screen = 'playing';
   activeGame().start(opts);
+  if (!classicMode) {
+    bonusGame.start();
+    refreshBonusHud();
+  }
 }
 
 function newTeam() {
   activeGame().newTeam();
+  bonusGame.newTeam();
   startGame();
 }
 
@@ -188,6 +229,7 @@ function handleGameOver(result) {
   screen = 'over';
   pending = result.qualifies ? result : null;
   ui.setHud({ best: scores.best(result.mode) });
+  if (result.mode === simonGame.mode) refreshBonusHud(); // best may have just changed
   ui.showGameOver({
     ...result,
     best: scores.best(result.mode),
@@ -203,6 +245,7 @@ function saveScore(initials) {
   const rank = scores.add(mode, initials, score);
   pending = null;
   ui.setHud({ best: scores.best(mode) });
+  if (mode === simonGame.mode) refreshBonusHud();
   ui.confirmEntry({ mode, board: scores.board(mode), rank, best: scores.best(mode) });
 }
 
@@ -210,6 +253,7 @@ function showScores(mode = scoresTab) {
   scoresTab = mode;
   screen = 'scores';
   activeGame().abort();
+  bonusGame.abort();
   ui.showScores({
     mode,
     board: scores.board(mode),
@@ -235,6 +279,7 @@ function beginRebind(slotId) {
 function toRemap() {
   screen = 'remap';
   activeGame().abort();
+  bonusGame.abort();
   drawBindings();
   ui.showOverlay('remap');
 }
@@ -373,6 +418,11 @@ function isTyping(e) {
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) activeGame().pause();
-  else activeGame().resume();
+  if (document.hidden) {
+    activeGame().pause();
+    bonusGame.pause();
+  } else {
+    activeGame().resume();
+    bonusGame.resume();
+  }
 });

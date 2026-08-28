@@ -39,6 +39,9 @@ export class UI {
       best: $('#best'),
       bonusStat: $('#bonusStat'),
       bonus: $('#bonus'),
+      totalStat: $('#totalStat'),
+      total: $('#total'),
+      bonusBoard: $('#bonusBoard'),
       modeBadge: $('#modeBadge'),
       muteBadge: $('#muteBadge'),
       title: $('#titleOverlay'),
@@ -129,7 +132,7 @@ export class UI {
     this.el.stage.classList.remove('idle');
   }
 
-  setHud({ score, round, best, bonus, bonusMax }) {
+  setHud({ score, round, best, bonus, bonusMax, total }) {
     if (score !== undefined) this.el.score.textContent = score;
     if (round !== undefined) this.el.round.textContent = round;
     if (best !== undefined) this.el.best.textContent = best;
@@ -140,6 +143,7 @@ export class UI {
       this._bonusMax = bMax;
       this.el.bonus.textContent = `${b}/${bMax}`;
     }
+    if (total !== undefined) this.el.total.textContent = total;
   }
 
   setScoreLabel(text) {
@@ -410,6 +414,30 @@ export class UI {
 
   answerKeyOpen() {
     return !this.el.answerKey.classList.contains('hidden');
+  }
+
+  /** The bonus board: rebuilt from scratch every call, same as renderBoard/
+   *  renderBindings below -- there are at most 16 cards, so there's no need
+   *  to diff. `peeking` (the 911 cheat) shows every unmatched card's face
+   *  without touching its real revealed/matched state. */
+  renderBonusBoard({ size, cards, peeking }) {
+    const el = this.el.bonusBoard;
+    el.style.setProperty('--bonus-size', size);
+    el.innerHTML = cards
+      .map((c) => {
+        const flipped = peeking || c.revealed || c.matched;
+        const cls = ['bonus-card', flipped && 'flipped', c.matched && 'matched']
+          .filter(Boolean)
+          .join(' ');
+        const decoy = c.decoy ? `<span class="decoy">${c.decoy}</span>` : '';
+        return (
+          `<div class="${cls}"><div class="bonus-card-inner">` +
+          `<div class="bonus-card-back">${c.label}${decoy}</div>` +
+          `<div class="bonus-card-face">${c.faceSymbol}</div>` +
+          '</div></div>'
+        );
+      })
+      .join('');
   }
 
   /** Render one board as a table; `highlight` marks the run just played. */
