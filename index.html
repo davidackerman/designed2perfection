@@ -69,11 +69,16 @@
         </div>
       </div>
       <div class="simon-grid">
-        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
+        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/push.jpeg" alt="" />
         <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />
-        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pullit.jpeg" alt="" />
+        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pull.jpeg" alt="" />
         <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-br" src="assets/img/swipeit.jpeg" alt="" />
       </div>
+
+      <!-- A pad pressed during playback or the gap between rounds costs
+           nothing, but shows this instead of silently eating the press --
+           see SimonGame.handleInput/UI.showSimonWaitHint. -->
+      <div id="simonWaitHint" class="simon-wait-hint hidden">WAIT</div>
 
       <!-- A wrong pad only freezes the Simon side -- the bonus board on the
            left keeps running the whole time (main.js keeps feeding it digits

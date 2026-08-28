@@ -56,6 +56,7 @@ export class UI {
       simonOverScore: $('#simonOverScore'),
       simonOverBest: $('#simonOverBest'),
       simonOverSequence: $('#simonOverSequence'),
+      simonWaitHint: $('#simonWaitHint'),
       scoresBoard: $('#scoresBoard'),
       scoresStats: $('#scoresStats'),
       tabNormal: $('#tabNormal'),
@@ -327,6 +328,22 @@ export class UI {
 
   clearSimonStep() {
     for (const el of Object.values(this.simonPads)) el.classList.remove('active', 'hit');
+    clearTimeout(this.waitHintTimer);
+    this.el.simonWaitHint.classList.add('hidden');
+  }
+
+  /** A pad pressed during playback or the gap between rounds costs nothing,
+   *  but silently eating the press reads as "did that even register?" --
+   *  this is the explicit "hang on" instead. Self-dismissing; retriggering
+   *  (another early press before it fades) restarts the pulse rather than
+   *  stacking. */
+  showSimonWaitHint() {
+    const el = this.el.simonWaitHint;
+    el.classList.remove('hidden', 'pulse');
+    void el.offsetWidth; // reflow, so back-to-back early presses each re-pulse
+    el.classList.add('pulse');
+    clearTimeout(this.waitHintTimer);
+    this.waitHintTimer = setTimeout(() => el.classList.add('hidden'), 700);
   }
 
   /** Debug mode only: which key(s) resolve the pad Simon is currently

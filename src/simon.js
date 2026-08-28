@@ -183,8 +183,11 @@ export class SimonGame {
       // Playback, or the gap between rounds. Pressing here isn't a mistake and
       // costs nothing -- but at low rounds it's most of the wall clock, and
       // swallowing it in silence is indistinguishable from a dropped input.
-      // Say "not yet" instead of nothing.
+      // Say "not yet" instead of nothing -- a stage-wide nudge plus an
+      // explicit "WAIT" label, so it reads as "hang on" rather than "did
+      // that even register?".
       this.ui.flash('nothing');
+      this.ui.showSimonWaitHint();
       return;
     }
 

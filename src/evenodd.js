@@ -3,23 +3,84 @@
 //
 // Every CONFIG.evenOdd.entryWindowMs you have to enter a digit on the number
 // pad. Before you do, the computer has already locked in a guess of whether
-// that digit will be even or odd -- it isn't a coin flip on the computer's
-// side, it's a simple order-1 Markov model over the parity of what you've
-// entered so far (falling back to your overall even/odd lean, and to an
-// actual coin flip if there's no history yet), so a genuinely unpredictable
-// player keeps it near 50/50 while any pattern (e.g. alternating, or leaning
-// odd) lets it climb well past that.
+// that digit will be even or odd -- see AaronsonOracle below for how.
 //
-// Instead of a flat bonus, this run's whole score gets a multiplier, judged
-// on the computer's accuracy over the trailing historyLen guesses: x2 at
-// 50% (it's not reading you at all) down to x1 at 75%+ (it's reading you
-// easily), linear in between -- clamped at both ends, so it never goes
-// above x2 or below x1. Missing the entry window resets the run's history
-// and multiplier back to the x2 default -- same as the memory board's
-// "wrong pad only freezes Simon" story, this game has no losing state, only
-// a multiplier that resets and starts climbing back.
+// The multiplier applies to your Simon score instead of a flat bonus added
+// to it: it starts (and resets, on a missed window) at the neutral x1
+// baseline, climbs toward x2 while the computer's stuck at a coin flip, and
+// falls back toward x1 once it's reading you 75%+ of the time -- clamped at
+// both ends, so it never goes below x1 or above x2. Same "wrong pad only
+// freezes Simon" story as the memory board: this game has no losing state,
+// only a multiplier that resets and starts climbing back.
 
 import { CONFIG } from './config.js';
+
+/** The "Aaronson Oracle": the human-unpredictability demo popularized by
+ *  Scott Aaronson, re-implemented here as the even/odd predictor. It's an
+ *  ensemble of finite-context predictors (orders 1 through maxOrder, i.e.
+ *  "the last k bits you entered"), each one's own hit rate tracked
+ *  independently across the whole run regardless of whether it was ever put
+ *  in charge. Every guess, whichever order currently has the best track
+ *  record gets to make the call (falling back to a coin flip once no order
+ *  has enough data to have an opinion) -- so a player who's unpredictable at
+ *  every context length keeps it near 50/50, while any pattern at *any*
+ *  context length (alternating, repeating, a slight lean) eventually gets
+ *  picked up by whichever order best exploits it. */
+class AaronsonOracle {
+  constructor(maxOrder = 5) {
+    this.maxOrder = maxOrder;
+    this.sequence = [];                                     // actual bits this run: '0' (even) / '1' (odd)
+    this.tables = Array.from({ length: maxOrder }, () => new Map()); // tables[k-1]: context (k bits, as a string) -> { '0': count, '1': count }
+    this.orderHits = new Array(maxOrder).fill(0);
+    this.orderSeen = new Array(maxOrder).fill(0);
+  }
+
+  /** Whichever order has the best hit rate so far calls this guess (ties
+   *  favor more context); an order only ever has an opinion once its table
+   *  has a non-tied count for the current context. No order with a real
+   *  track record yet -- or the best one is tied for its current context --
+   *  falls back to a genuine coin flip. */
+  predict() {
+    let bestOrder = 0;
+    let bestRate = -1;
+    for (let k = this.maxOrder; k >= 1; k--) {
+      if (this.orderSeen[k - 1] === 0) continue;
+      const rate = this.orderHits[k - 1] / this.orderSeen[k - 1];
+      if (rate > bestRate) {
+        bestRate = rate;
+        bestOrder = k;
+      }
+    }
+    if (bestOrder > 0 && this.sequence.length >= bestOrder) {
+      const context = this.sequence.slice(-bestOrder).join('');
+      const counts = this.tables[bestOrder - 1].get(context);
+      if (counts && counts['0'] !== counts['1']) {
+        return counts['0'] > counts['1'] ? '0' : '1';
+      }
+    }
+    return Math.random() < 0.5 ? '0' : '1';
+  }
+
+  /** Score every order's own prediction against the real outcome (whether or
+   *  not it was actually in charge this round), then fold the outcome into
+   *  each order's context table for next time. */
+  update(actualBit) {
+    for (let k = 1; k <= this.maxOrder; k++) {
+      if (this.sequence.length < k) continue;
+      const context = this.sequence.slice(-k).join('');
+      const table = this.tables[k - 1];
+      const counts = table.get(context);
+      if (counts && counts['0'] !== counts['1']) {
+        const predicted = counts['0'] > counts['1'] ? '0' : '1';
+        this.orderSeen[k - 1] += 1;
+        if (predicted === actualBit) this.orderHits[k - 1] += 1;
+      }
+      if (!counts) table.set(context, { '0': 0, '1': 0 });
+      table.get(context)[actualBit] += 1;
+    }
+    this.sequence.push(actualBit);
+  }
+}
 
 export class EvenOddGame {
   constructor({ audio, onUpdate }) {
@@ -33,11 +94,11 @@ export class EvenOddGame {
   }
 
   resetRun_() {
-    // Order-1 Markov counts: transitions[prevParity][nextParity] -> count.
-    this.transitions = { even: { even: 0, odd: 0 }, odd: { even: 0, odd: 0 } };
-    this.history = []; // trailing { actual, guess, correct }, capped at historyLen -- this is what both the multiplier and the on-screen log are computed from
-    this.lastParity = null;
-    this.multiplier = CONFIG.evenOdd.multiplierMax;
+    this.oracle = new AaronsonOracle();
+    this.history = []; // trailing { actual, guess, correct }, capped at historyLen -- what both the multiplier and the on-screen log are computed from
+    // Neutral baseline until you've proven something either way -- see
+    // updateMultiplier_.
+    this.multiplier = CONFIG.evenOdd.multiplierMin;
     this.multiplierLog = []; // one point per resolved guess, capped at plotLen, for the running plot
   }
 
@@ -85,17 +146,7 @@ export class EvenOddGame {
   }
 
   computeGuess_() {
-    if (this.lastParity) {
-      const t = this.transitions[this.lastParity];
-      const seen = t.even + t.odd;
-      if (seen >= 3 && t.even !== t.odd) return t.even > t.odd ? 'even' : 'odd';
-    }
-    if (this.history.length >= 3) {
-      const evens = this.history.filter((h) => h.actual === 'even').length;
-      const odds = this.history.length - evens;
-      if (evens !== odds) return evens > odds ? 'even' : 'odd';
-    }
-    return Math.random() < 0.5 ? 'even' : 'odd'; // nothing to exploit yet
+    return this.oracle.predict() === '0' ? 'even' : 'odd';
   }
 
   handleKey(digit) {
@@ -104,8 +155,7 @@ export class EvenOddGame {
     const guess = this.guess;
     const correct = guess === actual;
 
-    if (this.lastParity) this.transitions[this.lastParity][actual] += 1;
-    this.lastParity = actual;
+    this.oracle.update(actual === 'even' ? '0' : '1');
     this.history.push({ actual, guess, correct });
     if (this.history.length > CONFIG.evenOdd.historyLen) this.history.shift();
 
@@ -121,7 +171,8 @@ export class EvenOddGame {
 
   handleTimeout_() {
     this.resetRun_();
-    this.audio?.playTone(110, 320);
+    // No sound here -- it read as one more right/wrong tone and was
+    // confusing next to the per-guess ones.
     this.guess = this.computeGuess_();
     this.armDeadline_();
     this.emit_(true);
@@ -131,12 +182,12 @@ export class EvenOddGame {
    *  (0.75), linear in between; accuracy is clamped to that range first, so
    *  a computer doing *worse* than a coin flip still caps at x2 (there's no
    *  "extra credit" beyond the max), and one reading you well past 75% still
-   *  only costs you down to x1, never further. With no history yet, default
-   *  to the best case (x2) -- there's nothing to judge it against. */
+   *  only costs you down to x1, never further. With no history yet, this is
+   *  the neutral x1 baseline -- there's nothing yet to judge it against. */
   updateMultiplier_() {
     const { accuracyForMaxMultiplier: lo, accuracyForMinMultiplier: hi, multiplierMax: max, multiplierMin: min } = CONFIG.evenOdd;
     if (!this.history.length) {
-      this.multiplier = max;
+      this.multiplier = min;
     } else {
       const accuracy = this.history.filter((h) => h.correct).length / this.history.length;
       const clamped = Math.min(Math.max(accuracy, lo), hi);

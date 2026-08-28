@@ -24,7 +24,13 @@
     </div>
   </header>
 
-  <main id="stage" class="blank idle">
+  <!-- eo-stacked: Simon on top (bigger) and the bonus panel underneath
+       (smaller) instead of the real page's side-by-side split -- Simon is
+       still the actual game here, the even/odd panel is just along for the
+       ride. See the #stage.simon-mode.eo-stacked rule in main.css; grid
+       auto-placement puts these in row order, so Simon has to come first
+       in the markup for that to land in the top row. -->
+  <main id="stage" class="blank idle eo-stacked">
     <section class="panel panel-image">
       <img id="stageImage" alt="" src="assets/img/door.svg" />
     </section>
@@ -32,46 +38,10 @@
       <video id="stageWord" playsinline></video>
     </section>
 
-    <!-- Test variant of the bonus panel: instead of the memory-match board
-         (see index.html/bonus.js), beat the computer's even/odd guesser --
-         see evenodd.js/main2.js. Same live-the-whole-time story: this keeps
-         running even while Simon's own panel is frozen after a wrong pad. -->
-    <section class="panel panel-bonus">
-      <div class="panel-heading">
-        <div class="panel-heading-tag">BEAT THE COMPUTER</div>
-        Multiplier <span id="bonusHeading" class="panel-heading-value">&times;2.00</span>
-      </div>
-      <div class="eo-board">
-        <p class="eo-instructions">
-          Enter any digit, 0-9, before the bar runs out. The computer has
-          already locked in a guess of whether it'll be EVEN or ODD --
-          hidden until you enter it, so guessing the opposite of what's
-          shown isn't a strategy. The less predictable you are, the worse
-          it does. Score multiplier: &times;2 while it's stuck at a coin
-          flip, down to &times;1 once it's reading you 75%+ of the time.
-        </p>
-        <div class="eo-guess">
-          <span class="eo-guess-label">Computer's guess</span>
-          <span class="eo-guess-value" id="eoGuess">?</span>
-        </div>
-        <div class="eo-timerbar"><div class="eo-timerbar-fill" id="eoBar"></div></div>
-        <p class="eo-status" id="eoStatus"></p>
-        <div class="eo-history-wrap">
-          <span class="eo-guess-label">Computer guess (top) vs. what you entered (bottom)</span>
-          <div class="eo-history" id="eoHistory"></div>
-        </div>
-        <div class="eo-plot-wrap">
-          <span class="eo-guess-label">Multiplier over time</span>
-          <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
-        </div>
-        <p class="eo-accuracy">Computer accuracy: <span id="eoAccuracy">—</span> over <span id="eoCount">0</span> guess(es)</p>
-      </div>
-    </section>
-
     <!-- Simon mode: all four pads shown at once in a 2x2 block. -->
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
-        <div class="panel-heading-tag">SIMON</div>
+        <div class="panel-heading-tag panel-heading-tag-simon">SIMON</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
@@ -81,16 +51,18 @@
         </div>
         <div class="panel-heading-total">
           Score <span id="totalScore" class="panel-heading-value">0</span> &times;
-          <span id="totalBonus" class="panel-heading-value">&times;2.00</span> =
+          <span id="totalBonus" class="panel-heading-value">&times;1.00</span> =
           Total <span id="total" class="panel-heading-value panel-heading-total-value">0</span>
         </div>
       </div>
       <div class="simon-grid">
-        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/pushit.jpeg" alt="" />
+        <img id="simonPadPush" class="simon-pad simon-pad-push simon-pos-tl" src="assets/img/push.jpeg" alt="" />
         <img id="simonPadSoap" class="simon-pad simon-pad-soap simon-pos-tr" src="assets/img/soapit.jpeg" alt="" />
-        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pullit.jpeg" alt="" />
+        <img id="simonPadPull" class="simon-pad simon-pad-pull simon-pos-bl" src="assets/img/pull.jpeg" alt="" />
         <img id="simonPadSwipe" class="simon-pad simon-pad-swipe simon-pos-br" src="assets/img/swipeit.jpeg" alt="" />
       </div>
+
+      <div id="simonWaitHint" class="simon-wait-hint hidden">WAIT</div>
 
       <div id="simonOver" class="simon-over hidden">
         <h2 id="simonOverHeading">OUT OF SEQUENCE</h2>
@@ -99,6 +71,42 @@
         <p class="tagline">Best: <span id="simonOverBest">0</span></p>
         <div id="simonOverSequence" class="seq hidden"></div>
         <p class="hint">Press anything to go again.</p>
+      </div>
+    </section>
+
+    <!-- Test variant of the bonus panel: instead of the memory-match board
+         (see index.html/bonus.js), beat the computer's even/odd guesser --
+         see evenodd.js/main2.js. Same live-the-whole-time story: this keeps
+         running even while Simon's own panel is frozen after a wrong pad.
+         Deliberately a compact strip, not a full side panel -- Simon is the
+         actual game here. -->
+    <section class="panel panel-bonus">
+      <div class="panel-heading">
+        <div class="panel-heading-tag">OPTIONAL: BONUS SCORE MULTIPLIER</div>
+        <span id="bonusHeading" class="panel-heading-value">&times;1.00</span>
+      </div>
+      <div class="eo-board">
+        <p class="eo-instructions">
+          Optional: dial even or odd numbers. The computer will try to
+          guess. Outdo the computer to get more bonus points.
+        </p>
+        <div class="eo-row">
+          <div class="eo-col eo-guess-col">
+            <span class="eo-guess-label">Computer's guess</span>
+            <span class="eo-guess-value" id="eoGuess">?</span>
+            <div class="eo-timerbar"><div class="eo-timerbar-fill" id="eoBar"></div></div>
+            <p class="eo-status" id="eoStatus"></p>
+          </div>
+          <div class="eo-col eo-history-col">
+            <span class="eo-guess-label">Guess vs. you</span>
+            <div class="eo-history" id="eoHistory"></div>
+          </div>
+          <div class="eo-col eo-plot-col">
+            <span class="eo-guess-label">Multiplier over time</span>
+            <svg id="eoPlot" class="eo-plot" viewBox="0 0 200 50" preserveAspectRatio="none"></svg>
+            <p class="eo-accuracy">Accuracy <span id="eoAccuracy">—</span> · <span id="eoCount">0</span> guesses</p>
+          </div>
+        </div>
       </div>
     </section>
 

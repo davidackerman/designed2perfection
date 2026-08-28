@@ -42,7 +42,7 @@ const eo = {
   total: document.querySelector('#total'),
 };
 
-let currentMultiplier = CONFIG.evenOdd.multiplierMax;
+let currentMultiplier = CONFIG.evenOdd.multiplierMin;
 let guessRevealTimer = null;
 const GUESS_REVEAL_MS = 1300; // how long a resolved guess stays shown before going back to "?"
 
@@ -82,7 +82,7 @@ function renderEvenOdd(state) {
   }
 
   if (state.timedOut) {
-    eo.status.textContent = `Too slow — multiplier reset to ${formatMultiplier(CONFIG.evenOdd.multiplierMax)}.`;
+    eo.status.textContent = `Too slow — multiplier reset to ${formatMultiplier(CONFIG.evenOdd.multiplierMin)}.`;
     eo.status.className = 'eo-status eo-timeout';
   } else {
     eo.status.textContent = '';
@@ -262,7 +262,7 @@ function applyModeUI() {
   document.querySelector('#classicLegend').classList.toggle('hidden', !classicMode);
   document.querySelector('#classicHint').classList.toggle('hidden', !classicMode);
   document.querySelector('#hardBtn').classList.toggle('hidden', !classicMode);
-  currentMultiplier = CONFIG.evenOdd.multiplierMax;
+  currentMultiplier = CONFIG.evenOdd.multiplierMin;
   eo.multiplierHeading.textContent = formatMultiplier(currentMultiplier);
   eo.history.innerHTML = '';
   eo.plot.innerHTML = '';

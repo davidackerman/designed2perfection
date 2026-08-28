@@ -15,6 +15,10 @@ long as you like over a press, and the only way to lose is to press the wrong
 pad. Nothing on screen explains the rule — it's meant to be worked out by
 watching. See [`src/simon.js`](src/simon.js).
 
+A pad pressed during playback or the gap between rounds costs nothing, but
+isn't silently swallowed either — a brief "WAIT" pulses over the pads so it
+reads as "hang on" rather than "did that even register?".
+
 When a run ends, only the Simon side freezes — a card confined to that half
 of the screen lays the round you died on against what you actually pressed,
 step by step, so you can see where the two parted company. The bonus board
@@ -35,22 +39,33 @@ on the title screen (off by default).
 ### Alternate bonus test build
 
 [`inconvenient2.html`](inconvenient2.html) (linked from the real title
-screen's hint line) is a test endpoint for trying out a different bonus
-minigame in place of the memory-match board: beat the computer's even/odd
-guesser. Every few seconds you enter a digit on the number pad; the computer
-has already locked in a guess of whether it'll be even or odd, based on a
-simple pattern model over what you've entered so far. That guess stays
-hidden until you enter the digit — showing it up front would make "press
-the opposite" an unbeatable strategy — then it reveals both together and
-logs them side by side, so you can see every guess-vs-actual pair from the
-run, plus a running plot of the score multiplier underneath. That
-multiplier is ×2 at a coin-flip-or-better 50% computer accuracy, down to ×1
-once the computer's reading you 75%+ of the time (applied to your Simon
-score, not added to it), and missing the entry window resets it back to
-×2. Everything else (Simon, classic mode, the title password, high scores)
-is identical to the real page — including the title screen itself: the
-heading reads the same `1nc0nVeni3nt`, deliberately without a trailing "2",
-so it doesn't read as one more digit of the number-pad code. See
+screen's hint line) is a test endpoint for trying out a different, explicitly
+**optional** bonus minigame in place of the memory-match board: beat the
+computer's even/odd guesser. Simon is still the actual game and takes visual
+precedence here — it sits on top and larger, labeled in big letters, with the
+bonus panel underneath as a compact strip rather than an equal half of the
+screen.
+
+Every few seconds you dial an even or odd digit on the number pad; the
+computer has already locked in a guess of which, using an
+["Aaronson Oracle"](src/evenodd.js) — an ensemble of finite-context
+predictors (it looks for patterns over your last 1 to 5 entries), each
+judged on its own accuracy so far, with whichever one's currently most
+accurate put in charge of the next guess. That guess stays hidden until you
+enter the digit — showing it up front would make "press the opposite" an
+unbeatable strategy — then it briefly reveals both together and logs them
+side by side (every guess-vs-actual pair from the run, not just the last
+one), plus a running plot of the resulting score multiplier. That
+multiplier defaults to ×1 (neutral), climbs toward ×2 while the computer's
+stuck at a coin flip, and falls back toward ×1 once it's reading you 75%+ of
+the time — applied to your Simon score, not added to it. Missing the entry
+window resets it back to ×1, silently; there's no sound on a timeout,
+since one was easy to mistake for one of the per-guess right/wrong tones.
+
+Everything else (Simon, classic mode, the title password, high scores) is
+identical to the real page — including the title screen itself: the heading
+reads the same `1nc0nVeni3nt`, deliberately without a trailing "2", so it
+doesn't read as one more digit of the number-pad code. See
 [`src/evenodd.js`](src/evenodd.js) and [`src/main2.js`](src/main2.js).
 
 ## The five commands (Classic mode)
