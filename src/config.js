@@ -38,6 +38,7 @@ export const CONFIG = {
     // like over a press -- only a wrong pad ends the run.
     interRoundMs: 900,       // pause after a correct sequence before it grows
     orientPauseMs: 1500,     // pause after the title transition before the first round plays, so it isn't sprung on you
+    firstStepHoldMultiplier: 4, // the very first step after dialing in stays lit this many times as long, so the transition is unmistakable
     bonusMax: 10,            // bonus meter ceiling; scoring TBD
     tones: {
       // One tone per pad, in a rough Simon-style spread across an octave-ish
@@ -56,7 +57,7 @@ export const CONFIG = {
   bonus: {
     resultHoldMs: 1200,  // a resolved pair (match or mismatch) stays face-up this long before it clears/flips back
     matchClearMs: 400,   // fade-out duration once a match is confirmed
-    peekMs: 1000,        // the 911 cheat: how long every card flips face-up
+    peekMs: 2000,        // the 911 cheat: how long every card flips face-up
     rounds: [
       { size: 2, kind: 'shapes' }, // 2x2, 2 pairs of simple shapes
       { size: 4, kind: 'alnum' },  // 4x4, 8 pairs from 0-9/A-Z, plus a faint decoy character per card back

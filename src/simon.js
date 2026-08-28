@@ -136,10 +136,12 @@ export class SimonGame {
       }
       const actionId = this.sequence[i];
       // The first step right after dialing the code in is the most jarring
-      // transition players see -- hold it twice as long (tone + highlight
-      // both) so it can't be missed the way a normal-speed flash could be.
-      // Only that one step: clear the flag the instant it's used.
-      const thisStepMs = (i === 0 && this.holdFirstStep) ? stepMs * 2 : stepMs;
+      // transition players see -- hold it several times as long (tone +
+      // highlight both) so it can't be missed the way a normal-speed flash
+      // could be. Only that one step: clear the flag the instant it's used.
+      const thisStepMs = (i === 0 && this.holdFirstStep)
+        ? stepMs * CONFIG.simon.firstStepHoldMultiplier
+        : stepMs;
       if (i === 0) this.holdFirstStep = false;
       i += 1;
       this.lightPad(actionId, thisStepMs);
