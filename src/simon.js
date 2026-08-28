@@ -123,8 +123,8 @@ export class SimonGame {
     this.playbackTimer = setTimeout(playStep, gapMs);
   }
 
-  lightPad(actionId, durationMs) {
-    this.ui.flashSimonStep(actionId);
+  lightPad(actionId, durationMs, { press = false } = {}) {
+    this.ui.flashSimonStep(actionId, { press });
     this.audio.playTone(CONFIG.simon.tones[actionId], durationMs);
   }
 
@@ -134,6 +134,9 @@ export class SimonGame {
   }
 
   armInputWindow() {
+    // Every press re-arms the window; without this each one would leave its
+    // own rAF chain running for the rest of the round.
+    if (this.frame) cancelAnimationFrame(this.frame);
     this.windowMs = this.inputWindowFor(this.round);
     this.deadline = performance.now() + this.windowMs;
     this.frame = requestAnimationFrame(() => this.tickInput());
@@ -163,12 +166,16 @@ export class SimonGame {
    *  which of the four pads it was. No Bop-It-style press sfx here -- whatever
    *  pad you press lights up with its own flash+tone, same as a real Simon
    *  console, whether you turn out to be right or wrong. Lit for the same
-   *  duration as this round's own playback step, not a separate fixed length. */
+   *  duration as this round's own playback step, not a separate fixed length.
+   *
+   *  Presses are never rate-limited: the flash and tone both retrigger, so
+   *  hammering the same pad twice in a row reads as two distinct presses
+   *  rather than one held glow. */
   handleInput({ actionId }) {
     if (this.state !== STATE.PLAYING || this.phase !== 'input') return;
 
     const stepMs = this.stepMsFor(this.round);
-    this.lightPad(actionId, stepMs);
+    this.lightPad(actionId, stepMs, { press: true });
     clearTimeout(this.ackTimer);
     this.ackTimer = setTimeout(() => this.ui.clearSimonStep(), stepMs);
 
@@ -209,6 +216,7 @@ export class SimonGame {
     this.ui.setTimer(0);
     this.ui.clearSimonStep();
     this.ui.flash('bad');
+    this.audio.stopTone(); // don't leave the last pad's note ringing over the loss sfx
     this.audio.stopMusic();
     this.audio.play('lose');
     this.audio.play('gameover');
@@ -252,6 +260,7 @@ export class SimonGame {
 
   abort() {
     this.stopTimers();
+    this.audio.stopTone();
     this.audio.stopMusic();
     this.state = STATE.TITLE;
     this.ui.clearSimonStep();

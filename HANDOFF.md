@@ -110,6 +110,15 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
   not a separate ack constant. There used to be a fixed `CONFIG.simon.ackMs`
   (160ms); it was removed in favor of this so the feedback never feels
   different from what the game itself just showed you.
+- **A press always retriggers, even on the pad that's already lit.** Playback
+  gets a dark gap between steps for free, so two of the same pad in a row read
+  as two flashes. Presses don't: `.active` was already set, and toggling a
+  class that's on is a no-op, so hammering one pad twice looked like a single
+  held glow — i.e. like the second press had been dropped. `flashSimonStep(id,
+  { press: true })` now restarts a `.hit` keyframe animation (remove / reflow /
+  re-add, the same trick as `ui.flash`), and `AudioManager.playTone` cuts the
+  note still ringing before starting the next one. Presses are not, and never
+  were, rate-limited — this was purely a feedback bug.
 - **No Bop-It-style click sfx in Simon.** Classic mode still plays
   `pushit.mp3`/`pullit.mp3`/etc. on every press. Simon deliberately doesn't
   — a correct press's only feedback is the pad relighting with its own
@@ -122,9 +131,24 @@ and config ceiling (`CONFIG.simon.bonusMax`) are all wired up:
   gesture on load (works only where autoplay is allowed, e.g. a
   permissively configured kiosk); otherwise the first click/keypress
   anywhere resumes it.
-- **Title heading is "1nc0nVeni3nt"**, replacing "Janelia It!" as the H1.
-  The page `<title>` tag and meta description still say "Janelia It!" —
-  those weren't touched, only the on-screen heading.
+- **"1nc0nVeni3nt" everywhere**: the H1, the page `<title>`, and the meta
+  description. "Janelia It!" is gone from the shipped page.
+- **The game-over heading is per-mode** (`OVER_HEADINGS` in `ui.js`, written
+  into `#overHeading` by `showGameOver`). Classic keeps "YOU DID NOT GET IN" —
+  you were trying to get through a door. Simon says "OUT OF SEQUENCE", because
+  you weren't.
+- **Nothing clips the lit pad.** `.simon-diamond` deliberately has no
+  `overflow: hidden`: a lit pad scales to 1.05 and throws a ~36px glow, and the
+  four pads sit flush against the diamond's edges, so clipping there sliced the
+  ring — and the top of the photo — right off. `.simon-pad`'s
+  `min-width/min-height: 0` is what actually keeps the grid tracks from
+  overflowing. `.panel-simon` carries 46px of padding purely as glow room.
+- **The diamond is always square**, sized off `100cqmin` of `.panel-simon`
+  (which is `container-type: size` for exactly this). The cells are `1fr`, so a
+  square diamond means square cells, and the portrait pad photos letterbox by a
+  hair either side. Let the diamond go tall — which is what happens if you size
+  it off width alone — and the photos letterbox top and bottom instead, leaving
+  a lit ring around mostly empty space.
 
 ## Running / testing locally
 
@@ -134,6 +158,11 @@ Same as [README.md](README.md) says — no build step:
 python3 -m http.server 8000
 # then open http://localhost:8000/?debug=1 to skip hunting for how to enable debug
 ```
+
+Careful with `?debug=1` if you actually want to *play*: the debug cheat in
+`main.js` swallows every keydown while a round is live, so `D` wins and every
+other key — including the real pad bindings — loses instantly. It's for driving
+the win/lose paths, not for playing with a hint on.
 
 There's no test suite. This session's verification was all manual/scripted
 browser checks (Playwright driving a headless Chromium) — screenshotting

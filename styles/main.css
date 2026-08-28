@@ -158,17 +158,31 @@ html, body {
 #stage.simon-mode .panel-word { display: none; }
 #stage:not(.simon-mode) .panel-simon { display: none; }
 
+/* Room for a lit pad's ring and glow to spill past the diamond's edge: the
+   outer pads sit flush against it, and anything clipping here slices the top
+   off the lit ring (and the photo under it). */
+#stage.simon-mode .panel-simon {
+  padding: 46px;
+  /* So the diamond below can size itself off whichever of this panel's two
+     dimensions is smaller (cqmin), and stay square in any window. */
+  container-type: size;
+}
+
 .simon-diamond {
-  width: 100%;
-  height: 100%;
-  max-width: 560px;
-  max-height: 560px;
-  margin: 0 auto;
+  /* Square, always: the cells are 1fr each, so a square diamond keeps square
+     cells, and the portrait pad photos letterbox by a hair either side. Let
+     it go tall and they letterbox top and bottom instead, which reads as a
+     lit ring around mostly empty space. */
+  width: min(100cqmin, 720px);
+  height: min(100cqmin, 720px);
+  margin: auto;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   gap: 12px;
-  overflow: hidden;
+  /* Deliberately no overflow: hidden -- .simon-pad's min-width/min-height: 0
+     below is what keeps the tracks from overflowing, and clipping here would
+     cut the glow and the scaled-up lit pad off at the edges. */
 }
 
 .simon-pos-top { grid-column: 2; grid-row: 1; }
@@ -197,6 +211,20 @@ html, body {
    look either way, so there's no visual "gotcha" between the two. */
 .simon-pad.active {
   transform: scale(1.05);
+}
+
+/* One pulse per press. Playback gets its gaps between steps for free, but
+   presses can land back to back on the same pad, and a class that's already
+   set doesn't re-transition -- so the second press has to be an animation
+   that restarts, or it looks like the press was dropped. */
+.simon-pad.hit {
+  animation: padHit 190ms ease-out;
+}
+
+@keyframes padHit {
+  0%   { transform: scale(0.93); filter: brightness(1.75); }
+  55%  { transform: scale(1.08); filter: brightness(1.25); }
+  100% { transform: scale(1.05); filter: brightness(1); }
 }
 .simon-pad-push.active { box-shadow: 0 0 0 4px #1fae57, 0 0 30px 6px rgba(31, 174, 87, 0.5); }
 .simon-pad-pull.active { box-shadow: 0 0 0 4px #d64545, 0 0 30px 6px rgba(214, 69, 69, 0.5); }
@@ -454,5 +482,7 @@ button.primary { background: var(--accent); color: #16181d; border-color: var(--
   #debugBar { margin: 0 14px 12px; font-size: 10px; }
   #stage { margin: 0 14px; }
   #timer { margin: 10px 14px 14px; }
-  .simon-diamond { max-width: 340px; max-height: 340px; gap: 8px; }
+  /* No size cap here -- cqmin already fits the diamond to the narrower panel. */
+  .simon-diamond { gap: 8px; }
+  #stage.simon-mode .panel-simon { padding: 26px; }
 }

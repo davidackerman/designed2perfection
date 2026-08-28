@@ -6,6 +6,14 @@ const $ = (sel) => document.querySelector(sel);
 
 const OVERLAYS = ['title', 'over', 'remap', 'scores'];
 
+// The classic game is about getting through a door, so "you did not get in"
+// is the joke. Simon isn't -- you just lost the thread of the sequence.
+const OVER_HEADINGS = {
+  simon: 'OUT OF SEQUENCE',
+  normal: 'YOU DID NOT GET IN',
+  hard: 'YOU DID NOT GET IN',
+};
+
 const ORDINALS = ['1st', '2nd', '3rd'];
 const place = (rank) => ORDINALS[rank] || `${rank + 1}th`;
 
@@ -40,6 +48,7 @@ export class UI {
       overPlace: $('#overPlace'),
       overMode: $('#overMode'),
       overReason: $('#overReason'),
+      overHeading: $('#overHeading'),
       overBoard: $('#overBoard'),
       entryRow: $('#entryRow'),
       initials: $('#initials'),
@@ -227,15 +236,28 @@ export class UI {
   }
 
   /** Brighten one pad in the diamond -- whether the game is playing it back
-   *  or you just pressed its control, it lights up the same way. */
-  flashSimonStep(actionId) {
+   *  or you just pressed its control, it lights up the same way.
+   *
+   *  `press` additionally restarts the hit animation. Playback always has a
+   *  dark gap between steps, so two of the same pad in a row read as two
+   *  flashes for free; presses don't, and toggling a class that's already on
+   *  is a no-op, so pressing the same pad twice quickly used to look like one
+   *  long glow -- i.e. like the second press never registered. */
+  flashSimonStep(actionId, { press = false } = {}) {
     for (const [id, el] of Object.entries(this.simonPads)) {
-      el.classList.toggle('active', id === actionId);
+      const on = id === actionId;
+      el.classList.toggle('active', on);
+      if (!on) el.classList.remove('hit');
     }
+    const el = this.simonPads[actionId];
+    if (!press || !el) return;
+    el.classList.remove('hit');
+    void el.offsetWidth; // force reflow so the animation retriggers
+    el.classList.add('hit');
   }
 
   clearSimonStep() {
-    for (const el of Object.values(this.simonPads)) el.classList.remove('active');
+    for (const el of Object.values(this.simonPads)) el.classList.remove('active', 'hit');
   }
 
   /** Debug mode only: which key(s) resolve the pad Simon is currently
@@ -314,6 +336,7 @@ export class UI {
     this.el.overBest.textContent = best;
     this.el.overReason.textContent = reason;
     this.el.overMode.textContent = mode;
+    this.el.overHeading.textContent = OVER_HEADINGS[mode] || OVER_HEADINGS.simon;
     this.el.overPlace.innerHTML =
       rank >= 0
         ? `<b class="accent">${place(rank)}</b> on the ${mode} board`

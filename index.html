@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Janelia It!</title>
-<meta name="description" content="A Bop It-style game about the everyday obstacles of Janelia Research Campus: doors, soap dispensers, and badge readers." />
+<title>1nc0nVeni3nt</title>
+<meta name="description" content="A memory game about the everyday obstacles of Janelia Research Campus: doors, soap dispensers, and badge readers. Watch the sequence, repeat it back." />
 <link rel="stylesheet" href="styles/main.css" />
 <link rel="icon" href="assets/img/favicon.svg" />
 </head>
@@ -101,7 +101,9 @@
 
   <div id="overOverlay" class="overlay hidden">
     <div class="card">
-      <h2>YOU DID NOT GET IN</h2>
+      <!-- Reworded per mode in ui.showGameOver: the door joke only lands in
+           classic, where you were actually trying to get through one. -->
+      <h2 id="overHeading">OUT OF SEQUENCE</h2>
       <p id="overReason" class="reason"></p>
       <p class="bigscore"><span id="overScore">0</span></p>
       <p class="tagline" id="overPlace"></p>

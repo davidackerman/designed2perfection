@@ -42,6 +42,7 @@ export class AudioManager {
     this.preloadPromise = null;
     this.music = null;
     this.musicToken = 0; // invalidates a playMusic() still waiting on preload
+    this.tone = null;    // the one Simon note currently ringing, if any
   }
 
   /** Safe to call before any user gesture (e.g. right on page load): a
@@ -94,14 +95,19 @@ export class AudioManager {
 
   /** A single synthesized note -- used for Simon's per-pad tones instead of a
    *  sample, since there's one per action and they just need to be distinct
-   *  by ear. Short linear fades avoid a click at start/stop. */
+   *  by ear. Short linear fades avoid a click at start/stop.
+   *
+   *  Only one tone rings at a time: a new note cuts the previous one, so two
+   *  presses of the same pad sound like two notes instead of one note twice
+   *  as loud. */
   playTone(freq, durationMs = 300) {
     if (this.muted || !this.ctx || !freq) return;
+    const now = this.ctx.currentTime;
+    this.stopTone();
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
     osc.type = 'sine';
     osc.frequency.value = freq;
-    const now = this.ctx.currentTime;
     const dur = Math.max(0.05, durationMs / 1000);
     g.gain.setValueAtTime(0, now);
     g.gain.linearRampToValueAtTime(0.35, now + 0.015);
@@ -111,6 +117,23 @@ export class AudioManager {
     g.connect(this.gain);
     osc.start(now);
     osc.stop(now + dur + 0.02);
+    osc.onended = () => { if (this.tone && this.tone.osc === osc) this.tone = null; };
+    this.tone = { osc, gain: g };
+  }
+
+  /** Cut the note playTone() is currently holding, over a few milliseconds so
+   *  it doesn't click. No-op if nothing is ringing. */
+  stopTone() {
+    const tone = this.tone;
+    if (!tone || !this.ctx) return;
+    this.tone = null;
+    const now = this.ctx.currentTime;
+    try {
+      tone.gain.gain.cancelScheduledValues(now);
+      tone.gain.gain.setValueAtTime(tone.gain.gain.value, now);
+      tone.gain.gain.linearRampToValueAtTime(0, now + 0.008);
+      tone.osc.stop(now + 0.01);
+    } catch { /* already ended */ }
   }
 
   /** Loops until stopMusic(). A no-op if this key is already playing -- call
