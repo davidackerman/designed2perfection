@@ -95,12 +95,21 @@ export class SimonGame {
     this.audio.play('start');
     // No background music once a round is live -- title screen only.
     this.audio.stopMusic();
-    if (resuming) {
-      this.inputIndex = 0;
-      this.pressed = [];
-      this.playSequence();
+    const begin = () => {
+      if (resuming) {
+        this.inputIndex = 0;
+        this.pressed = [];
+        this.playSequence();
+      } else {
+        this.nextRound();
+      }
+    };
+    if (fromPasswordSuccess) {
+      // A beat to take in the stage -- the four pads sitting there, nothing
+      // happening yet -- before the first round starts throwing tones at you.
+      this.playbackTimer = setTimeout(begin, CONFIG.simon.orientPauseMs);
     } else {
-      this.nextRound();
+      begin();
     }
   }
 
@@ -214,7 +223,8 @@ export class SimonGame {
     this.ui.setHud({ score: this.score });
     this.ui.setTimer(0);
     this.ui.flash('good');
-    this.audio.play('success');
+    // No sound here on purpose -- Simon's only feedback for a correct round
+    // is the flash, same as the no-click-sfx rule on individual presses.
     this.lastDebugStep = null;
     this.ui.setSimonDebugStep(null);
     this.gapTimer = setTimeout(() => {

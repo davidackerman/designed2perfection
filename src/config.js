@@ -37,6 +37,7 @@ export const CONFIG = {
     // No knobs for the answer clock: there isn't one. Take as long as you
     // like over a press -- only a wrong pad ends the run.
     interRoundMs: 900,       // pause after a correct sequence before it grows
+    orientPauseMs: 1500,     // pause after the title transition before the first round plays, so it isn't sprung on you
     bonusMax: 10,            // bonus meter ceiling; scoring TBD
     tones: {
       // One tone per pad, in a rough Simon-style spread across an octave-ish
