@@ -394,6 +394,11 @@ window.addEventListener('keydown', (e) => {
   if (input.capture) return; // remap screen is eating keys
   if (e.defaultPrevented) return;
 
+  // Any keypress at all, while the title is up, is what starts the title's
+  // own grow/shrink/gray hint counting -- see UI.noteTitleActivity. A
+  // title nobody's touched yet should never look mid-hint.
+  if (screen === 'title') ui.noteTitleActivity();
+
   // The 911 easter egg works from anywhere; a digit is otherwise unbound to
   // any control, so this never steals a keystroke another handler wants.
   const digit = DIGIT_KEYS[e.code];

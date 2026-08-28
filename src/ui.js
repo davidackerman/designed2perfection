@@ -79,6 +79,7 @@ export class UI {
     this.flashTimer = null;
     this.titleShakeTimer = null;
     this.hintFrame = null;
+    this.titleHintArmed = false; // see noteTitleActivity
     this.debug = false;
     this.chips = new Map();      // slot id -> chip element
     this.chipTimers = new Map();
@@ -94,22 +95,38 @@ export class UI {
     // system (see showSimonOver) -- but switching to any of these screens
     // still needs to clear it out.
     this.hideSimonOver();
-    if (name === 'title') this.startTitleHint();
+    if (name === 'title') {
+      // Doesn't start counting yet -- see noteTitleActivity. A title that's
+      // just been (re)shown and hasn't been touched should look exactly
+      // like that, not already mid-hint from some earlier visit.
+      this.titleHintArmed = false;
+      cancelAnimationFrame(this.hintFrame);
+      this.el.title.style.setProperty('--hint-progress', 0);
+    }
   }
 
-  /** From the moment the title shows, over the following minute, the code
+  /** Call on any keypress while the title is showing. The grow/shrink/gray
+   *  ramp (startTitleHint) doesn't start counting until the first one of
+   *  these fires -- only a team that's actually stuck and poking at the
+   *  title should ever see it move. A no-op after the first call, until the
+   *  title is hidden and reshown (see showOverlay). */
+  noteTitleActivity() {
+    if (this.titleHintArmed) return;
+    this.titleHintArmed = true;
+    this.startTitleHint();
+  }
+
+  /** Over the following minute after the title's first touched, the code
    *  digits grow to 1.5x and the rest of the word shrinks to 0.5x -- a
-   *  gradually obvious nudge for a team that's stuck. Restarts every time
-   *  the title is (re)shown; stops itself once it's hidden again. */
+   *  gradually obvious nudge for a team that's stuck. */
   startTitleHint() {
     const shownAt = Date.now();
     cancelAnimationFrame(this.hintFrame);
-    const HINT_DELAY_MS = 0;
     const HINT_RAMP_MS = 60000;
     const tick = () => {
       if (this.el.title.classList.contains('hidden')) return; // left the title
       const elapsed = Date.now() - shownAt;
-      const progress = Math.min(1, Math.max(0, (elapsed - HINT_DELAY_MS) / HINT_RAMP_MS));
+      const progress = Math.min(1, Math.max(0, elapsed / HINT_RAMP_MS));
       this.el.title.style.setProperty('--hint-progress', progress);
       this.hintFrame = requestAnimationFrame(tick);
     };

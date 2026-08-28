@@ -406,6 +406,11 @@ window.addEventListener('keydown', (e) => {
   if (input.capture) return;
   if (e.defaultPrevented) return;
 
+  // Any keypress at all, while the title is up, is what starts the title's
+  // own grow/shrink/gray hint counting -- see UI.noteTitleActivity. A
+  // title nobody's touched yet should never look mid-hint.
+  if (screen === 'title') ui.noteTitleActivity();
+
   const digit = DIGIT_KEYS[e.code];
   if (digit !== undefined && !e.repeat) { handleDigit(digit); return; }
 
