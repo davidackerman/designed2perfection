@@ -140,8 +140,9 @@ function toTitle() {
 // instead of being silently ignored.
 function handleAction(evt) {
   if (screen === 'title') {
+    // Sound only, no shake/red -- that cue means "wrong digit of the code",
+    // and a control press isn't a digit at all, so it shouldn't look like one.
     audio.play('wrong');
-    ui.flashTitleWrong(); // same shake+red cue as a wrong digit, but progress is untouched
     return;
   }
   activeGame().handleInput(evt);

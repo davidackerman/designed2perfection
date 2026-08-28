@@ -357,12 +357,12 @@ export class UI {
     el.classList.add('code-good');
   }
 
-  /** The shared "wrong" cue for the title screen: the whole card shakes and
+  /** The "wrong digit" cue for the title screen: the whole card shakes and
    *  the title word turns solid red for the beat, covering over whatever
-   *  digits were green -- not just the offending one. Used both for a wrong
-   *  digit (caller also clears progress -- see resetTitleDigits) and for
-   *  pressing a control (push/pull/soap/swipe/tap) instead of dialing the
-   *  code, which doesn't touch progress at all. */
+   *  digits were green -- not just the offending one (caller also clears
+   *  progress -- see resetTitleDigits). Pressing a control instead of a
+   *  digit gets only the wrong sound, not this -- see main.js's
+   *  handleAction -- so the two mistakes don't look identical. */
   flashTitleWrong() {
     const card = this.el.titleCard;
     card.classList.remove('wrong-shake');
