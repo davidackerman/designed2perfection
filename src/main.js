@@ -76,7 +76,7 @@ function handleDigit(digit) {
 
   if (screen === 'title') {
     if (digit === TITLE_CODE[titleCodeProgress]) {
-      ui.markTitleDigitGood(titleCodeProgress);
+      ui.markTitleDigitGood(titleCodeProgress, digit);
       audio.play('codeRight');
       titleCodeProgress++;
       if (titleCodeProgress === TITLE_CODE.length) {

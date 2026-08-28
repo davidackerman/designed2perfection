@@ -382,13 +382,14 @@ export class UI {
   }
 
   /** Title screen's number-pad code, entered instead of pressing Start: each
-   *  correct digit fills in its dot on the password field below the title
-   *  and stays that way. The title text itself never marks anything -- see
-   *  index.html/main.css. Nothing marks a wrong digit individually -- see
-   *  flashTitleWrong. */
-  markTitleDigitGood(index) {
+   *  correct digit replaces its empty circle on the password field below
+   *  the title with the digit itself, in green, and stays that way. The
+   *  title text itself never marks anything -- see index.html/main.css.
+   *  Nothing marks a wrong digit individually -- see flashTitleWrong. */
+  markTitleDigitGood(index, digit) {
     const el = this.passwordDots[index];
     if (!el) return;
+    el.textContent = digit;
     el.classList.add('good');
   }
 
@@ -408,7 +409,10 @@ export class UI {
   }
 
   resetTitleDigits() {
-    for (const el of this.passwordDots) el.classList.remove('good');
+    for (const el of this.passwordDots) {
+      el.classList.remove('good');
+      el.textContent = '';
+    }
   }
 
   /** A pair of doors sweeping open over whatever's about to appear
