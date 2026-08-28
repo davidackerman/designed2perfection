@@ -51,21 +51,28 @@ Game 1 reuses [`src/bonus.js`](src/bonus.js) wholesale, just reconfigured
 and letters: round 1 is a plain 2x2 dialed with one flat digit per card,
 round 2 is a 4x4 dialed with a row key then a column key (row before
 column is the standard convention here — same as a matrix's `[row][col]`
-or a spreadsheet's `R1C1`), and round 3 is the hidden-word JANELIA
-challenge, worth **+2** on this page instead of the real page's +1.
-Nothing is printed on a card's back — no decoy character either, since
-there's no alnum content to hide one among, just the photo once it's
-flipped. Dialing the row key lights that row's header up and leaves it lit
-while the column key is still pending, so the second keystroke doesn't
-feel like it went nowhere; it goes dark again the instant the pair actually
-flips.
+or a spreadsheet's `R1C1`). Dialing the row key lights that row's header up
+and leaves it lit while the column key is still pending, so the second
+keystroke doesn't feel like it went nowhere; it goes dark again the instant
+the pair actually flips. Nothing is printed on a card's back — no decoy
+character either, since there's no alnum content to hide one among, just
+the photo once it's flipped.
 
-Game 2 is Simon exactly as it is on the real page. The two games' totals
-are spelled out together across the very top of the screen instead of
-tucked into either panel's corner: `Game 1 <matches>/<max> + Game 2 <best>
-= Total`. Game 1's number is how many pairs have been matched so far
-(capped at 12: 2 + 8 + 2); Game 2's is Simon's **Best**, not the live,
-near-zero-most-of-the-round Score.
+Round 3 is the hidden-word JANELIA challenge, same as the real page — but
+it's not counted as one more pair to match, so the panel's own tag and
+"Matches" label swap to **"GAME 1: BONUS"**/"Bonus" the moment round 3
+starts, and its own fraction re-bases to just that round's own worth
+(**+2** here, instead of the real page's +1) rather than folding it into
+the same running count the matching rounds were using.
+
+Game 2 is Simon exactly as it is on the real page (just without a Round
+figure in its stats line — not meaningful enough to earn a place here).
+The two games' totals are spelled out together across the very top of the
+screen instead of tucked into either panel's corner: `Game 1 <matches>/12
++ Game 2 <score> = Total`. Game 1's number is the memory board's running
+total (matches, then JANELIA's own +2 once solved); Game 2's is Simon's
+live, ongoing **Score** — not Best — so it's already moving mid-round
+instead of sitting frozen at 0 until a run actually ends.
 
 Everything else — Simon itself, classic mode, the title password, high
 scores — is identical to the real page, including the title screen: the

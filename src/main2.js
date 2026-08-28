@@ -25,33 +25,67 @@ const reflexGame = new Game({ ui, audio, scores, onGameOver: handleGameOver });
 const simonGame = new SimonGame({ ui, audio, scores, onGameOver: handleGameOver });
 // Game 1: the picture memory board -- same engine as the real page's bonus
 // board, just handed CONFIG.memory instead of CONFIG.bonus.
-const bonusGame = new BonusGame({ ui, audio, onMatch: handleBonusMatch, config: CONFIG.memory });
+const bonusGame = new BonusGame({
+  ui, audio, config: CONFIG.memory,
+  onMatch: handleBonusMatch,
+  onRoundChange: refreshTotal, // catches the round2 -> JANELIA transition itself, before any point is scored
+});
 
-// How many matches (including the JANELIA bonus) a complete run of
-// CONFIG.memory's rounds is worth -- see handleBonusMatch/refreshTotal.
-const MATCH_MAX = CONFIG.memory.rounds.reduce((sum, r) => {
-  return r.kind === 'janelia' ? sum + (CONFIG.memory.janeliaPoints ?? 1) : sum + (r.size * r.size) / 2;
+const JANELIA_POINTS = CONFIG.memory.janeliaPoints ?? 1;
+// How many matches JANELIA is worth, on top of -- not counted as part of --
+// the matching rounds; see updateGame1Heading below.
+const MATCH_ONLY_MAX = CONFIG.memory.rounds.reduce((sum, r) => {
+  return r.kind === 'janelia' ? sum : sum + (r.size * r.size) / 2;
 }, 0);
+const MATCH_MAX = MATCH_ONLY_MAX + JANELIA_POINTS;
 let matches = 0;
 
 // Direct DOM refs for this page's own Total banner -- kept local here
 // rather than added to the shared UI class, since it only exists on this
 // test page (see #totalStat/inconvenient2.html). Game 1 is the memory
-// board's match count, Game 2 is Simon's Best (a stable, aspirational
-// number instead of the live, near-zero-most-of-the-round Score).
+// board's running total (matches, plus JANELIA's own +2 once solved); Game
+// 2 is Simon's live, ongoing Score -- not Best -- so it moves mid-round
+// instead of sitting frozen until a run actually ends.
 const totalEls = {
   game1: document.querySelector('#totalGame1'),
   game2: document.querySelector('#totalGame2'),
   value: document.querySelector('#totalValue'),
 };
+const game1Tag = document.querySelector('#game1Tag');
+const bonusLabel = document.querySelector('#bonusLabel');
+
+/** Once round 3 (JANELIA) starts, this panel stops billing itself as
+ *  "matching" -- it's a flat +2, not one more pair -- so the tag and label
+ *  swap to "Bonus" and the fraction re-bases to just that +2 instead of
+ *  folding it into the same X/12 the matching rounds were using. */
+function updateGame1Heading() {
+  const isBonus = bonusGame.kind === 'janelia';
+  game1Tag.textContent = isBonus ? 'GAME 1: BONUS' : 'GAME 1: MEMORY';
+  bonusLabel.textContent = isBonus ? 'Bonus' : 'Matches';
+  ui.el.bonusHeading.textContent = isBonus
+    ? `${Math.max(0, matches - MATCH_ONLY_MAX)}/${JANELIA_POINTS}`
+    : `${matches}/${MATCH_ONLY_MAX}`;
+}
 
 function refreshTotal() {
-  const best = Number(ui.el.bestHeading.textContent) || 0;
-  ui.el.bonusHeading.textContent = `${matches}/${MATCH_MAX}`;
+  const score = Number(ui.el.scoreHeading.textContent) || 0;
+  updateGame1Heading();
   totalEls.game1.textContent = `${matches}/${MATCH_MAX}`;
-  totalEls.game2.textContent = best;
-  totalEls.value.textContent = best + matches;
+  totalEls.game2.textContent = score;
+  totalEls.value.textContent = score + matches;
 }
+
+// Simon's own Score changes every round (simon.js writes straight to
+// #scoreHeading, with no callback out to this file), so refreshTotal() alone
+// -- called only on bonus-board events -- would leave the banner's Game 2
+// stuck between them. A per-frame tick keeps it live without needing Simon
+// to know this banner exists, same idea as the even/odd test build's old
+// tickEvenOddBar.
+function tickTotalBanner() {
+  refreshTotal();
+  requestAnimationFrame(tickTotalBanner);
+}
+requestAnimationFrame(tickTotalBanner);
 
 function handleBonusMatch(count = 1) {
   matches = Math.min(matches + count, MATCH_MAX);

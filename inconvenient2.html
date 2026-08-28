@@ -52,8 +52,12 @@
          hide one among). Round 3 (JANELIA) stays in, worth more here. -->
     <section class="panel panel-bonus">
       <div class="panel-heading">
-        <div class="panel-heading-tag">GAME 1: MEMORY</div>
-        Matches <span id="bonusHeading" class="panel-heading-value">0/12</span>
+        <!-- Tag/label swap once round 3 (JANELIA) starts -- it's a flat
+             +2 bonus, not another pair to match, so it stops billing
+             itself as "matching" once you get there. See main2.js's
+             refreshTotal/updateGame1Heading. -->
+        <div class="panel-heading-tag" id="game1Tag">GAME 1: MEMORY</div>
+        <span id="bonusLabel">Matches</span> <span id="bonusHeading" class="panel-heading-value">0/10</span>
       </div>
       <div id="bonusBoard" class="bonus-board"></div>
     </section>
@@ -63,13 +67,16 @@
          memory board. -->
     <section class="panel panel-simon">
       <div class="panel-heading panel-heading-simon">
-        <div class="panel-heading-tag panel-heading-tag-simon">GAME 2: REPEAT AFTER ME</div>
+        <div class="panel-heading-tag">GAME 2: REPEAT AFTER ME</div>
         <div class="panel-heading-stats">
           Score <span id="scoreHeading" class="panel-heading-value">0</span>
           <span class="panel-heading-sep">·</span>
-          Round <span id="roundHeading" class="panel-heading-value">0</span>
-          <span class="panel-heading-sep">·</span>
           Best <span id="bestHeading" class="panel-heading-value">0</span>
+          <!-- Round isn't shown here -- not meaningful enough to earn a
+               place in this heading -- but the span itself has to stay:
+               SimonGame/UI.setHud write to it every round regardless of
+               whether this page displays it. -->
+          <span id="roundHeading" class="hidden"></span>
         </div>
       </div>
       <div class="simon-grid">

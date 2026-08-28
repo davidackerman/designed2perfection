@@ -216,15 +216,15 @@ html, body {
 }
 
 /* inconvenient2.html: the heading here carries an extra "GAME 2: REPEAT
-   AFTER ME" tag line (see .panel-heading-tag-simon) above the usual
+   AFTER ME" tag line (see .panel-heading-tag) above the usual
    Score/Round/Best -- needs a bit more reserved headroom than the real
    page's heading, or it overlaps the pads/the confined game-over card
    underneath it. */
 #stage.simon-mode.test-build .panel-simon {
-  padding-top: 92px;
+  padding-top: 96px;
 }
 #stage.simon-mode.test-build .simon-over {
-  padding-top: 92px;
+  padding-top: 96px;
 }
 
 .simon-grid {
@@ -524,28 +524,24 @@ html, body {
 /* A small caps label identifying which panel is which -- only used on the
    inconvenient2.html test build, which labels the two games "GAME 1:
    MEMORY" / "GAME 2: REPEAT AFTER ME" instead of leaving Simon unlabeled.
-   Simon's own label (.panel-heading-tag-simon below) is bumped up larger,
-   matching the emphasis its heading already had on the real page. */
+   Both games are billed equally here, so both tags share one size --
+   sized to fit "GAME 2: REPEAT AFTER ME" (the longer of the two) on a
+   single line rather than wrapping into the content below it. */
 .panel-heading-tag {
-  font-size: 12px;
+  font-size: clamp(11px, 1.9cqw, 15px);
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.14em;
   color: var(--accent);
-  margin-bottom: 2px;
-}
-.panel-heading-tag-simon {
-  font-size: clamp(18px, 4.5cqw, 28px);
-  letter-spacing: 0.12em;
   margin-bottom: 4px;
+  white-space: nowrap;
 }
 
-/* inconvenient2.html only: this panel's heading carries an extra "GAME 1:
-   MEMORY" tag line above the usual "Matches X/Y", same story as
-   .panel-simon's own padding-top override above -- without the extra
-   headroom, the board's own top row starts right under the panel's edge
-   and collides with the heading floating above it (z-index: 2). */
+/* inconvenient2.html only: both panels' headings carry this extra tag line
+   above their usual content (Matches X/Y, or Score/Round/Best) -- without
+   the extra headroom, the board/pads start right under the panel's edge
+   and collide with the heading floating above them (z-index: 2). */
 #stage.simon-mode.test-build .panel-bonus {
-  padding-top: 64px;
+  padding-top: 56px;
 }
 
 /* ---- inconvenient2.html test build: the two games' totals, spelled out

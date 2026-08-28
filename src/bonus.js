@@ -73,10 +73,11 @@ function pickHeaderSet(size) {
 }
 
 export class BonusGame {
-  constructor({ ui, audio, onMatch, config = CONFIG.bonus }) {
+  constructor({ ui, audio, onMatch, onRoundChange, config = CONFIG.bonus }) {
     this.ui = ui;
     this.audio = audio;
     this.onMatch = onMatch;
+    this.onRoundChange = onRoundChange;
     this.config = config;
     this.active = false;
     this.peeking = false;
@@ -102,6 +103,7 @@ export class BonusGame {
     this.locked = false;
     this.pendingRowKey = null;
     this.roundActive = true;
+    this.onRoundChange?.(kind, index);
 
     if (kind === 'janelia') {
       this.cards = [];
