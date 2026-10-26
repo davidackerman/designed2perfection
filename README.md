@@ -6,9 +6,9 @@ ignore you, and badge readers that care very much which way you hold the card.
 
 **Play:** https://davidackerman.github.io/designed2perfection/
 
-![Janelia It! in the default Simon-style mode](assets/img/readme-simon.jpg)
+![Janelia It! version 3: AI Invasion beside Repeat After Me](assets/img/readme-v3.jpg)
 
-*The default Simon-style mode: four campus photos, with the next one in the sequence lit up.*
+*Version 3 ([inconvenient3.html](https://davidackerman.github.io/designed2perfection/inconvenient3.html)): AI Invasion on the left, Repeat After Me on the right.*
 
 ## Modes
 
