@@ -6,6 +6,10 @@ ignore you, and badge readers that care very much which way you hold the card.
 
 **Play:** https://davidackerman.github.io/designed2perfection/
 
+![Janelia It! in classic mode](assets/img/readme-classic.jpg)
+
+*Classic mode: a door, its keypad and the prompt PULL, with the countdown bar running.*
+
 ## Modes
 
 The game defaults to a Simon-style mode: a tone-and-picture sequence over
