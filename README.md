@@ -6,9 +6,9 @@ ignore you, and badge readers that care very much which way you hold the card.
 
 **Play:** https://davidackerman.github.io/designed2perfection/
 
-![Janelia It! in classic mode](assets/img/readme-classic.jpg)
+![Janelia It! in the default Simon-style mode](assets/img/readme-simon.jpg)
 
-*Classic mode: a door, its keypad and the prompt PULL, with the countdown bar running.*
+*The default Simon-style mode: four campus photos, with the next one in the sequence lit up.*
 
 ## Modes
 
